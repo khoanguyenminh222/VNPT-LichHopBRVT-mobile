@@ -1,0 +1,8 @@
+context: nơi lưu thông tin người dung đăng nhập để sử dụng qua các screen
+screens: Các màn hình
+-LoginScreen
+-MainScreen: bao gồm các màn hình trong root
+
+npm i 
+npx expo start 
+cài đặt expo trên chPlay, quét mã qr để chạy
