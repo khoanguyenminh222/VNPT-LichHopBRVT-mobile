@@ -53,7 +53,7 @@ const TabNavigator = () => {
 
 const AppNavigator = () => {
     return (
-        <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName='Login'>
+        <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName='TabNavigator'>
             <Stack.Screen name="Login" component={LoginScreen} />
             <Stack.Screen name="NotFound" component={NotFoundScreen} />
             <Stack.Screen name="TabNavigator" component={TabNavigator} />
