@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Pressable, ScrollView, Linking } from 'react-native';
+import { View, Text, Pressable, ScrollView, Linking, RefreshControl } from 'react-native';
 import axiosInstance from '../../utils/axiosInstance';
 import { eventRoute, publicfolder } from '../../api/baseURL';
 import Toast from 'react-native-toast-message';
@@ -41,6 +41,7 @@ const CalendarPage = () => {
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [currentWeekIndex, setCurrentWeekIndex] = useState(1);
     const [events, setEvents] = useState([]);
+    const [refreshing, setRefreshing] = useState(false);
 
     const fetchEvents = async () => {
         try {
@@ -171,7 +172,14 @@ const CalendarPage = () => {
             <Text className="text-2xl text-center text-blue-800 mb-4">{selectedDate.toLocaleDateString('vi-VN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</Text>
             {selectedDate && (
                 <View className="flex-1 p-4">
-                    <ScrollView showsVerticalScrollIndicator={false}>
+                    <ScrollView showsVerticalScrollIndicator={false} refreshControl={
+                        <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={() => {
+                                fetchEvents();
+                            }}
+                        />
+                    }>
                         {/* Hiển thị danh sách sự kiện trong ngày */}
                         {sortedEvents.map((event, index) => (
                             <View key={index} className="bg-blue-100 p-6 mb-6 rounded-xl shadow-lg border border-blue-300">

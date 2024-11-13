@@ -13,10 +13,10 @@ import { CustomLightTheme } from './constants/themes';
 import Toast from 'react-native-toast-message';
 import Sidebar from './components/Sidebar';
 import LoginScreen from './screens/LoginScreen';
-import AnotherScreen from './screens/root/AnotherScreen';
 import NotFoundScreen from './screens/NotFoundScreen';
 import { navigationRef } from './utils/NavigationService';
 import LichHopScreen from './screens/root/LichHopScreen';
+import ThongTinScreen from './screens/root/ThongTinScreen';
 
 
 const Stack = createStackNavigator();
@@ -39,11 +39,11 @@ const TabNavigator = () => {
                 }}
             />
             <Tab.Screen
-                name="Another"
-                component={AnotherScreen}
+                name="Thông tin"
+                component={ThongTinScreen}
                 options={{
                     tabBarIcon: ({ focused }) => (
-                        <IconButton icon="star" iconColor={focused ? colors.primary : colors.disabled} size={24} />
+                        <IconButton icon="account" iconColor={focused ? colors.primary : colors.disabled} size={24} />
                     )
                 }}
             />
@@ -53,7 +53,7 @@ const TabNavigator = () => {
 
 const AppNavigator = () => {
     return (
-        <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName='TabNavigator'>
+        <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName='LoginScreen'>
             <Stack.Screen name="Login" component={LoginScreen} />
             <Stack.Screen name="NotFound" component={NotFoundScreen} />
             <Stack.Screen name="TabNavigator" component={TabNavigator} />
