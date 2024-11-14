@@ -6,6 +6,8 @@ import axios from 'axios';
 import { accountRoute, authRoute, phanQuyenRoute, thongKeDangNhapSaiRoute } from '../api/baseURL';
 import Toast from 'react-native-toast-message';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as WebBrowser from 'expo-web-browser';
+import * as Linking from 'expo-linking';
 
 const LoginScreen = ({ navigation }) => {
     const { user, updateUser, isLogin, logoutSystem } = useAuth();
@@ -43,6 +45,7 @@ const LoginScreen = ({ navigation }) => {
         setLoading(true);
         try {
             // Gửi yêu cầu đăng nhập đến API
+            console.log(authRoute.login)
             const response = await axios.post(authRoute.login, { username, password });
             // Nếu đăng nhập không thành công
             if (response.status < 200 || response.status >= 300) {
@@ -182,6 +185,44 @@ const LoginScreen = ({ navigation }) => {
         }
     };
 
+    const handleLoginCAS = async () => {
+        try {
+            const casLoginUrl = process.env.casURL+'?service=' + encodeURIComponent(Linking.createURL('/'));
+            
+            // Open the CAS login page in the browser
+            const result = await WebBrowser.openAuthSessionAsync(casLoginUrl, Linking.createURL('/'));
+            console.log("result",result)
+            if (result.type === 'success') {
+                const redirectUrl = result.url;
+    
+                // Parse the ticket or token from the CAS redirect URL
+                const params = new URLSearchParams(redirectUrl.split('?')[1]);
+                const ticket = params.get('ticket');
+    
+                if (ticket) {
+                    // Use the ticket to authenticate with your backend server
+                    await authenticateWithBackend(ticket);
+                } else {
+                    console.log('Ticket not found');
+                }
+            }
+        } catch (error) {
+            console.error('CAS login failed', error);
+        }
+    }
+
+    const authenticateWithBackend = async (ticket) => {
+        console.log(ticket)
+        //const response = await axios.post(authRoute.casbrvtlogin, { ticket });
+    
+        if (response.ok) {
+            // Successful login
+            console.log('Logged in successfully');
+        } else {
+            console.log('Failed to authenticate');
+        }
+    };
+
     return (
         <View className="flex-1 justify-center p-4">
             <Text variant='headlineMedium' className="font-bold text-center mb-6">Đăng nhập</Text>
@@ -201,6 +242,9 @@ const LoginScreen = ({ navigation }) => {
             />
             <Button mode="contained" onPress={handleLogin} className="mt-4" disabled={loading}>
                 {loading ? <ActivityIndicator color="#fff" /> : 'Đăng nhập'}
+            </Button>
+            <Button mode="text" onPress={handleLoginCAS} className="mt-4">
+                Đăng nhập bằng CAS
             </Button>
         </View>
     );
