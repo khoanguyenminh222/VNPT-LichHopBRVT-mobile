@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator, Alert } from 'react-native';
 import { TextInput, Button, Text } from 'react-native-paper';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
-import { accountRoute, authRoute, phanQuyenRoute, thongKeDangNhapSaiRoute } from '../api/baseURL';
+import { accountRoute, authRoute, domain, phanQuyenRoute, thongKeDangNhapSaiRoute } from '../api/baseURL';
 import Toast from 'react-native-toast-message';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as WebBrowser from 'expo-web-browser';
@@ -187,11 +187,16 @@ const LoginScreen = ({ navigation }) => {
 
     const handleLoginCAS = async () => {
         try {
-            const casLoginUrl = process.env.casURL+'?service=' + encodeURIComponent(Linking.createURL('/'));
-            
-            // Open the CAS login page in the browser
-            const result = await WebBrowser.openAuthSessionAsync(casLoginUrl, Linking.createURL('/'));
-            console.log("result",result)
+            const baseUrl = process.env.casURL;  // Địa chỉ URL của dịch vụ CAS
+            const callbackUrl = Linking.createURL('vnptlichhop://');  // Callback URL
+
+            // Tạo URL đăng nhập CAS với callback URL
+            const casLoginUrl = `${baseUrl}?service=${callbackUrl}`;
+
+            // Mở trang CAS và xử lý callback
+            const result = await WebBrowser.openAuthSessionAsync(casLoginUrl, callbackUrl);
+    
+            console.log("WebBrowser result:", result);
             if (result.type === 'success') {
                 const redirectUrl = result.url;
     

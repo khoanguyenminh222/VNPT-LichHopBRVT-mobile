@@ -2,13 +2,12 @@
   "expo": {
     "name": "VNPTLichHop",
     "slug": "VNPTLichHop",
-    "scheme": "vnptlichhop",  
     "version": "1.0.0",
     "orientation": "default",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/logoVNPT.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/logoVNPT.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -21,16 +20,17 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/logoVNPT.png",
         "backgroundColor": "#ffffff"
       },
       "permissions": [
-        "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE",
-        "ACCESS_FINE_LOCATION",
-        "ACCESS_COARSE_LOCATION"
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.RECORD_AUDIO"
       ],
-      "enableHermes": true
+      "package": "com.vnpt.lichhop"
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -52,9 +52,22 @@
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "Allow CSDL Ngoai Vu to use your location."
+          "locationAlwaysAndWhenInUsePermission": "Allow VNPT Lich Hop to use your location."
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "1a7af064-a908-4a6e-aca6-65885735b675"
+      }
+    }
   }
 }

@@ -17,7 +17,7 @@ import NotFoundScreen from './screens/NotFoundScreen';
 import { navigationRef } from './utils/NavigationService';
 import LichHopScreen from './screens/root/LichHopScreen';
 import ThongTinScreen from './screens/root/ThongTinScreen';
-
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -53,7 +53,7 @@ const TabNavigator = () => {
 
 const AppNavigator = () => {
     return (
-        <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName='LoginScreen'>
+        <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName='Login'>
             <Stack.Screen name="Login" component={LoginScreen} />
             <Stack.Screen name="NotFound" component={NotFoundScreen} />
             <Stack.Screen name="TabNavigator" component={TabNavigator} />
@@ -63,14 +63,16 @@ const AppNavigator = () => {
 
 export default function App() {
     return (
-        <AuthProvider>
-            <PaperProvider theme={CustomLightTheme}>
-                <NavigationContainer ref={navigationRef}>
-                    <AppNavigator />
-                    <StatusBar style="dark" />
-                    <Toast />
-                </NavigationContainer>
-            </PaperProvider>
-        </AuthProvider>
+        <SafeAreaProvider>
+            <AuthProvider>
+                <PaperProvider theme={CustomLightTheme}>
+                    <NavigationContainer ref={navigationRef}>
+                        <AppNavigator />
+                        <StatusBar style="dark" />
+                        <Toast />
+                    </NavigationContainer>
+                </PaperProvider>
+            </AuthProvider>
+        </SafeAreaProvider>
     );
 }

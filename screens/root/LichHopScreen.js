@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Pressable, Linking } from 'react-native';
+import { View, Text, Pressable, Linking, Alert } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import axiosInstance from '../../utils/axiosInstance';
 import { eventRoute, publicfolder } from '../../api/baseURL';
@@ -10,38 +10,17 @@ import { PanGestureHandler, State, ScrollView, RefreshControl } from 'react-nati
 import { faClipboard, faClockFour } from '@fortawesome/free-solid-svg-icons';
 import ReminderModal from '../../components/ReminderModal';
 import * as Notifications from 'expo-notifications';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
-// Hàm hỗ trợ để lấy ngày bắt đầu và ngày kết thúc của tuần hiện tại
-const getWeekDates = (date) => {
-    const startDate = new Date(date);
-    const startDay = startDate.getDay();
-    const diff = startDay >= 1 ? startDay - 1 : 6;
-    startDate.setDate(startDate.getDate() - diff);
+Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: false,
+    }),
+});
 
-    const days = [];
-    for (let i = 0; i < 7; i++) {
-        const newDate = new Date(startDate);
-        newDate.setDate(startDate.getDate() + i);
-        days.push(newDate);
-    }
-
-    return days;
-};
-
-// Hàm hỗ trợ để lấy tất cả các ngày trong khoảng thời gian sự kiện
-const getEventDays = (ngayBatDau, ngayKetThuc) => {
-    const startDate = new Date(ngayBatDau);
-    const endDate = new Date(ngayKetThuc);
-    const days = [];
-
-    for (let currentDate = new Date(startDate); currentDate <= endDate; currentDate.setDate(currentDate.getDate() + 1)) {
-        days.push(new Date(currentDate));
-    }
-
-    return days;
-};
-
-const CalendarPage = () => {
+const LichHopScreen = () => {
     const [currentWeek, setCurrentWeek] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [currentWeekIndex, setCurrentWeekIndex] = useState(1);
@@ -49,52 +28,37 @@ const CalendarPage = () => {
     const [refreshing, setRefreshing] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
     const [selectedEvent, setSelectedEvent] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const scheduleEventNotification = async (event) => {
-        // Lấy thời gian sự kiện từ event (ngày và giờ)
-        const eventDate = new Date(`${event.ngayBatDau}T${event.gioBatDau}`);
-    
-        // Lấy thời gian 00:00 hôm nay
-        const todayStart = new Date();
-        todayStart.setHours(0, 0, 0, 0); // Đặt lại giờ thành 00:00:00 của ngày hôm nay
-    
-        // Lấy thời gian 23:59 hôm nay
-        const todayEnd = new Date(todayStart);
-        todayEnd.setHours(23, 59, 59, 999); // Đặt lại giờ thành 23:59:59 của ngày hôm nay
-    
-        // Kiểm tra nếu sự kiện diễn ra trong khoảng từ 00:00 đến 23:59 hôm nay
-        if (eventDate >= todayStart && eventDate <= todayEnd) {
-            
-            // Thông báo ngay lập tức nếu sự kiện xảy ra trong ngày hôm nay
-            await Notifications.scheduleNotificationAsync({
-                content: {
-                    title: 'Sự kiện sắp diễn ra',
-                    body: `Sự kiện "${event.noiDungCuocHop}" sẽ diễn ra vào lúc ${event.gioBatDau}.`,
-                    sound: true,
-                },
-                trigger: { seconds: 5 }, // Thông báo ngay lập tức sau 5 giây (có thể điều chỉnh tùy nhu cầu)
-            });
+    // Hàm hỗ trợ để lấy ngày bắt đầu và ngày kết thúc của tuần hiện tại
+    const getWeekDates = (date) => {
+        const startDate = new Date(date);
+        const startDay = startDate.getDay();
+        const diff = startDay >= 1 ? startDay - 1 : 6;
+        startDate.setDate(startDate.getDate() - diff);
+
+        const days = [];
+        for (let i = 0; i < 7; i++) {
+            const newDate = new Date(startDate);
+            newDate.setDate(startDate.getDate() + i);
+            days.push(newDate);
         }
+
+        return days;
     };
 
-    // Gọi hàm `scheduleEventNotification` cho từng sự kiện khi dữ liệu sự kiện được tải về
-    useEffect(() => {
-        if (events.length) {
-            events.forEach(event => scheduleEventNotification(event));
+    // Hàm hỗ trợ để lấy tất cả các ngày trong khoảng thời gian sự kiện
+    const getEventDays = (ngayBatDau, ngayKetThuc) => {
+        const startDate = new Date(ngayBatDau);
+        const endDate = new Date(ngayKetThuc);
+        const days = [];
+
+        for (let currentDate = new Date(startDate); currentDate <= endDate; currentDate.setDate(currentDate.getDate() + 1)) {
+            days.push(new Date(currentDate));
         }
-    }, [events]);
 
-    // Đảm bảo quyền truy cập thông báo
-    useEffect(() => {
-        const requestPermissions = async () => {
-            const { status } = await Notifications.requestPermissionsAsync();
-            if (status !== 'granted') {
-                alert('Cần cấp quyền thông báo để nhận nhắc nhở sự kiện.');
-            }
-        };
-        requestPermissions();
-    }, []);
-
+        return days;
+    };
 
     // Hàm lấy ra event từ server
     const fetchEvents = async () => {
@@ -110,6 +74,8 @@ const CalendarPage = () => {
                 position: 'top',
                 visibilityTime: 3000,
             });
+        } finally {
+            setIsLoading(false);
         }
     }
     useEffect(() => {
@@ -122,6 +88,9 @@ const CalendarPage = () => {
     const getEventsForDate = (date) => {
         const formattedDate = date.toISOString().split('T')[0];
         return events.filter((event) => {
+            // Kiểm tra nếu có sự kiện với ngày bắt đầu và kết thúc hợp lệ
+            if (!event.ngayBatDau || !event.ngayKetThuc) return false;
+
             const eventDays = getEventDays(event.ngayBatDau, event.ngayKetThuc);
             return eventDays.some(eventDay => eventDay.toISOString().split('T')[0] === formattedDate);
         });
@@ -183,7 +152,7 @@ const CalendarPage = () => {
     };
 
     // Sắp xếp các sự kiện cho ngày đã chọn
-    const sortedEvents = sortEventsByStartTime(getEventsForDate(selectedDate));
+    const sortedEvents = events.length ? sortEventsByStartTime(getEventsForDate(selectedDate)) : [];
 
     // Chuyển đến ngày tiếp theo
     const handleNextDay = () => {
@@ -269,13 +238,21 @@ const CalendarPage = () => {
 
     // // Xử lý khi chọn nhắc nhở
     const handleReminderSelect = async (event, minutes) => {
+        // Kiểm tra quyền
+        const { status } = await Notifications.getPermissionsAsync();
+        if (status !== 'granted') {
+            Alert.alert('Permission not granted for notifications');
+            return;
+        }
+
         const eventDateTime = new Date(`${event.ngayBatDau}T${event.gioBatDau}`);
         const reminderTime = new Date(eventDateTime.getTime() - minutes * 60 * 1000);
-    
+
         await Notifications.scheduleNotificationAsync({
             content: {
                 title: "Nhắc nhở họp",
-                body: `Cuộc họp của bạn sẽ diễn ra trong ${minutes} phút.`,
+                body: `Cuộc họp của "${event.noiDungCuocHop}" sẽ diễn ra trong ${minutes} phút.`,
+                sound: true,
             },
             trigger: { date: reminderTime },
         });
@@ -287,163 +264,197 @@ const CalendarPage = () => {
             position: 'top',
             visibilityTime: 3000,
         });
-    
         setModalVisible(false);
     };
+
+    // Gọi hàm kiểm tra và yêu cầu quyền khi ứng dụng mở
+    useEffect(() => {
+        const requestPermissions = async () => {
+            const { status } = await Notifications.requestPermissionsAsync();
+            if (status !== 'granted') {
+                alert('Cần cấp quyền thông báo để nhận nhắc nhở sự kiện.');
+            }
+        };
+        requestPermissions();
+    }, []);
 
     // Đóng modal nhắc nhở
     const handleModalClose = () => {
         setModalVisible(false);
     };
 
-    return (
-        <View className="flex-1 bg-gray-50">
-            <View className="flex-row justify-between items-center mb-6">
-                <Pressable
-                    onPress={handlePreviousWeek}
-                    className={currentWeekIndex <= 1 ? "opacity-0 pointer-events-none" : "p-4"}
-                >
-                    <Text className="text-2xl text-blue-600">{"<"}</Text>
-                </Pressable>
+    // Hàm kiểm tra JSON và trả về mảng file hoặc mảng rỗng
+    const parseFileAttachments = (fileDinhKem) => {
+        if (typeof fileDinhKem === "string") {
+            try {
+                const parsed = JSON.parse(fileDinhKem);
+                return Array.isArray(parsed) ? parsed : [];
+            } catch (error) {
+                console.error("JSON parsing error:", error);
+                return [];
+            }
+        }
+        return [];
+    };
 
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ flexDirection: 'row', paddingHorizontal: 10 }}>
-                    {weekDates.map((item, index) => (
-                        <Pressable
-                            key={index}
-                            onPress={() => handleSelectDate(item)}
-                            className={`flex items-center p-3 mx-1 rounded-md ${selectedDate && selectedDate.getDate() === item.getDate() ? 'bg-blue-500' : 'bg-white'}`}
-                        >
-                            <Text className={`text-base ${selectedDate && selectedDate.getDate() === item.getDate() ? 'text-white font-semibold' : 'text-gray-600'}`}>
-                                {item.toLocaleDateString('vi-VN', { weekday: 'short' })}
-                            </Text>
-                            <Text className={`text-lg ${selectedDate && selectedDate.getDate() === item.getDate() ? 'text-white font-bold' : 'text-gray-800'}`}>
-                                {item.getDate()}
-                            </Text>
-                        </Pressable>
-                    ))}
-                </ScrollView>
-
-                <Pressable
-                    onPress={handleNextWeek}
-                    className={currentWeekIndex >= 2 ? "opacity-0 pointer-events-none" : "p-4"}
-                >
-                    <Text className="text-2xl text-blue-600">{">"}</Text>
-                </Pressable>
+    if (isLoading) {
+        return (
+            <View className="flex-1 justify-center items-center">
+                <Text className="text-blue-600 text-2xl">Đang tải dữ liệu...</Text>
             </View>
-            {/* Hiển thị thứ, ngày  */}
-            <Text className="text-2xl text-center text-blue-800 mb-4">{selectedDate.toLocaleDateString('vi-VN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</Text>
-            <PanGestureHandler
-                onGestureEvent={handleGestureEvent}
-                onHandlerStateChange={handleHandlerStateChange}
-            >
-                {selectedDate && (
-                    <View className="flex-1 p-4">
-                        <ScrollView
-                            showsVerticalScrollIndicator={false}
-                            refreshControl={
-                                <RefreshControl
-                                    refreshing={refreshing}
-                                    onRefresh={() => {
-                                        fetchEvents();
-                                    }}
-                                />
-                            }
-                        >
-                            {/* Hiển thị danh sách sự kiện trong ngày */}
-                            {sortedEvents.map((event, index) => (
-                                <View key={index} className={`${event.trangThai === 'huy' ? 'bg-red-100' : 'bg-blue-100'} p-6 mb-6 rounded-xl shadow-lg border border-blue-300 relative`}>
-                                    {/* Tên sự kiện */}
-                                    <Text className={`${event.trangThai === 'huy' ? 'text-red-500 line-through' : 'text-blue-900'} font-bold text-2xl mb-2`}>
-                                        {event.noiDungCuocHop}
-                                    </Text>
+        );
+    }
 
-                                    {/* Địa điểm */}
-                                    <Text className={`${event.trangThai === 'huy' ? 'text-red-500 line-through' : 'text-blue-700'} text-xl mb-2 font-extrabold`}>
-                                        {event.diaDiem}
-                                    </Text>
+    return (
+        <GestureHandlerRootView style={{ flex: 1 }}>
+            <View className="flex-1 bg-gray-50">
+                <View className="flex-row justify-between items-center mb-6">
+                    <Pressable
+                        onPress={handlePreviousWeek}
+                        className={currentWeekIndex <= 1 ? "opacity-0 pointer-events-none" : "p-4"}
+                    >
+                        <Text className="text-2xl text-blue-600">{"<"}</Text>
+                    </Pressable>
 
-                                    {/* Thời gian */}
-                                    <Text className={`${event.trangThai === 'huy' ? 'text-red-500 line-through' : 'text-blue-500'} mb-2`}>
-                                        Thời gian: <Text className="font-semibold text-xl">{event.gioBatDau} - {event.gioKetThuc}</Text>
-                                    </Text>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ flexDirection: 'row', paddingHorizontal: 10 }}>
+                        {weekDates.map((item, index) => (
+                            <Pressable
+                                key={index}
+                                onPress={() => handleSelectDate(item)}
+                                className={`flex items-center p-3 mx-1 rounded-md ${selectedDate && selectedDate.getDate() === item.getDate() ? 'bg-blue-500' : 'bg-white'}`}
+                            >
+                                <Text className={`text-base ${selectedDate && selectedDate.getDate() === item.getDate() ? 'text-white font-semibold' : 'text-gray-600'}`}>
+                                    {item.toLocaleDateString('vi-VN', { weekday: 'short' })}
+                                </Text>
+                                <Text className={`text-lg ${selectedDate && selectedDate.getDate() === item.getDate() ? 'text-white font-bold' : 'text-gray-800'}`}>
+                                    {item.getDate()}
+                                </Text>
+                            </Pressable>
+                        ))}
+                    </ScrollView>
 
-                                    {/* Chủ trì */}
-                                    <Text className={`${event.trangThai === 'huy' ? 'text-red-500 line-through' : 'text-blue-600'} mb-2`}>
-                                        Chủ trì: {event.chuTri}
-                                    </Text>
-
-                                    {/* Chuẩn bị (nếu có) */}
-                                    {event.chuanBi && (
-                                        <Text className={`${event.trangThai === 'huy' ? 'text-red-500 line-through' : 'text-blue-600'} mb-2`}>
-                                            Chuẩn bị: {event.chuanBi}
+                    <Pressable
+                        onPress={handleNextWeek}
+                        className={currentWeekIndex >= 2 ? "opacity-0 pointer-events-none" : "p-4"}
+                    >
+                        <Text className="text-2xl text-blue-600">{">"}</Text>
+                    </Pressable>
+                </View>
+                {/* Hiển thị thứ, ngày  */}
+                <Text className="text-2xl text-center text-blue-800 mb-4">{selectedDate.toLocaleDateString('vi-VN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</Text>
+                <PanGestureHandler
+                    onGestureEvent={handleGestureEvent}
+                    onHandlerStateChange={handleHandlerStateChange}
+                >
+                    {selectedDate && (
+                        <View className="flex-1 p-4">
+                            <ScrollView
+                                showsVerticalScrollIndicator={false}
+                                refreshControl={
+                                    <RefreshControl
+                                        refreshing={refreshing}
+                                        onRefresh={() => {
+                                            fetchEvents();
+                                        }}
+                                    />
+                                }
+                            >
+                                {/* Hiển thị danh sách sự kiện trong ngày */}
+                                {sortedEvents.map((event, index) => (
+                                    <View key={index} className={`${event.trangThai === 'huy' ? 'bg-red-100' : 'bg-blue-100'} p-6 mb-6 rounded-xl shadow-lg border border-blue-300 relative`}>
+                                        {/* Tên sự kiện */}
+                                        <Text className={`${event.trangThai === 'huy' ? 'text-red-500 line-through' : 'text-blue-900'} font-bold text-2xl mb-2`}>
+                                            {event.noiDungCuocHop}
                                         </Text>
-                                    )}
 
-                                    {/* Thành phần */}
-                                    <Text className={`${event.trangThai === 'huy' ? 'text-red-500 line-through' : 'text-blue-600'} mb-2`}>
-                                        Thành phần: {event.thanhPhan}
-                                    </Text>
-
-                                    {/* Mời (nếu có) */}
-                                    {event.moi && (
-                                        <Text className={`${event.trangThai === 'huy' ? 'text-red-500 line-through' : 'text-blue-600'} mb-2`}>
-                                            Mời: {event.moi}
+                                        {/* Địa điểm */}
+                                        <Text className={`${event.trangThai === 'huy' ? 'text-red-500 line-through' : 'text-blue-700'} text-xl mb-2 font-extrabold`}>
+                                            {event.diaDiem}
                                         </Text>
-                                    )}
 
-                                    {/* Ghi chú (nếu có) */}
-                                    {event.ghiChu && (
-                                        <Text className={`${event.trangThai === 'huy' ? 'text-red-500 line-through' : 'text-blue-600'} mb-2`}>
-                                            Ghi chú: {event.ghiChu}
+                                        {/* Thời gian */}
+                                        <Text className={`${event.trangThai === 'huy' ? 'text-red-500 line-through' : 'text-blue-500'} mb-2`}>
+                                            Thời gian: <Text className="font-semibold text-xl">{event.gioBatDau} - {event.gioKetThuc}</Text>
                                         </Text>
-                                    )}
 
-                                    {/* File đính kèm */}
-                                    {event.fileDinhKem && (
-                                        <View className="mt-4">
-                                            <Text className="text-blue-800 font-semibold">File đính kèm</Text>
-                                            {JSON.parse(event.fileDinhKem).map((fileName, index) => (
-                                                <Pressable
-                                                    key={index}
-                                                    onPress={() => handleDownload(publicfolder + "/documents/" + fileName)}
-                                                    className="py-2 px-4 mt-2 rounded-md bg-blue-500 hover:bg-blue-600"
-                                                >
-                                                    <Text className="flex items-center text-white">
-                                                        <FontAwesomeIcon color='white' icon={faDownload} className="mr-2" /> {fileName}
-                                                    </Text>
-                                                </Pressable>
-                                            ))}
+                                        {/* Chủ trì */}
+                                        <Text className={`${event.trangThai === 'huy' ? 'text-red-500 line-through' : 'text-blue-600'} mb-2`}>
+                                            Chủ trì: {event.chuTri}
+                                        </Text>
+
+                                        {/* Chuẩn bị (nếu có) */}
+                                        {event.chuanBi && (
+                                            <Text className={`${event.trangThai === 'huy' ? 'text-red-500 line-through' : 'text-blue-600'} mb-2`}>
+                                                Chuẩn bị: {event.chuanBi}
+                                            </Text>
+                                        )}
+
+                                        {/* Thành phần */}
+                                        <Text className={`${event.trangThai === 'huy' ? 'text-red-500 line-through' : 'text-blue-600'} mb-2`}>
+                                            Thành phần: {event.thanhPhan}
+                                        </Text>
+
+                                        {/* Mời (nếu có) */}
+                                        {event.moi && (
+                                            <Text className={`${event.trangThai === 'huy' ? 'text-red-500 line-through' : 'text-blue-600'} mb-2`}>
+                                                Mời: {event.moi}
+                                            </Text>
+                                        )}
+
+                                        {/* Ghi chú (nếu có) */}
+                                        {event.ghiChu && (
+                                            <Text className={`${event.trangThai === 'huy' ? 'text-red-500 line-through' : 'text-blue-600'} mb-2`}>
+                                                Ghi chú: {event.ghiChu}
+                                            </Text>
+                                        )}
+
+                                        {/* File đính kèm */}
+                                        {event.fileDinhKem && (
+                                            <View className="mt-4">
+                                                <Text className="text-blue-800 font-semibold">File đính kèm</Text>
+                                                {parseFileAttachments(event.fileDinhKem).map((fileName, index) => (
+                                                    <Pressable
+                                                        key={index}
+                                                        onPress={() => handleDownload(publicfolder + "/documents/" + fileName)}
+                                                        className="py-2 px-4 mt-2 rounded-md bg-blue-500 hover:bg-blue-600"
+                                                    >
+                                                        <Text className="flex items-center text-white">
+                                                            <FontAwesomeIcon color='white' icon={faDownload} className="mr-2" /> {fileName}
+                                                        </Text>
+                                                    </Pressable>
+                                                ))}
+                                            </View>
+                                        )}
+
+                                        <View className="absolute top-0 right-0 p-1 rounded-lg flex flex-row gap-2">
+                                            <Pressable
+                                                onPress={() => handleCopyText(event)}
+                                                className="p-2 bg-blue-500 rounded-lg"
+                                            >
+                                                <FontAwesomeIcon color='white' icon={faClipboard} size={20} />
+                                            </Pressable>
+                                            <Pressable
+                                                onPress={() => { setModalVisible(true); setSelectedEvent(event); }}
+                                                className="p-2 bg-blue-500 rounded-lg">
+                                                <FontAwesomeIcon color='white' icon={faClockFour} size={20} />
+                                            </Pressable>
                                         </View>
-                                    )}
-
-                                    <View className="absolute top-0 right-0 p-1 rounded-lg flex flex-row gap-2">
-                                        <Pressable
-                                            onPress={() => handleCopyText(event)}
-                                            className="p-2 bg-blue-500 rounded-lg"
-                                        >
-                                            <FontAwesomeIcon color='white' icon={faClipboard} size={20} />
-                                        </Pressable>
-                                        <Pressable
-                                            onPress={() => {setModalVisible(true); setSelectedEvent(event);}}
-                                            className="p-2 bg-blue-500 rounded-lg">
-                                            <FontAwesomeIcon color='white' icon={faClockFour} size={20} />
-                                        </Pressable>
                                     </View>
-                                </View>
-                            ))}
+                                ))}
 
-                        </ScrollView>
-                    </View>
-                )}
-            </PanGestureHandler>
-            <ReminderModal
-                visible={modalVisible}
-                onClose={handleModalClose}
-                onSelectReminder={handleReminderSelect}
-                event={selectedEvent}
-            />
-        </View>
+                            </ScrollView>
+                        </View>
+                    )}
+                </PanGestureHandler>
+                <ReminderModal
+                    visible={modalVisible}
+                    onClose={handleModalClose}
+                    onSelectReminder={handleReminderSelect}
+                    event={selectedEvent}
+                />
+            </View>
+        </GestureHandlerRootView>
     );
 };
 
-export default CalendarPage;
+export default LichHopScreen;
