@@ -4,7 +4,7 @@
     "slug": "VNPTLichHop",
     "version": "1.0.0",
     "orientation": "default",
-    "icon": "./assets/logoVNPT.png",
+    "icon": "./assets/iconLich.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/logoVNPT.png",
@@ -13,6 +13,7 @@
     },
     "ios": {
       "supportsTablet": true,
+      "bundleIdentifier": "com.vnpt.ttcntt.lichhop",
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "The app accesses your photos to let you share them with your friends.",
         "NSDocumentsFolderUsageDescription": "The app accesses your documents to allow you to share and upload files."
@@ -30,7 +31,7 @@
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.RECORD_AUDIO"
       ],
-      "package": "com.vnpt.lichhop"
+      "package": "com.vnpt.ttcntt.lichhop"
     },
     "web": {
       "favicon": "./assets/favicon.png",

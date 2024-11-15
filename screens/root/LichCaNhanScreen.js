@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, Pressable, Linking, Alert } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import axiosInstance from '../../utils/axiosInstance';
-import { eventRoute, publicfolder } from '../../api/baseURL';
+import { lichCaNhanRoute, publicfolder } from '../../api/baseURL';
 import Toast from 'react-native-toast-message';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faDownload } from '@fortawesome/free-solid-svg-icons/faDownload';
@@ -20,7 +20,7 @@ Notifications.setNotificationHandler({
     }),
 });
 
-const LichHopScreen = () => {
+const LichCaNhanScreen = () => {
     const [currentWeek, setCurrentWeek] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [currentWeekIndex, setCurrentWeekIndex] = useState(1);
@@ -63,7 +63,7 @@ const LichHopScreen = () => {
     // Hàm lấy ra event từ server
     const fetchEvents = async () => {
         try {
-            const response = await axiosInstance.get(eventRoute.findAll);
+            const response = await axiosInstance.get(lichCaNhanRoute.findAll);
             setEvents(response.data);
         } catch (error) {
             console.log('Failed to fetch events:', error);
@@ -362,51 +362,30 @@ const LichHopScreen = () => {
                                 {/* Hiển thị danh sách sự kiện trong ngày */}
                                 {sortedEvents.map((event, index) => (
                                     <View key={index} className={`${event.trangThai === 'huy' ? 'bg-gray-100 border-gray-300' : event.trangThai === 'quanTrong' ? 'bg-red-100 border-red-300' : 'bg-blue-100 border-blue-300'} p-6 mb-6 rounded-xl shadow-lg border relative`}>
-                                        {/* Tên sự kiện */}
+                                        {/* Loại sự kiện */}
+                                        <Text className={`${event.trangThai === 'huy' ? 'text-gray-800 line-through' : event.trangThai == 'quanTrong' ? 'text-red-800' : 'text-blue-800'} font-bold text-xl mb-2`}>
+                                            Loại sự kiện: {event.loaiSuKien}
+                                        </Text>
+
+                                        {/* Chủ đề */}
                                         <Text className={`${event.trangThai === 'huy' ? 'text-gray-900 line-through' : event.trangThai == 'quanTrong' ? 'text-red-900' : 'text-blue-900'} font-bold text-2xl mb-2`}>
-                                            {event.noiDungCuocHop}
+                                            Chủ đề: {event.chuDe}
                                         </Text>
 
                                         {/* Địa điểm */}
-                                        <Text className={`${event.trangThai === 'huy' ? 'text-gray-700 line-through' : event.trangThai == 'quanTrong' ? 'text-red-700' : 'text-blue-700'} text-xl mb-2 font-extrabold`}>
+                                        <Text className={`${event.trangThai === 'huy' ? 'text-gray-500 line-through' : event.trangThai == 'quanTrong' ? 'text-red-500' : 'text-blue-500'} font-bold text-xl mb-2`}>
                                             {event.diaDiem}
                                         </Text>
 
                                         {/* Thời gian */}
-                                        <Text className={`${event.trangThai === 'huy' ? 'text-gray-500 line-through' : event.trangThai == 'quanTrong' ? 'text-red-500' : 'text-blue-500'} mb-2`}>
+                                        <Text className={`${event.trangThai === 'huy' ? 'text-gray-500 line-through' : event.trangThai == 'quanTrong' ? 'text-red-500' : 'text-blue-500'} font-bold mb-2`}>
                                             Thời gian: <Text className="font-semibold text-xl">{event.gioBatDau} - {event.gioKetThuc}</Text>
                                         </Text>
 
-                                        {/* Chủ trì */}
-                                        <Text className={`${event.trangThai === 'huy' ? 'text-gray-600 line-through' : event.trangThai == 'quanTrong' ? 'text-red-600' : 'text-blue-600'} mb-2`}>
-                                            Chủ trì: {event.chuTri}
+                                        {/* Nội dung */}
+                                        <Text className={`${event.trangThai === 'huy' ? 'text-gray-600 line-through' : event.trangThai == 'quanTrong' ? 'text-red-600' : 'text-blue-600'} font-bold mb-2`}>
+                                            Nội dung: {event.noiDung}
                                         </Text>
-
-                                        {/* Chuẩn bị (nếu có) */}
-                                        {event.chuanBi && (
-                                            <Text className={`${event.trangThai === 'huy' ? 'text-gray-600 line-through' : event.trangThai == 'quanTrong' ? 'text-red-600' : 'text-blue-600'} mb-2`}>
-                                                Chuẩn bị: {event.chuanBi}
-                                            </Text>
-                                        )}
-
-                                        {/* Thành phần */}
-                                        <Text className={`${event.trangThai === 'huy' ? 'text-gray-600 line-through' : event.trangThai == 'quanTrong' ? 'text-red-600' : 'text-blue-600'} mb-2`}>
-                                            Thành phần: {event.thanhPhan}
-                                        </Text>
-
-                                        {/* Mời (nếu có) */}
-                                        {event.moi && (
-                                            <Text className={`${event.trangThai === 'huy' ? 'text-gray-600 line-through' : event.trangThai == 'quanTrong' ? 'text-red-600' : 'text-blue-600'} mb-2`}>
-                                                Mời: {event.moi}
-                                            </Text>
-                                        )}
-
-                                        {/* Ghi chú (nếu có) */}
-                                        {event.ghiChu && (
-                                            <Text className={`${event.trangThai === 'huy' ? 'text-gray-500 line-through' : event.trangThai === 'quanTrong' ? 'text-red-500' : 'text-blue-600'} mb-2`}>
-                                                Ghi chú: {event.ghiChu}
-                                            </Text>
-                                        )}
 
                                         {/* File đính kèm */}
                                         {event.fileDinhKem && (
@@ -435,8 +414,7 @@ const LichHopScreen = () => {
                                             </Pressable>
                                             <Pressable
                                                 onPress={() => { setModalVisible(true); setSelectedEvent(event); }}
-                                                className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai === 'quanTrong' ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}
-                                            >
+                                                className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai === 'quanTrong' ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}>
                                                 <FontAwesomeIcon color='white' icon={faClockFour} size={20} />
                                             </Pressable>
                                         </View>
@@ -458,4 +436,4 @@ const LichHopScreen = () => {
     );
 };
 
-export default LichHopScreen;
+export default LichCaNhanScreen;

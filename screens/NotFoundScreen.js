@@ -4,7 +4,7 @@ import React from 'react';
 const NotFoundScreen = ({ navigation }) => {
 
     const handleGoBack = () => {
-        navigation.navigate('Root');
+        navigation.navigate('TabNavigator');
     };
 
     return (

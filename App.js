@@ -16,8 +16,11 @@ import LoginScreen from './screens/LoginScreen';
 import NotFoundScreen from './screens/NotFoundScreen';
 import { navigationRef } from './utils/NavigationService';
 import LichHopScreen from './screens/root/LichHopScreen';
+import LichCaNhanScreen from './screens/root/LichCaNhanScreen';
 import ThongTinScreen from './screens/root/ThongTinScreen';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import hasAccess from './utils/permissionsAllowedURL';
+import { screenUrls } from './api/routes';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -27,17 +30,31 @@ const DonViStack = createStackNavigator();
 
 const TabNavigator = () => {
     const { colors } = useTheme();
+    const { user, userAllowedUrls, logoutSystem } = useAuth();
     return (
         <Tab.Navigator>
-            <Tab.Screen
-                name="Lịch họp"
-                component={LichHopScreen}
-                options={{
-                    tabBarIcon: ({ focused }) => (
-                        <IconButton icon="home" iconColor={focused ? colors.primary : colors.disabled} size={24} />
-                    )
-                }}
-            />
+            {(hasAccess(screenUrls.LichHop, userAllowedUrls) || user?.vaiTro == 'admin') &&
+                <Tab.Screen
+                    name="Lịch họp"
+                    component={LichHopScreen}
+                    options={{
+                        tabBarIcon: ({ focused }) => (
+                            <IconButton icon="calendar" iconColor={focused ? colors.primary : colors.disabled} size={24} />
+                        )
+                    }}
+                />
+            }
+            {(hasAccess(screenUrls.LichCaNhan, userAllowedUrls) || user?.vaiTro == 'admin') &&
+                <Tab.Screen
+                    name="Lịch cá nhân"
+                    component={LichCaNhanScreen}
+                    options={{
+                        tabBarIcon: ({ focused }) => (
+                            <IconButton icon="calendar-account" iconColor={focused ? colors.primary : colors.disabled} size={24} />
+                        )
+                    }}
+                />
+            }
             <Tab.Screen
                 name="Thông tin"
                 component={ThongTinScreen}
