@@ -237,11 +237,17 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                 ? selectedDate.toISOString().split("T")[0]
                 : selectedDate.toTimeString().split(" ")[0].substring(0, 5);
 
-        setEditedEvent({
-            ...editedEvent,
-            [pickerField]: formattedValue,
+        setEditedEvent(prevState => {
+            const updatedEvent = {
+                ...prevState,
+                [pickerField]: formattedValue,
+            };
+    
+            // Đóng picker sau khi trạng thái được cập nhật
+            setShowPicker(false);
+    
+            return updatedEvent;
         });
-        setShowPicker(false);
     };
 
     const openPicker = (mode, field) => {
