@@ -19,7 +19,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
         gioBatDau: "",
         ngayKetThuc: "",
         gioKetThuc: "",
-        accountId: user.id,
+        accountId: user?.id,
         fileDinhKem: "",
         trangThai: "duyet",
     });
@@ -42,12 +42,12 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                 gioBatDau: selectedEvent.gioBatDau || "",
                 ngayKetThuc: selectedEvent.ngayKetThuc || "",
                 gioKetThuc: selectedEvent.gioKetThuc || "",
-                accountId: user.id,
+                accountId: user?.id,
                 fileDinhKem: selectedEvent.fileDinhKem || "",
                 trangThai: selectedEvent.trangThai || "duyet",
             });
         }
-    }, [selectedEvent, user.id]);
+    }, [selectedEvent, user?.id]);
 
     // Lưu sự kiện
     const handleSave = async () => {
@@ -341,7 +341,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
             gioBatDau: "",
             ngayKetThuc: "",
             gioKetThuc: "",
-            accountId: user.id,
+            accountId: user?.id,
             fileDinhKem: "",
             trangThai: "duyet",
         });

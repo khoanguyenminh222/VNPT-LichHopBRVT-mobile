@@ -13,6 +13,8 @@ import * as Notifications from 'expo-notifications';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import LichHopModal from '../../components/LichHopModal';
 import { useAuth } from '../../context/AuthContext';
+import hasAccess from '../../utils/permissionsAllowedURL';
+import { screenUrls } from '../../api/routes';
 
 Notifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -23,7 +25,7 @@ Notifications.setNotificationHandler({
 });
 
 const LichHopScreen = () => {
-    const { user } = useAuth();
+    const { user, userAllowedUrls } = useAuth();
     const [currentWeek, setCurrentWeek] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [currentWeekIndex, setCurrentWeekIndex] = useState(1);
@@ -332,7 +334,7 @@ const LichHopScreen = () => {
             gioBatDau: event.gioBatDau,
             ngayKetThuc: event.ngayKetThuc,
             gioKetThuc: event.gioKetThuc,
-            accountId: user.id,
+            accountId: user?.id,
             fileDinhKem: event.fileDinhKem,
             trangThai: event.trangThai,
         };
@@ -506,23 +508,28 @@ const LichHopScreen = () => {
                                                 >
                                                     <FontAwesomeIcon color='white' icon={faShuffle} size={20} />
                                                 </Pressable>
+                                                {/* Copy lịch */}
                                                 <Pressable
                                                     onPress={() => handleCopyText(event)}
                                                     className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai === 'quanTrong' ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}
                                                 >
                                                     <FontAwesomeIcon color='white' icon={faClipboard} size={20} />
                                                 </Pressable>
+                                                {/* Nhắc nhở */}
                                                 <Pressable
                                                     onPress={() => { setModalVisible(true); setSelectedEvent(event); }}
                                                     className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai === 'quanTrong' ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}
                                                 >
                                                     <FontAwesomeIcon color='white' icon={faClockFour} size={20} />
                                                 </Pressable>
-                                                <Pressable
-                                                    onPress={() => { setModelEdit(true); setSelectedEvent(event); }}
-                                                    className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai === 'quanTrong' ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}>
-                                                    <FontAwesomeIcon color='white' icon={faEdit} size={20} />
-                                                </Pressable>
+                                                {/* Chỉnh sửa */}
+                                                {(hasAccess(screenUrls.ChinhSuaLichHop, userAllowedUrls) || user?.vaiTro == 'admin') &&
+                                                    <Pressable
+                                                        onPress={() => { setModelEdit(true); setSelectedEvent(event); }}
+                                                        className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai === 'quanTrong' ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}>
+                                                        <FontAwesomeIcon color='white' icon={faEdit} size={20} />
+                                                    </Pressable>
+                                                }
                                             </View>
                                         </View>
                                     ))}
@@ -531,12 +538,14 @@ const LichHopScreen = () => {
                             </View>
                         )}
                         {/* Button thêm mới */}
-                        <Pressable
-                            onPress={() => { setModelEdit(true); setSelectedEvent(null); }}
-                            className="absolute right-4 bottom-4 p-6 bg-blue-500 rounded-full shadow-lg"
-                        >
-                            <Text><FontAwesomeIcon icon={faAdd} color='white' /></Text>
-                        </Pressable>
+                        {(hasAccess(screenUrls.ThemLichHop, userAllowedUrls) || user?.vaiTro == 'admin') &&
+                            <Pressable
+                                onPress={() => { setModelEdit(true); setSelectedEvent(null); }}
+                                className="absolute right-4 bottom-4 p-6 bg-blue-500 rounded-full shadow-lg"
+                            >
+                                <Text><FontAwesomeIcon icon={faAdd} color='white' /></Text>
+                            </Pressable>
+                        }
                     </View>
                 </PanGestureHandler>
                 <ReminderModal

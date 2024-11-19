@@ -2,6 +2,7 @@
   "expo": {
     "name": "VNPTLichHop",
     "slug": "VNPTLichHop",
+    "scheme": "VNPTLichHop",
     "version": "1.0.0",
     "orientation": "default",
     "icon": "./assets/iconLich.png",

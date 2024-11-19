@@ -51,7 +51,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                 trangThai: selectedEvent.trangThai,
             });
         }
-    }, [selectedEvent, user.id]);
+    }, [selectedEvent, user?.id]);
 
     // Lưu sự kiện
     const handleSave = async () => {

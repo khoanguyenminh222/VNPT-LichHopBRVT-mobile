@@ -67,7 +67,7 @@ const LichCaNhanScreen = () => {
     // Hàm lấy ra event từ server
     const fetchEvents = async () => {
         try {
-            const response = await axiosInstance.get(lichCaNhanRoute.findByAccountId + "/" + user.id);
+            const response = await axiosInstance.get(lichCaNhanRoute.findByAccountId + "/" + user?.id);
             setEvents(response.data);
         } catch (error) {
             console.log('Failed to fetch events:', error);

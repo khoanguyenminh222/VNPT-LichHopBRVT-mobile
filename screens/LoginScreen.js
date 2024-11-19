@@ -188,7 +188,7 @@ const LoginScreen = ({ navigation }) => {
     const handleLoginCAS = async () => {
         try {
             const baseUrl = process.env.casURL;  // Địa chỉ URL của dịch vụ CAS
-            const callbackUrl = Linking.createURL('vnptlichhop://');  // Callback URL
+            const callbackUrl = Linking.createURL('VNPTLichHop://');  // Callback URL
 
             // Tạo URL đăng nhập CAS với callback URL
             const casLoginUrl = `${baseUrl}?service=${callbackUrl}`;
