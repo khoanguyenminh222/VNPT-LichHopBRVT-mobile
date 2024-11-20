@@ -594,7 +594,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
 
                         {/* Buttons */}
                         <View className="flex-row items-end justify-between mt-4">
-                            <Button onPress={hancleCloseModal} mode="contained-tonal">
+                            <Button onPress={hancleCloseModal} mode="text" textColor="black">
                                 Đóng
                             </Button>
                             {selectedEvent && (selectedEvent.trangThai === "duyet" || selectedEvent.trangThai === "quanTrong") && (

@@ -21,6 +21,9 @@ import ThongTinScreen from './screens/root/ThongTinScreen';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import hasAccess from './utils/permissionsAllowedURL';
 import { screenUrls } from './api/routes';
+import SettingScreen from './screens/root/SettingScreen';
+import { FontSizeProvider } from './context/FontSizeContext';
+import { HighlightTextProvider } from './context/HighlightTextContext';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -56,6 +59,15 @@ const TabNavigator = () => {
                 />
             }
             <Tab.Screen
+                name="Cài đặt"
+                component={SettingScreen}
+                options={{
+                    tabBarIcon: ({ focused }) => (
+                        <IconButton icon="tools" iconColor={focused ? colors.primary : colors.disabled} size={24} />
+                    )
+                }}
+            />
+            <Tab.Screen
                 name="Thông tin"
                 component={ThongTinScreen}
                 options={{
@@ -82,13 +94,17 @@ export default function App() {
     return (
         <SafeAreaProvider>
             <AuthProvider>
-                <PaperProvider theme={CustomLightTheme}>
-                    <NavigationContainer ref={navigationRef}>
-                        <AppNavigator />
-                        <StatusBar style="dark" />
-                        <Toast />
-                    </NavigationContainer>
-                </PaperProvider>
+                <FontSizeProvider> 
+                    <HighlightTextProvider>
+                        <PaperProvider theme={CustomLightTheme}>
+                            <NavigationContainer ref={navigationRef}>
+                                <AppNavigator />
+                                <StatusBar style="dark" />
+                                <Toast />
+                            </NavigationContainer>
+                        </PaperProvider>
+                    </HighlightTextProvider>
+                </FontSizeProvider>
             </AuthProvider>
         </SafeAreaProvider>
     );
