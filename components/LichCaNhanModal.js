@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Modal, View, Text, TextInput, ScrollView, Pressable, Alert } from "react-native";
+import { Modal, View, Text, TextInput, ScrollView, Pressable, Alert, Platform } from "react-native";
 import { Checkbox, Button } from "react-native-paper";
 import { Picker } from "@react-native-picker/picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -15,10 +15,10 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
         chuDe: "",
         diaDiem: "Ngoài cơ quan",
         noiDung: "",
-        ngayBatDau: "",
-        gioBatDau: "",
-        ngayKetThuc: "",
-        gioKetThuc: "",
+        ngayBatDau: new Date().toISOString().split('T')[0],
+        gioBatDau: new Date().toTimeString().split(' ')[0].substring(0, 5),
+        ngayKetThuc: new Date().toISOString().split('T')[0],
+        gioKetThuc: new Date().toTimeString().split(' ')[0].substring(0, 5),
         accountId: user?.id,
         fileDinhKem: "",
         trangThai: "duyet",
@@ -56,22 +56,22 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
             Alert.alert("Lỗi", "Vui lòng điền đầy đủ thông tin bắt buộc");
             return;
         }
-    
+
         // kiểm tra giờ bắt đầu không được bằng với giờ kết thúc
         if (editedEvent.gioBatDau === editedEvent.gioKetThuc) {
             Alert.alert("Lỗi", "Giờ bắt đầu không được bằng với giờ kết thúc");
             return;
         }
-    
+
         const ngayBatDau = new Date(editedEvent.ngayBatDau + ' ' + editedEvent.gioBatDau);
         const ngayKetThuc = new Date(editedEvent.ngayKetThuc + ' ' + editedEvent.gioKetThuc);
-    
+
         // Kiểm tra ngày bắt đầu nhỏ hơn ngày kết thúc
         if (ngayBatDau.toISOString().split('T')[0] > ngayKetThuc.toISOString().split('T')[0]) {
             Alert.alert("Lỗi", "Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu");
             return;
         }
-    
+
         // Kiểm tra nếu ngày bắt đầu bằng ngày kết thúc thì giờ kết thúc phải luôn lớn hơn giờ bắt đầu
         if (ngayBatDau.toLocaleDateString() === ngayKetThuc.toLocaleDateString()) {
             if (ngayBatDau >= ngayKetThuc) {
@@ -79,7 +79,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                 return;
             }
         }
-    
+
         // Nếu có file đính kèm thì gọi API upload file trước
         if (attachedFiles.length > 0) {
             const formData = new FormData();
@@ -103,7 +103,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                     Alert.alert("Lỗi", response.data.message);
                     return;
                 }
-                
+
             } catch (error) {
                 console.log(error);
                 const errorMessage = error.response ? error.response.data.message : error.message;
@@ -111,7 +111,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                 return;
             }
         }
-    
+
         try {
             let response;
             if (selectedEvent) {
@@ -121,7 +121,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                 // Gọi API để tạo sự kiện mới
                 response = await axiosInstance.post(lichCaNhanRoute.create, editedEvent);
             }
-    
+
             if (response.status >= 200 && response.status < 300) {
                 Toast.show({
                     type: 'success',
@@ -227,27 +227,46 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
     };
 
     // Hàm chọn ngày giờ
-    const handleDatePickerChange = (event, selectedDate) => {
+    const handleDatePickerChange = (field, event, selectedDate) => {
         if (event.type === "dismissed") {
             setShowPicker(false);
             return;
         }
-        const formattedValue =
-            pickerMode === "date"
-                ? selectedDate.toISOString().split("T")[0]
-                : selectedDate.toTimeString().split(" ")[0].substring(0, 5);
 
-        setEditedEvent(prevState => {
-            const updatedEvent = {
-                ...prevState,
-                [pickerField]: formattedValue,
-            };
-    
-            // Đóng picker sau khi trạng thái được cập nhật
-            setShowPicker(false);
-    
-            return updatedEvent;
-        });
+        let formattedValue = '';
+        if (field?.includes('ngay') || (pickerMode === "date" && Platform.OS !== 'ios')) {
+            // Nếu trường là Ngày
+            formattedValue = selectedDate.toISOString().split('T')[0]; // YYYY-MM-DD
+        } else if (field?.includes('gio') || (pickerMode === "time" && Platform.OS !== 'ios')) {
+            // Nếu trường là Giờ
+            formattedValue = selectedDate.toTimeString().split(' ')[0].substring(0, 5); // HH:mm
+        }
+
+        if (field) {
+            setEditedEvent(prevState => {
+                const updatedEvent = {
+                    ...prevState,
+                    [field]: formattedValue,
+                };
+
+                // Đóng picker sau khi trạng thái được cập nhật
+                //setShowPicker(false);
+
+                return updatedEvent;
+            });
+        } else {
+            setEditedEvent(prevState => {
+                const updatedEvent = {
+                    ...prevState,
+                    [pickerField]: formattedValue,
+                };
+
+                // Đóng picker sau khi trạng thái được cập nhật
+                setShowPicker(false);
+
+                return updatedEvent;
+            });
+        }
     };
 
     const openPicker = (mode, field) => {
@@ -305,7 +324,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
 
             // Lưu các file vào state
             setAttachedFiles(newFiles);
-            setEditedEvent({ ...editedEvent, fileDinhKem: JSON.stringify(newFiles.map(file => file.name))});
+            setEditedEvent({ ...editedEvent, fileDinhKem: JSON.stringify(newFiles.map(file => file.name)) });
         } catch (err) {
             console.error(err);
             Alert.alert("Lỗi", "Có lỗi xảy ra khi chọn file.");
@@ -432,50 +451,90 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                         {/* Ngày và giờ bắt đầu */}
                         <View className="mb-4">
                             <Text className="text-base font-semibold mb-2">Ngày bắt đầu * </Text>
-                            <Pressable onPress={() => openPicker('date', 'ngayBatDau')}>
-                                <TextInput
-                                    className="border rounded-md p-2"
-                                    placeholder="Ngày bắt đầu *"
-                                    value={editedEvent.ngayBatDau}
-                                    editable={false}
+                            {/* Nếu platform là ios thì hiện datetime picker */}
+                            {Platform.OS === 'ios' ? (
+                                <DateTimePicker
+                                    value={editedEvent.ngayBatDau ? new Date(editedEvent.ngayBatDau) : new Date()}
+                                    mode="date"
+                                    display="default"
+                                    onChange={(event, date) => handleDatePickerChange('ngayBatDau', event, date)}
                                 />
-                            </Pressable>
+                            ) : (
+                                <Pressable onPress={() => openPicker('date', 'ngayBatDau')}>
+                                    <TextInput
+                                        className="border rounded-md p-2"
+                                        placeholder="Ngày bắt đầu *"
+                                        value={editedEvent.ngayBatDau}
+                                        editable={false}
+                                    />
+                                </Pressable>
+                            )}
                         </View>
 
                         <View className="mb-4">
                             <Text className="text-base font-semibold mb-2">Giờ bắt đầu * </Text>
-                            <Pressable onPress={() => openPicker("time", "gioBatDau")}>
-                                <TextInput
-                                    className="border rounded-md p-2"
-                                    placeholder="Giờ bắt đầu *"
-                                    value={editedEvent.gioBatDau}
-                                    editable={false}
+                            {/* Nếu platform là ios thì hiện datetime picker */}
+                            {Platform.OS === 'ios' ? (
+                                <DateTimePicker
+                                    value={editedEvent.gioBatDau ? new Date(`2000-01-01T${editedEvent.gioBatDau}:00`) : new Date()}
+                                    mode="time"
+                                    display="default"
+                                    onChange={(event, date) => handleDatePickerChange('gioBatDau', event, date)}
                                 />
-                            </Pressable>
+                            ) : (
+                                <Pressable onPress={() => openPicker("time", "gioBatDau")}>
+                                    <TextInput
+                                        className="border rounded-md p-2"
+                                        placeholder="Giờ bắt đầu *"
+                                        value={editedEvent.gioBatDau}
+                                        editable={false}
+                                    />
+                                </Pressable>
+                            )}
                         </View>
                         {/* Ngày và giờ kết thúc */}
                         <View className="mb-4">
                             <Text className="text-base font-semibold mb-2">Ngày kết thúc * </Text>
-                            <Pressable onPress={() => openPicker('date', 'ngayKetThuc')}>
-                                <TextInput
-                                    className="border rounded-md p-2"
-                                    placeholder="Ngày kết thúc *"
-                                    value={editedEvent.ngayKetThuc}
-                                    editable={false}
+                            {/* Nếu platform là ios thì hiện datetime picker */}
+                            {Platform.OS === 'ios' ? (
+                                <DateTimePicker
+                                    value={editedEvent.ngayKetThuc ? new Date(editedEvent.ngayKetThuc) : new Date()}
+                                    mode="date"
+                                    display="default"
+                                    onChange={(event, date) => handleDatePickerChange('ngayKetThuc', event, date)}
                                 />
-                            </Pressable>
+                            ) : (
+                                <Pressable onPress={() => openPicker('date', 'ngayKetThuc')}>
+                                    <TextInput
+                                        className="border rounded-md p-2"
+                                        placeholder="Ngày kết thúc *"
+                                        value={editedEvent.ngayKetThuc}
+                                        editable={false}
+                                    />
+                                </Pressable>
+                            )}
                         </View>
 
                         <View className="mb-4">
                             <Text className="text-base font-semibold mb-2">Giờ kết thúc * </Text>
-                            <Pressable onPress={() => openPicker("time", "gioKetThuc")}>
-                                <TextInput
-                                    className="border rounded-md p-2"
-                                    placeholder="Giờ kết thúc *"
-                                    value={editedEvent.gioKetThuc}
-                                    editable={false}
+                            {/* Nếu platform là ios thì hiện datetime picker */}
+                            {Platform.OS === 'ios' ? (
+                                <DateTimePicker
+                                    value={editedEvent.gioKetThuc ? new Date(`2000-01-01T${editedEvent.gioKetThuc}:00`) : new Date()}
+                                    mode="time"
+                                    display="default"
+                                    onChange={(event, date) => handleDatePickerChange('gioKetThuc', event, date)}
                                 />
-                            </Pressable>
+                            ) : (
+                                <Pressable onPress={() => openPicker("time", "gioKetThuc")}>
+                                    <TextInput
+                                        className="border rounded-md p-2"
+                                        placeholder="Giờ kết thúc *"
+                                        value={editedEvent.gioKetThuc}
+                                        editable={false}
+                                    />
+                                </Pressable>
+                            )}
                         </View>
 
                         <View className="mb-4">
@@ -487,7 +546,6 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                                 {parseFileAttachments(editedEvent.fileDinhKem).map((file, index) => (
                                     <View key={index} className="flex-row items-center">
                                         <Text className="text-base">{file}</Text>
-                                        
                                     </View>
                                 ))}
                             </View>
@@ -499,7 +557,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                                 value={new Date()}
                                 mode={pickerMode}
                                 display="default"
-                                onChange={handleDatePickerChange}
+                                onChange={(event, date) => handleDatePickerChange(null, event, date)}
                             />
                         )}
 

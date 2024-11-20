@@ -2,7 +2,7 @@
   "expo": {
     "name": "VNPTLichHop",
     "slug": "VNPTLichHop",
-    "scheme": "VNPTLichHop",
+    "scheme": "vnptlichhop",
     "version": "1.0.0",
     "orientation": "default",
     "icon": "./assets/iconLich.png",
@@ -38,6 +38,7 @@
       "favicon": "./assets/favicon.png",
       "bundler": "metro"
     },
+    "newArchEnabled": true,
     "plugins": [
       [
         "expo-image-picker",
