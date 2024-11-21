@@ -23,7 +23,9 @@
           "NSExceptionDomains": {
             "113.161.141.169": {
               "NSIncludesSubdomains": true,
-              "NSTemporaryExceptionAllowsInsecureHTTPLoads": true
+              "NSTemporaryExceptionAllowsInsecureHTTPLoads": true,
+              "NSExceptionRequiresForwardSecrecy": false,
+              "NSExceptionMinimumTLSVersion": "TLSv1.0"
             }
           }
         }
