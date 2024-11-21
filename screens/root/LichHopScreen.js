@@ -277,7 +277,7 @@ const LichHopScreen = () => {
         await Notifications.scheduleNotificationAsync({
             content: {
                 title: "Nhắc nhở họp",
-                body: `Cuộc họp của "${event.noiDungCuocHop}" sẽ diễn ra trong ${minutes} phút.`,
+                body: `Cuộc họp "${event.noiDungCuocHop}" sẽ diễn ra trong ${minutes} phút.`,
                 sound: true,
             },
             trigger: { date: reminderTime },

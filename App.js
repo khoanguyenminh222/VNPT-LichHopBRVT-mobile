@@ -1,4 +1,5 @@
 // App.js
+import 'expo-dev-client';
 import './gesture-handler';
 import './global.css';
 import React from 'react';

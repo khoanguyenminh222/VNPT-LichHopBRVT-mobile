@@ -275,7 +275,7 @@ const LichCaNhanScreen = () => {
         await Notifications.scheduleNotificationAsync({
             content: {
                 title: "Nhắc nhở họp",
-                body: `Cuộc họp của "${event.noiDungCuocHop}" sẽ diễn ra trong ${minutes} phút.`,
+                body: `Cuộc họp "${event.chuDe}" sẽ diễn ra trong ${minutes} phút.`,
                 sound: true,
             },
             trigger: { date: reminderTime },
@@ -284,7 +284,7 @@ const LichCaNhanScreen = () => {
         Toast.show({
             type: 'success',
             text1: 'Đã đặt nhắc nhở',
-            text2: `Nhắc nhở sự kiện "${event.noiDungCuocHop}" sẽ được gửi trước ${minutes} phút.`,
+            text2: `Nhắc nhở sự kiện "${event.chuDe}" sẽ được gửi trước ${minutes} phút.`,
             position: 'top',
             visibilityTime: 3000,
         });
