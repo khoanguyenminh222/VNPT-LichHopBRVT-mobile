@@ -17,12 +17,21 @@
       "bundleIdentifier": "com.vnpt.ttcntt.lichhop",
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "The app accesses your photos to let you share them with your friends.",
-        "NSDocumentsFolderUsageDescription": "The app accesses your documents to allow you to share and upload files."
+        "NSDocumentsFolderUsageDescription": "The app accesses your documents to allow you to share and upload files.",
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true,
+          "NSExceptionDomains": {
+            "113.161.141.169": {
+              "NSIncludesSubdomains": true,
+              "NSTemporaryExceptionAllowsInsecureHTTPLoads": true
+            }
+          }
+        }
       }
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/logoVNPT.png",
+        "foregroundImage": "./assets/iconLich.png",
         "backgroundColor": "#ffffff"
       },
       "permissions": [

@@ -45,7 +45,7 @@ const LoginScreen = ({ navigation }) => {
         setLoading(true);
         try {
             // Gửi yêu cầu đăng nhập đến API
-            console.log(authRoute.login)
+            Alert.alert('Notification', 'Login in ' + authRoute.login );
             const response = await axios.post(authRoute.login, { username, password });
             // Nếu đăng nhập không thành công
             if (response.status < 200 || response.status >= 300) {

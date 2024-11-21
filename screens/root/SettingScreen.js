@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, ScrollView } from 'react-native';
 import { useFontSize } from '../../context/FontSizeContext';
 import { Picker } from '@react-native-picker/picker';
 import { useHighlightText } from '../../context/HighlightTextContext';
@@ -22,7 +22,7 @@ const SettingScreen = () => {
         });
     };
     return (
-        <View className="flex-1 p-6 bg-gray-200">
+        <ScrollView className="flex-1 p-6 bg-gray-200">
             <View className="mb-8 p-6 bg-white rounded-lg">
                 <Text className="text-3xl font-bold text-center text-gray-800 mb-4">Cài đặt cỡ chữ</Text>
                 <Text className="text-lg font-medium text-gray-700 mb-2">Chọn cỡ chữ</Text>
@@ -58,7 +58,7 @@ const SettingScreen = () => {
                 {/* Nút để lưu từ cần highlight */}
                 <Button mode='contained' onPress={handleHighlightChange}>Lưu</Button>
             </View>
-        </View>
+        </ScrollView>
     );
 };
 
