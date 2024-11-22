@@ -401,7 +401,7 @@ const LichHopScreen = () => {
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
             <View className="flex-1 bg-gray-50">
-                <View className="flex-row justify-between items-center mb-6">
+                <View className="flex-row justify-between items-center mb-6 w-full max-w-[460px] m-auto">
                     <Pressable
                         onPress={handlePreviousWeek}
                         className={currentWeekIndex <= 1 ? "opacity-0 pointer-events-none" : "p-4"}
@@ -441,7 +441,7 @@ const LichHopScreen = () => {
                 >
                     <View className="flex-1">
                         {selectedDate && (
-                            <View className="flex-1 p-4">
+                            <View className="flex-1 p-4 w-full max-w-[460px] m-auto">
                                 <ScrollView
                                     showsVerticalScrollIndicator={false}
                                     refreshControl={

@@ -31,7 +31,7 @@ const ReminderModal = ({ visible, onClose, onSelectReminder, event }) => {
             transparent={true}
             onRequestClose={onClose}
         >
-            <View className="flex-1 justify-center items-center bg-gray-700 bg-opacity-60">
+            <View className="flex-1 justify-center items-center" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
                 <View className="bg-white p-6 rounded-lg w-80 shadow-xl">
                     <Text className="text-xl font-semibold text-center mb-6 text-blue-600">Chọn phút nhắc nhở</Text>
                     <View className="space-y-3">

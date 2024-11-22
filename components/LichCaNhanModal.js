@@ -377,8 +377,8 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
     return (
         <Modal visible={visible} animationType="slide" transparent>
             <View className="flex-1 justify-center items-center" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
-                <View className="bg-white w-11/12 rounded-lg p-4">
-                    <ScrollView>
+                <View className="bg-white w-96 rounded-lg p-4">
+                    <ScrollView showsVerticalScrollIndicator={false}>
                         <Text className="text-xl font-bold text-center mb-4">{selectedEvent ? "Sửa sự kiện" : "Thêm sự kiện"}</Text>
 
                         {/* Quan trọng */}
