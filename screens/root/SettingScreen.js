@@ -23,7 +23,7 @@ const SettingScreen = () => {
     };
     return (
         <ScrollView className="flex-1 p-6 bg-gray-200">
-            <View className="mb-8 p-6 bg-white rounded-lg m-auto w-96">
+            <View className="mb-8 p-6 bg-white rounded-lg w-full max-w-[460px] m-auto">
                 <Text className="text-3xl font-bold text-center text-gray-800 mb-4">Cài đặt cỡ chữ</Text>
                 <Text className="text-lg font-medium text-gray-700 mb-2">Chọn cỡ chữ</Text>
                 <Picker
@@ -39,9 +39,9 @@ const SettingScreen = () => {
                     <Picker.Item label="19" value={19} />
                     <Picker.Item label="20" value={20} />
                 </Picker>
-                <Text style={{ fontSize: fontSize }} className="text-gray-800 font-semibold mt-4">Cỡ chữ hiện tại: <Text className="text-blue-600">{fontSize}</Text></Text>
+                <Text style={{ fontSize: Number(fontSize) }} className="text-gray-800 font-semibold mt-4">Cỡ chữ hiện tại: <Text className="text-blue-600">{fontSize}</Text></Text>
             </View>
-            <View className="my-8 p-6 bg-white rounded-lg m-auto w-96">
+            <View className="my-8 p-6 bg-white rounded-lg w-full max-w-[460px] m-auto">
                 <Text className="text-3xl font-bold text-center text-gray-800 mb-4">Cài đặt Highlight</Text>
                 {/* Input để người dùng nhập từ cần highlight */}
                 <TextInput

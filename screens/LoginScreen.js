@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, ActivityIndicator, Alert } from 'react-native';
+import { View, ActivityIndicator, Alert, Image } from 'react-native';
 import { TextInput, Button, Text } from 'react-native-paper';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
@@ -8,6 +8,7 @@ import Toast from 'react-native-toast-message';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
+import { ScrollView } from 'react-native-gesture-handler';
 
 const LoginScreen = ({ navigation }) => {
     const { user, updateUser, isLogin, logoutSystem } = useAuth();
@@ -37,7 +38,7 @@ const LoginScreen = ({ navigation }) => {
 
     useEffect(() => {
         if (loginInfoRetrieved) {
-          handleLogin();
+            handleLogin();
         }
     }, [loginInfoRetrieved]);
 
@@ -61,7 +62,7 @@ const LoginScreen = ({ navigation }) => {
             //Nếu đang nhập thành công thì cập nhật thongKeDangNhapSai
             const responseThongKeDangNhapSai = await axios.get(thongKeDangNhapSaiRoute.findByUserName + "/" + username);
             if (responseThongKeDangNhapSai.data) {
-                await axios.put(thongKeDangNhapSaiRoute.update+"/"+responseThongKeDangNhapSai.data.id,{soLanDangNhapSai:0});
+                await axios.put(thongKeDangNhapSaiRoute.update + "/" + responseThongKeDangNhapSai.data.id, { soLanDangNhapSai: 0 });
             }
 
             const { accessToken, refreshToken, user } = response.data;
@@ -138,7 +139,7 @@ const LoginScreen = ({ navigation }) => {
             }
 
         } catch (error) {
-            if(error.status === 401) {
+            if (error.status === 401) {
                 const responseDangNhapSai = await axios.get(thongKeDangNhapSaiRoute.findByUserName + "/" + username);
                 if (responseDangNhapSai.data) { //Nếu có username trong bảng thongKeDangNhapSai thì tăng số lần đang nhập sai lên 1
                     let thongKeDangNhapSai = responseDangNhapSai.data;
@@ -194,15 +195,15 @@ const LoginScreen = ({ navigation }) => {
 
             // Mở trang CAS và xử lý callback
             const result = await WebBrowser.openAuthSessionAsync(casLoginUrl, callbackUrl);
-    
+
             console.log("WebBrowser result:", result);
             if (result.type === 'success') {
                 const redirectUrl = result.url;
-    
+
                 // Parse the ticket or token from the CAS redirect URL
                 const params = new URLSearchParams(redirectUrl.split('?')[1]);
                 const ticket = params.get('ticket');
-    
+
                 if (ticket) {
                     // Use the ticket to authenticate with your backend server
                     await authenticateWithBackend(ticket);
@@ -218,7 +219,7 @@ const LoginScreen = ({ navigation }) => {
     const authenticateWithBackend = async (ticket) => {
         console.log(ticket)
         //const response = await axios.post(authRoute.casbrvtlogin, { ticket });
-    
+
         if (response.ok) {
             // Successful login
             console.log('Logged in successfully');
@@ -228,29 +229,33 @@ const LoginScreen = ({ navigation }) => {
     };
 
     return (
-        <View className="flex-1 justify-center p-4">
-            <Text variant='headlineMedium' className="font-bold text-center mb-6">Đăng nhập</Text>
-            <TextInput
-                label="Tên đăng nhập"
-                value={username}
-                onChangeText={setUsername}
-                mode="outlined"
+        <ScrollView showsVerticalScrollIndicator={false}>
+            <View className="flex-1 justify-center p-4">
+                <Image source={require('../assets/logoVNPT.png')} style={{ width: 200, height: 200, alignSelf: 'center' }} />
+                <Text variant='headlineMedium' className="font-bold text-center mb-6">Đăng nhập</Text>
+                <TextInput
+                    label="Tên đăng nhập"
+                    value={username}
+                    onChangeText={setUsername}
+                    mode="outlined"
 
-            />
-            <TextInput
-                label="Mật khẩu"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-                mode="outlined"
-            />
-            <Button mode="contained" onPress={handleLogin} className="mt-4" disabled={loading}>
-                {loading ? <ActivityIndicator color="#fff" /> : 'Đăng nhập'}
-            </Button>
-            <Button mode="text" onPress={handleLoginCAS} className="mt-4">
-                Đăng nhập bằng CAS
-            </Button>
-        </View>
+                />
+                <TextInput
+                    label="Mật khẩu"
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry
+                    mode="outlined"
+                    style={{ marginBottom: 10 }}
+                />
+                <Button mode="contained" onPress={handleLogin} disabled={loading}>
+                    {loading ? <ActivityIndicator color="#fff" /> : 'Đăng nhập'}
+                </Button>
+                <Button mode="text" onPress={handleLoginCAS} className="mt-4">
+                    Đăng nhập bằng CAS
+                </Button>
+            </View>
+        </ScrollView>
     );
 };
 
