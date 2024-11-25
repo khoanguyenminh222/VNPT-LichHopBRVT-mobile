@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState } from 'react';
 import { logout } from '../utils/axiosInstance';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { navigate } from '../utils/NavigationService';
 
 const AuthContext = createContext();
 
@@ -22,6 +23,7 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
         setUserAllowedUrls([]);
         const refreshToken = await AsyncStorage.getItem('refreshToken');
+        if (!refreshToken) navigate('Login');
         logout(refreshToken);
     }
 
