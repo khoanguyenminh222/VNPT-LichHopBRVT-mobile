@@ -3,10 +3,12 @@ import { View, ActivityIndicator, Alert, Image } from 'react-native';
 import { TextInput, Button, Text } from 'react-native-paper';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
-import { accountRoute, authRoute, domain, phanQuyenRoute, thongKeDangNhapSaiRoute } from '../api/baseURL';
+import { accountRoute, authRoute, domain, phanQuyenRoute, thongKeDangNhapSaiRoute, tokenRoute } from '../api/baseURL';
 import Toast from 'react-native-toast-message';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as WebBrowser from 'expo-web-browser';
+import * as AuthSession from 'expo-auth-session';
+import { Buffer } from 'buffer';
 import * as Linking from 'expo-linking';
 import { ScrollView } from 'react-native-gesture-handler';
 
@@ -16,6 +18,7 @@ const LoginScreen = ({ navigation }) => {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [loginInfoRetrieved, setLoginInfoRetrieved] = useState(false);
+    const [loginWithCAS, setLoginWithCAS] = useState(false);
 
     // Khi màn hình đăng nhập được tải, kiểm tra xem có thông tin đăng nhập đã được lưu trong AsyncStorage hay không
     useEffect(() => {
@@ -23,7 +26,12 @@ const LoginScreen = ({ navigation }) => {
             try {
                 const storedUsername = await AsyncStorage.getItem('username');
                 const storedPassword = await AsyncStorage.getItem('password');
-                if (storedUsername && storedPassword) {
+                // Nếu có thông tin đăng nhập, thực hiện đăng nhập tự động
+                if(storedPassword === 'loginWithCas'){ // Nếu đăng nhập bằng CAS
+                    setUsername(storedUsername);
+                    setPassword(storedPassword);
+                    setLoginWithCAS(true);
+                } else if (storedUsername && storedPassword !== 'loginWithCas') {
                     setUsername(storedUsername);
                     setPassword(storedPassword);
                     setLoginInfoRetrieved(true);
@@ -212,46 +220,202 @@ const LoginScreen = ({ navigation }) => {
 
     };
 
-    const handleLoginCAS = async () => {
+    // Khi đăng nhập CAS xong thì quay trở lại trang sẽ được thực thi
+    useEffect(() => {
+        const handleDeepLink = async ({ url }) => {
+            console.log('Deep Link URL:', url);
+
+            const parsedUrl = Linking.parse(url);
+            const { queryParams } = parsedUrl;
+
+            if(!queryParams) return;
+
+            const username = queryParams?.username;
+            if (username) {
+                const encodeUsername = Buffer.from(username, 'base64').toString('utf-8');
+                //console.log(encodeUsername)
+                callAPILoginCAS(encodeUsername);
+            } else {
+                console.log('Không tìm thấy username trong callback URL');
+                Toast.show({
+                    type: 'error',
+                    text1: 'Không tìm thấy username trong callback URL',
+                    position: 'top',
+                    visibilityTime: 3000,
+                });
+            }
+        };
+
+        // Lắng nghe URL trả về
+        const unsubscribe = Linking.addEventListener('url', handleDeepLink);
+        return () => {
+            // Hủy bỏ sự kiện khi không còn cần thiết
+            unsubscribe.remove();
+        };
+    }, [loginWithCAS]);
+
+    // Tự động đăng nhập bằng CAS nếu chưa đăng xuất
+    useEffect(() => {
+        if(username && password === 'loginWithCas'){ 
+            callAPILoginCAS(username);
+        }
+    }, [loginWithCAS]);
+
+    // Hàm gọi API đăng nhập CAS
+    const callAPILoginCAS = async (username) => {
+        setLoading(true);
         try {
-            const baseUrl = process.env.casURL;  // Địa chỉ URL của dịch vụ CAS
-            const callbackUrl = Linking.createURL('vnptlichhop://');  // Callback URL
-
-            // Tạo URL đăng nhập CAS với callback URL
-            const casLoginUrl = `${baseUrl}?service=${callbackUrl}`;
-
-            // Mở trang CAS và xử lý callback
-            const result = await WebBrowser.openAuthSessionAsync(casLoginUrl, callbackUrl);
-
-            console.log("WebBrowser result:", result);
-            if (result.type === 'success') {
-                const redirectUrl = result.url;
-
-                // Parse the ticket or token from the CAS redirect URL
-                const params = new URLSearchParams(redirectUrl.split('?')[1]);
-                const ticket = params.get('ticket');
-
-                if (ticket) {
-                    // Use the ticket to authenticate with your backend server
-                    await authenticateWithBackend(ticket);
-                } else {
-                    console.log('Ticket not found');
+            // Gọi API Node.js để thực hiện đăng nhập cas
+            const response = await axios.post(authRoute.casbrvtlogin, { username: username });
+            if (response.status >= 200 && response.status < 300) {
+                // Thiết lập cookie từ kết quả trả về
+                const { accessToken, refreshToken, user, expiresIn } = response.data;
+    
+                await axios.post(tokenRoute.saveToken, { accountId: user.id, refreshToken, expiresIn });
+    
+                // Kiểm tra người dùng được gán nhóm chức năng chưa
+                const responsePhanQuyen = await axios.get(phanQuyenRoute.getNhomChucNangByAccountId, {
+                    params: {
+                        accountId: user.id
+                    }
+                });
+                if (responsePhanQuyen.status >= 200 && responsePhanQuyen.status < 300) {
+                    if(responsePhanQuyen.data.length===0){
+                        // gán nhóm chức năng cho user
+                        const responseAccount = await axios.get(accountRoute.findByUsername + "/" + username);
+                        if (responseAccount.status >= 200 && responseAccount.status < 300) {
+    
+                            if (responseAccount.data.vaiTro === 'chuyenVien') {
+                                await axios.post(phanQuyenRoute.savePhanQuyenForAccount, {
+                                    accountId: responseAccount.data.id,
+                                    nhomChucNangIds: [2]
+                                });
+                            } else if (responseAccount.data.vaiTro === 'lanhDao') {
+                                await axios.post(phanQuyenRoute.savePhanQuyenForAccount, {
+                                    accountId: responseAccount.data.id,
+                                    nhomChucNangIds: [3]
+                                });
+                            }
+                        }
+                    }
                 }
+                // Lưu thông tin username, password để tự động đăng nhập
+                await AsyncStorage.setItem('username', username);
+                await AsyncStorage.setItem('password', 'loginWithCas');
+
+                // Lưu token vào AsyncStorage
+                await AsyncStorage.setItem('accessToken', accessToken);
+                await AsyncStorage.setItem('refreshToken', refreshToken);
+
+                if (user.vaiTro !== 'admin') {
+                    //kiểm tra trạng thái tài khoản
+                    if (user.trangThai == 0)
+                        return Toast.show({
+                            type: 'error',
+                            text1: 'Tài khoản đã ngưng hoạt động',
+                            position: 'top',
+                            visibilityTime: 3000,
+                        });
+                    try {
+                        const response1 = await axios.get(phanQuyenRoute.getChucNangByAccountId, {
+                            params: {
+                                accountId: user.id
+                            }
+                        });
+                        const urls = response1.data;
+
+                        if (urls.length > 0) {
+                            //router.push('/admin' + urls[0].url);
+                            // Cập nhật thông tin người dùng trong context
+                            const allowedUrls = urls.map(item => item.url)
+                            updateUser(user, allowedUrls);
+                            // Thông báo đăng nhập thành công
+                            Toast.show({
+                                type: 'success',
+                                text1: response.data.message,
+                                position: 'top',
+                                visibilityTime: 3000,
+                            });
+                            // Điều hướng đến màn hình chính
+                            navigation.reset({
+                                index: 0,
+                                routes: [{ name: 'TabNavigator' }], // Tên màn hình bạn muốn đặt làm màn hình chính
+                            });
+                        } else {
+                            // thông báo khi chưa được cấu hình chức năng
+                            Toast.show({
+                                type: 'error',
+                                text1: 'Tài khoản chưa được cấu hình truy cập chức năng',
+                                position: 'top',
+                                visibilityTime: 3000,
+                            });
+                        }
+                    } catch (error) {
+                        //router.push('/login');
+                        const errorMessage = error.response1 ? error.response1.data.message : error.message;
+                        console.log(errorMessage);
+                    }
+                } else {
+                    updateUser(user, []);
+                    // Thông báo đăng nhập thành công
+                    Toast.show({
+                        type: 'success',
+                        text1: response.data.message,
+                        position: 'top',
+                        visibilityTime: 3000,
+                    });
+                    // Điều hướng đến màn hình chính
+                    navigation.reset({
+                        index: 0,
+                        routes: [{ name: 'TabNavigator' }], // Tên màn hình bạn muốn đặt làm màn hình chính
+                    });
+                }
+                
+            } else {
+                return Toast.show({
+                    type: 'error',
+                    text1: 'Lỗi đăng nhập CAS',
+                    position: 'top',
+                    visibilityTime: 3000,
+                });
             }
         } catch (error) {
-            console.error('CAS login failed', error);
+            console.log(error)
+            Toast.show({
+                type: 'error',
+                text1: error.response?.data?.message ? error.response.data.message : error.message,
+                position: 'top',
+                visibilityTime: 3000,
+            });
+        } finally {
+            setLoading(false);
         }
-    }
+    };
 
-    const authenticateWithBackend = async (ticket) => {
-        console.log(ticket)
-        //const response = await axios.post(authRoute.casbrvtlogin, { ticket });
+    // Khi nhấn nút đăng nhập CAS
+    const handleLoginCAS = async () => {
+        try {
+            const redirectUri = AuthSession.makeRedirectUri({
+                useProxy: false,
+            });
 
-        if (response.ok) {
-            // Successful login
-            console.log('Logged in successfully');
-        } else {
-            console.log('Failed to authenticate');
+            console.log('Redirect URI:', redirectUri);
+            const casURL = process.env.casURL; // URL CAS
+            const serviceUrl = process.env.serviceUrl; // Backend xử lý
+
+            // Tạo URL đăng nhập CAS
+            const casLoginUrl = `${casURL}?service=${encodeURIComponent(serviceUrl)}`;
+
+            // Mở trang CAS
+            const result = await WebBrowser.openAuthSessionAsync(casLoginUrl, redirectUri);
+            console.log(result)
+            if (result.type === 'success' && result.url) {
+                console.log('WebBrowser result:', result);
+            } else {
+                console.log('Người dùng hủy đăng nhập hoặc không có URL callback');
+            }
+        } catch (error) {
+            console.error('Lỗi đăng nhập CAS:', error);
         }
     };
 

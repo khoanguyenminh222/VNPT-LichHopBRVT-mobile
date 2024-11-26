@@ -9,6 +9,7 @@ const authRoute = {
 const tokenRoute = {
     refreshToken: `${domain}/api/token`,
     deleteToken: `${domain}/api/token`,
+    saveToken: `${domain}/api/token/save`
 }
 
 const thongKeDangNhapSaiRoute = {
