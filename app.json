@@ -28,6 +28,32 @@
               "NSExceptionMinimumTLSVersion": "TLSv1.0"
             }
           }
+        },
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": [
+              "vnptlichhop"
+            ]
+          }
+        ],
+        "applinks": {
+          "apps": [],
+          "details": [
+            {
+              "appID": "6738343629.com.vnpt.ttcntt.lichhop",
+              "paths": ["/*"]
+            }
+          ]
+        },
+        "activitycontinuation": {
+          "apps": [
+            "6738343629.com.vnpt.ttcntt.lichhop"
+          ]
+        },
+        "webcredentials": {
+          "apps": [
+            "6738343629.com.vnpt.ttcntt.lichhop"
+          ]
         }
       }
     },
@@ -42,6 +68,23 @@
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.RECORD_AUDIO"
+      ],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "vnptlichhop",
+              "host": "*",
+              "pathPrefix": "/"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
       ],
       "package": "com.vnpt.ttcntt.lichhop"
     },
