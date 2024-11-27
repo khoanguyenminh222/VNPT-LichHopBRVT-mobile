@@ -492,7 +492,7 @@ const LichCaNhanScreen = () => {
                 <LichCaNhanModal
                     visible={modelEdit}
                     selectedEvent={selectedEvent}
-                    onClose={() => {setModelEdit(false); setSelectedEvent(null)}}
+                    onClose={() => { setModelEdit(false); setSelectedEvent(null) }}
                     onCancle={handleCancleEvent}
                     onSave={handleSaveEdit}
                     onDelete={handleDeleteEvent}

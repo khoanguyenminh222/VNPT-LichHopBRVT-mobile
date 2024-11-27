@@ -1,18 +1,35 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView } from 'react-native';
 import { useFontSize } from '../../context/FontSizeContext';
 import { Picker } from '@react-native-picker/picker';
 import { useHighlightText } from '../../context/HighlightTextContext';
 import { Button, TextInput } from 'react-native-paper';
 import Toast from 'react-native-toast-message';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SettingScreen = () => {
     const { fontSize, setFontSize } = useFontSize();
     const { setHighlightText } = useHighlightText(); // Lấy setHighlightText từ context
     const [inputText, setInputText] = useState('');
 
+    useEffect(() => {
+        const loadHighlightText = async () => {
+            try {
+                const storedText = await AsyncStorage.getItem('highlightText');
+                if (storedText) {
+                    setInputText(storedText);
+                }
+            } catch (error) {
+                console.error('Failed to load highlight text from storage', error);
+            }
+        };
+
+        loadHighlightText();
+    }, []);
+
     // Hàm lưu từ cần highlight vào context
-    const handleHighlightChange = () => {
+    const handleHighlightChange = async () => {
+        await AsyncStorage.setItem('highlightText', inputText);
         setHighlightText(inputText);
         Toast.show({
             type: 'success',
@@ -28,7 +45,7 @@ const SettingScreen = () => {
                 <Text className="text-lg font-medium text-gray-700 mb-2">Chọn cỡ chữ</Text>
                 <Picker
                     selectedValue={fontSize}
-                    onValueChange={(itemValue) => setFontSize(itemValue)}
+                    onValueChange={async (itemValue) => { setFontSize(itemValue); await AsyncStorage.setItem('fontSize', itemValue.toString()) }}
                     style={{ width: '100%' }}
                 >
                     <Picker.Item label="14" value={14} />
@@ -46,7 +63,7 @@ const SettingScreen = () => {
                 {/* Input để người dùng nhập từ cần highlight */}
                 <TextInput
                     value={inputText}
-                    onChangeText={setInputText}
+                    onChangeText={(text) => setInputText(text)}
                     placeholder="Nhập từ cần highlight"
                     style={{
                         borderBottomWidth: 1,

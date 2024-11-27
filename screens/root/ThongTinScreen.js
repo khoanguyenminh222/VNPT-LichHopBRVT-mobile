@@ -28,7 +28,7 @@ const ThongTinScreen = () => {
                 <View className="bg-white p-6 rounded-lg shadow-lg w-11/12 max-w-md text-center mb-4">
                     <Text className="text-2xl font-semibold text-blue-600 text-center">Ứng dụng tra cứu lịch họp VNPT</Text>
                     <Text className="text-lg text-gray-500 mt-10 text-center">Được phát triển bởi Trung tâm Công nghệ Thông tin - Viễn thông Bà Rịa - Vũng Tàu</Text>
-                    <Text className="text-gray-500 mt-16 text-center">Phiên bản: 1.0.0</Text>
+                    <Text className="text-gray-500 mt-16 text-center">Phiên bản: 1.1.0</Text>
                 </View>
 
                 {/* Logout button */}

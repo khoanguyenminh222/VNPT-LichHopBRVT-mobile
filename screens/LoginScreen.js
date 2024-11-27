@@ -391,7 +391,7 @@ const LoginScreen = ({ navigation }) => {
                     const username = queryParams?.username;
                     if (username) {
                         const encodeUsername = Buffer.from(username, 'base64').toString('utf-8');
-                        
+
                         callAPILoginCAS(encodeUsername);
                     } else {
                         console.log('Không tìm thấy username trong callback URL');
@@ -412,10 +412,10 @@ const LoginScreen = ({ navigation }) => {
     };
 
     return (
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, backgroundColor: 'white' }}>
             {showWebView ? (
                 <View style={{ flex: 1, marginTop: Platform.OS === 'android' ? 25 : 0 }}>
-                    <Button mode="text" onPress={() => setShowWebView(false)} style={{ marginTop: 20, alignSelf: 'center' }}>
+                    <Button mode="text" onPress={() => setShowWebView(false)} style={{ alignSelf: 'center', width: '100%', padding: 8 }}>
                         Quay lại trang đăng nhập
                     </Button>
                     <WebView
@@ -426,13 +426,13 @@ const LoginScreen = ({ navigation }) => {
                                 // Xử lý redirect về app qua deep link (vnptlichhop://)
                                 const parsedUrl = Linking.parse(navState.url);
                                 const { queryParams } = parsedUrl;
-                                
+
                                 if (!queryParams) return;
 
                                 const username = queryParams?.username;
                                 if (username) {
                                     const encodeUsername = Buffer.from(username, 'base64').toString('utf-8');
-                                    
+
                                     callAPILoginCAS(encodeUsername);
                                 } else {
                                     console.log('Không tìm thấy username trong callback URL');
@@ -449,15 +449,16 @@ const LoginScreen = ({ navigation }) => {
 
                 </View>
             ) : (
-                <ScrollView showsVerticalScrollIndicator={false}>
-                    <View className="flex-1 justify-center p-4">
-                        <Image source={require('../assets/logoVNPT.png')} style={{ width: 200, height: 200, alignSelf: 'center' }} />
-                        <Text variant='headlineMedium' className="font-bold text-center mb-6">Đăng nhập</Text>
+                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ marginVertical: 'auto', paddingHorizontal: 12 }}>
+                    <Image source={require('../assets/logoVNPT.png')} style={{ width: 140, height: 140, alignSelf: 'center', }} />
+                    <View className="flex flex-col justify-center items-center">
+                        <Text variant='headlineMedium' className="font-bold my-6 uppercase">Đăng nhập</Text>
                         <TextInput
                             label="Tên đăng nhập"
                             value={username}
                             onChangeText={setUsername}
                             mode="outlined"
+                            style={{ marginBottom: 10, width: '100%', maxWidth: 460 }}
                         />
                         <TextInput
                             label="Mật khẩu"
@@ -465,15 +466,16 @@ const LoginScreen = ({ navigation }) => {
                             onChangeText={setPassword}
                             secureTextEntry
                             mode="outlined"
-                            style={{ marginBottom: 10 }}
+                            style={{ marginBottom: 10, width: '100%', maxWidth: 460 }}
                         />
-                        <Button mode="contained" onPress={handleLogin} disabled={loading}>
+                        <Button mode="contained" onPress={handleLogin} disabled={loading} style={{ marginBottom: 10, width: '100%', maxWidth: 460 }}>
                             {loading ? <ActivityIndicator color="#fff" /> : 'Đăng nhập'}
                         </Button>
-                        <Button mode="text" onPress={handleLoginCAS} className="mt-4">
+                        <Button mode="text" onPress={handleLoginCAS} className="mt-4" style={{ marginBottom: 10, width: '100%', maxWidth: 460 }}>
                             Đăng nhập bằng CAS
                         </Button>
                     </View>
+
                 </ScrollView>
             )}
         </View>
