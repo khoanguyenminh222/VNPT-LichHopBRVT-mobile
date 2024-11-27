@@ -27,7 +27,7 @@ const LoginScreen = ({ navigation }) => {
                 const storedUsername = await AsyncStorage.getItem('username');
                 const storedPassword = await AsyncStorage.getItem('password');
                 // Nếu có thông tin đăng nhập, thực hiện đăng nhập tự động
-                if(storedPassword === 'loginWithCas'){ // Nếu đăng nhập bằng CAS
+                if (storedPassword === 'loginWithCas') { // Nếu đăng nhập bằng CAS
                     setUsername(storedUsername);
                     setPassword(storedPassword);
                     setLoginWithCAS(true);
@@ -220,43 +220,9 @@ const LoginScreen = ({ navigation }) => {
 
     };
 
-    // Khi đăng nhập CAS xong thì quay trở lại trang sẽ được thực thi
-    useEffect(() => {
-        const handleDeepLink = async ({ url }) => {
-            console.log('Deep Link URL:', url);
-
-            const parsedUrl = Linking.parse(url);
-            const { queryParams } = parsedUrl;
-
-            if(!queryParams) return;
-
-            const username = queryParams?.username;
-            if (username) {
-                const encodeUsername = Buffer.from(username, 'base64').toString('utf-8');
-                //console.log(encodeUsername)
-                callAPILoginCAS(encodeUsername);
-            } else {
-                console.log('Không tìm thấy username trong callback URL');
-                Toast.show({
-                    type: 'error',
-                    text1: 'Không tìm thấy username trong callback URL',
-                    position: 'top',
-                    visibilityTime: 3000,
-                });
-            }
-        };
-
-        // Lắng nghe URL trả về
-        const unsubscribe = Linking.addEventListener('url', handleDeepLink);
-        return () => {
-            // Hủy bỏ sự kiện khi không còn cần thiết
-            unsubscribe.remove();
-        };
-    }, [loginWithCAS]);
-
     // Tự động đăng nhập bằng CAS nếu chưa đăng xuất
     useEffect(() => {
-        if(username && password === 'loginWithCas'){ 
+        if (username && password === 'loginWithCas') {
             callAPILoginCAS(username);
         }
     }, [loginWithCAS]);
@@ -270,9 +236,9 @@ const LoginScreen = ({ navigation }) => {
             if (response.status >= 200 && response.status < 300) {
                 // Thiết lập cookie từ kết quả trả về
                 const { accessToken, refreshToken, user, expiresIn } = response.data;
-    
+
                 await axios.post(tokenRoute.saveToken, { accountId: user.id, refreshToken, expiresIn });
-    
+
                 // Kiểm tra người dùng được gán nhóm chức năng chưa
                 const responsePhanQuyen = await axios.get(phanQuyenRoute.getNhomChucNangByAccountId, {
                     params: {
@@ -280,11 +246,11 @@ const LoginScreen = ({ navigation }) => {
                     }
                 });
                 if (responsePhanQuyen.status >= 200 && responsePhanQuyen.status < 300) {
-                    if(responsePhanQuyen.data.length===0){
+                    if (responsePhanQuyen.data.length === 0) {
                         // gán nhóm chức năng cho user
                         const responseAccount = await axios.get(accountRoute.findByUsername + "/" + username);
                         if (responseAccount.status >= 200 && responseAccount.status < 300) {
-    
+
                             if (responseAccount.data.vaiTro === 'chuyenVien') {
                                 await axios.post(phanQuyenRoute.savePhanQuyenForAccount, {
                                     accountId: responseAccount.data.id,
@@ -370,7 +336,7 @@ const LoginScreen = ({ navigation }) => {
                         routes: [{ name: 'TabNavigator' }], // Tên màn hình bạn muốn đặt làm màn hình chính
                     });
                 }
-                
+
             } else {
                 return Toast.show({
                     type: 'error',
@@ -407,10 +373,29 @@ const LoginScreen = ({ navigation }) => {
             const casLoginUrl = `${casURL}?service=${encodeURIComponent(serviceUrl)}`;
 
             // Mở trang CAS
-            const result = await WebBrowser.openAuthSessionAsync(casLoginUrl, redirectUri);
+            const result = await WebBrowser.openAuthSessionAsync(casLoginUrl, `vnptlichhop://`);
             console.log(result)
             if (result.type === 'success' && result.url) {
                 console.log('WebBrowser result:', result);
+                const parsedUrl = Linking.parse(result.url);
+                const { queryParams } = parsedUrl;
+
+                if (!queryParams) return;
+
+                const username = queryParams?.username;
+                if (username) {
+                    const encodeUsername = Buffer.from(username, 'base64').toString('utf-8');
+                    console.log(encodeUsername)
+                    callAPILoginCAS(encodeUsername);
+                } else {
+                    console.log('Không tìm thấy username trong callback URL');
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Không tìm thấy username trong callback URL',
+                        position: 'top',
+                        visibilityTime: 3000,
+                    });
+                }
             } else {
                 console.log('Người dùng hủy đăng nhập hoặc không có URL callback');
             }
