@@ -373,7 +373,7 @@ const LoginScreen = ({ navigation }) => {
             const casLoginUrl = `${casURL}?service=${encodeURIComponent(serviceUrl)}`;
 
             // Mở trang CAS
-            const result = await WebBrowser.openAuthSessionAsync(casLoginUrl, `vnptlichhop://`);
+            const result = await WebBrowser.openAuthSessionAsync(casLoginUrl, redirectUri);
             console.log(result)
             if (result.type === 'success' && result.url) {
                 console.log('WebBrowser result:', result);
