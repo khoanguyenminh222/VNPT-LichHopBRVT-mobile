@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, ActivityIndicator, Alert, Image } from 'react-native';
+import { View, ActivityIndicator, Alert, Image, Platform } from 'react-native';
 import { TextInput, Button, Text } from 'react-native-paper';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
@@ -11,6 +11,7 @@ import * as AuthSession from 'expo-auth-session';
 import { Buffer } from 'buffer';
 import * as Linking from 'expo-linking';
 import { ScrollView } from 'react-native-gesture-handler';
+import { WebView } from 'react-native-webview';
 
 const LoginScreen = ({ navigation }) => {
     const { user, updateUser, isLogin, logoutSystem } = useAuth();
@@ -19,6 +20,8 @@ const LoginScreen = ({ navigation }) => {
     const [loading, setLoading] = useState(false);
     const [loginInfoRetrieved, setLoginInfoRetrieved] = useState(false);
     const [loginWithCAS, setLoginWithCAS] = useState(false);
+    const [showWebView, setShowWebView] = useState(false);
+    const [casLoginUrl, setCasLoginUrl] = useState('');
 
     // Khi màn hình đăng nhập được tải, kiểm tra xem có thông tin đăng nhập đã được lưu trong AsyncStorage hay không
     useEffect(() => {
@@ -355,49 +358,53 @@ const LoginScreen = ({ navigation }) => {
             });
         } finally {
             setLoading(false);
+            setShowWebView(false);
         }
     };
 
     // Khi nhấn nút đăng nhập CAS
     const handleLoginCAS = async () => {
         try {
-            const redirectUri = AuthSession.makeRedirectUri({
-                useProxy: false,
-            });
-
+            const redirectUri = AuthSession.makeRedirectUri({ useProxy: false });
             console.log('Redirect URI:', redirectUri);
+
             const casURL = process.env.casURL; // URL CAS
             const serviceUrl = process.env.serviceUrl; // Backend xử lý
 
             // Tạo URL đăng nhập CAS
-            const casLoginUrl = `${casURL}?service=${encodeURIComponent(serviceUrl)}`;
+            const generatedCasLoginUrl = `${casURL}?service=${encodeURIComponent(serviceUrl)}`;
+            setCasLoginUrl(generatedCasLoginUrl); // Cập nhật URL vào state
 
-            // Mở trang CAS
-            const result = await WebBrowser.openAuthSessionAsync(casLoginUrl, redirectUri);
-            console.log(result)
-            if (result.type === 'success' && result.url) {
-                console.log('WebBrowser result:', result);
-                const parsedUrl = Linking.parse(result.url);
-                const { queryParams } = parsedUrl;
-
-                if (!queryParams) return;
-
-                const username = queryParams?.username;
-                if (username) {
-                    const encodeUsername = Buffer.from(username, 'base64').toString('utf-8');
-                    console.log(encodeUsername)
-                    callAPILoginCAS(encodeUsername);
-                } else {
-                    console.log('Không tìm thấy username trong callback URL');
-                    Toast.show({
-                        type: 'error',
-                        text1: 'Không tìm thấy username trong callback URL',
-                        position: 'top',
-                        visibilityTime: 3000,
-                    });
-                }
+            if (Platform.OS === 'android') {
+                setShowWebView(true);
             } else {
-                console.log('Người dùng hủy đăng nhập hoặc không có URL callback');
+                // Dành cho iOS, sử dụng WebBrowser mở trang web ngoài
+                const result = await WebBrowser.openAuthSessionAsync(generatedCasLoginUrl, redirectUri);
+
+                if (result.type === 'success' && result.url) {
+                    //console.log('WebBrowser result:', result);
+                    const parsedUrl = Linking.parse(result.url);
+                    const { queryParams } = parsedUrl;
+
+                    if (!queryParams) return;
+
+                    const username = queryParams?.username;
+                    if (username) {
+                        const encodeUsername = Buffer.from(username, 'base64').toString('utf-8');
+                        
+                        callAPILoginCAS(encodeUsername);
+                    } else {
+                        console.log('Không tìm thấy username trong callback URL');
+                        Toast.show({
+                            type: 'error',
+                            text1: 'Không tìm thấy username trong callback URL',
+                            position: 'top',
+                            visibilityTime: 3000,
+                        });
+                    }
+                } else {
+                    console.log('Người dùng hủy đăng nhập hoặc không có URL callback');
+                }
             }
         } catch (error) {
             console.error('Lỗi đăng nhập CAS:', error);
@@ -405,33 +412,71 @@ const LoginScreen = ({ navigation }) => {
     };
 
     return (
-        <ScrollView showsVerticalScrollIndicator={false}>
-            <View className="flex-1 justify-center p-4">
-                <Image source={require('../assets/logoVNPT.png')} style={{ width: 200, height: 200, alignSelf: 'center' }} />
-                <Text variant='headlineMedium' className="font-bold text-center mb-6">Đăng nhập</Text>
-                <TextInput
-                    label="Tên đăng nhập"
-                    value={username}
-                    onChangeText={setUsername}
-                    mode="outlined"
+        <View style={{ flex: 1 }}>
+            {showWebView ? (
+                <View style={{ flex: 1, marginTop: Platform.OS === 'android' ? 25 : 0 }}>
+                    <Button mode="text" onPress={() => setShowWebView(false)} style={{ marginTop: 20, alignSelf: 'center' }}>
+                        Quay lại trang đăng nhập
+                    </Button>
+                    <WebView
+                        source={{ uri: casLoginUrl }} // Sử dụng casLoginUrl từ state
+                        style={{ flex: 1 }}
+                        onNavigationStateChange={(navState) => {
+                            if (navState.url.includes('vnptlichhop://')) {
+                                // Xử lý redirect về app qua deep link (vnptlichhop://)
+                                const parsedUrl = Linking.parse(navState.url);
+                                const { queryParams } = parsedUrl;
+                                
+                                if (!queryParams) return;
 
-                />
-                <TextInput
-                    label="Mật khẩu"
-                    value={password}
-                    onChangeText={setPassword}
-                    secureTextEntry
-                    mode="outlined"
-                    style={{ marginBottom: 10 }}
-                />
-                <Button mode="contained" onPress={handleLogin} disabled={loading}>
-                    {loading ? <ActivityIndicator color="#fff" /> : 'Đăng nhập'}
-                </Button>
-                <Button mode="text" onPress={handleLoginCAS} className="mt-4">
-                    Đăng nhập bằng CAS
-                </Button>
-            </View>
-        </ScrollView>
+                                const username = queryParams?.username;
+                                if (username) {
+                                    const encodeUsername = Buffer.from(username, 'base64').toString('utf-8');
+                                    
+                                    callAPILoginCAS(encodeUsername);
+                                } else {
+                                    console.log('Không tìm thấy username trong callback URL');
+                                    Toast.show({
+                                        type: 'error',
+                                        text1: 'Không tìm thấy username trong callback URL',
+                                        position: 'top',
+                                        visibilityTime: 3000,
+                                    });
+                                }
+                            }
+                        }}
+                    />
+
+                </View>
+            ) : (
+                <ScrollView showsVerticalScrollIndicator={false}>
+                    <View className="flex-1 justify-center p-4">
+                        <Image source={require('../assets/logoVNPT.png')} style={{ width: 200, height: 200, alignSelf: 'center' }} />
+                        <Text variant='headlineMedium' className="font-bold text-center mb-6">Đăng nhập</Text>
+                        <TextInput
+                            label="Tên đăng nhập"
+                            value={username}
+                            onChangeText={setUsername}
+                            mode="outlined"
+                        />
+                        <TextInput
+                            label="Mật khẩu"
+                            value={password}
+                            onChangeText={setPassword}
+                            secureTextEntry
+                            mode="outlined"
+                            style={{ marginBottom: 10 }}
+                        />
+                        <Button mode="contained" onPress={handleLogin} disabled={loading}>
+                            {loading ? <ActivityIndicator color="#fff" /> : 'Đăng nhập'}
+                        </Button>
+                        <Button mode="text" onPress={handleLoginCAS} className="mt-4">
+                            Đăng nhập bằng CAS
+                        </Button>
+                    </View>
+                </ScrollView>
+            )}
+        </View>
     );
 };
 

@@ -4,8 +4,6 @@ import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { navigate } from './NavigationService';
-import * as WebBrowser from 'expo-web-browser';
-import * as AuthSession from 'expo-auth-session';
 
 const axiosInstance = axios.create({
     baseURL: domain,
@@ -13,23 +11,13 @@ const axiosInstance = axios.create({
 
 const handleLogoutCAS = async () => {
     try {
-        const redirectUri = AuthSession.makeRedirectUri({
-            useProxy: false,
-        });
-        console.log("logout",redirectUri)
         const casLogoutUrl = `${process.env.casURL}/logout?service=${process.env.logoutCAS}`;
-        console.log("Logging out to:", casLogoutUrl);  // Kiểm tra URL trước khi gọi
+        console.log("Logging out to:", casLogoutUrl);  // Kiểm tra URL logout
 
-        const result = await WebBrowser.openAuthSessionAsync(casLogoutUrl, redirectUri);
-
-        console.log("WebBrowser result:", result);  // In kết quả trả về từ WebBrowser
-
-        if (result.type === 'success') {
-            console.log('Đăng xuất CAS thành công');
-            // Thực hiện điều hướng hoặc xử lý khác sau khi logout
-        } else {
-            console.log('Người dùng đã hủy hoặc xảy ra lỗi khi đăng xuất');
-        }
+        // Gửi yêu cầu logout đến CAS
+        await fetch(casLogoutUrl, {
+            method: 'GET',
+        });
     } catch (error) {
         console.error('Lỗi khi logout CAS:', error);
     }
@@ -37,7 +25,7 @@ const handleLogoutCAS = async () => {
 
 export const logout = async (refreshToken) => {
     const storedPassword = await AsyncStorage.getItem('password');
-    console.log(storedPassword)
+
     if (storedPassword === 'loginWithCas') { 
         await handleLogoutCAS();
     }
