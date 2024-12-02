@@ -2,7 +2,7 @@
 import 'expo-dev-client';
 import './gesture-handler';
 import './global.css';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { Provider as PaperProvider, IconButton, useTheme } from 'react-native-paper';
 import { NavigationContainer } from '@react-navigation/native';
@@ -25,6 +25,11 @@ import { screenUrls } from './api/routes';
 import SettingScreen from './screens/root/SettingScreen';
 import { FontSizeProvider } from './context/FontSizeContext';
 import { HighlightTextProvider } from './context/HighlightTextContext';
+import LichHopFakeScreen from './screens/LichHopFakeScreen';
+import axios from 'axios';
+import { accountRoute } from './api/baseURL';
+import ThongTinFakeScreen from './screens/ThongTinFakeScreen';
+import { Platform } from 'react-native';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -81,9 +86,61 @@ const TabNavigator = () => {
     );
 };
 
-const AppNavigator = () => {
+const TabHackingAppleNavigator = () => {
+    const { colors } = useTheme();
     return (
-        <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName='Login'>
+        <Tab.Navigator screenOptions={{ headerShown: false }}>
+            <Tab.Screen
+                name="Lịch họp"
+                component={LichHopFakeScreen}
+                options={{
+                    tabBarIcon: ({ focused }) => (
+                        <IconButton icon="calendar" iconColor={focused ? colors.primary : colors.disabled} size={24} />
+                    )
+                }}
+            />
+            <Tab.Screen
+                name="Thông tin"
+                component={ThongTinFakeScreen}
+                options={{
+                    tabBarIcon: ({ focused }) => (
+                        <IconButton icon="book" iconColor={focused ? colors.primary : colors.disabled} size={24} />
+                    )
+                }}
+            />
+        </Tab.Navigator>
+    );
+};
+
+const AppNavigator = () => {
+    const [isLogin, setIsLogin] = useState(true);
+    const [isLoading, setIsLoading] = useState(true);
+    useEffect(() => {
+        const fetchStatus = async () => {
+            try {
+                const response = await axios.get(`${accountRoute.findByUsername}/appstore`);
+                if (response.status >= 200 && response.status < 300) {
+                    if(response.data.trangThai === 0) {
+                        setIsLogin(false);
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching login status:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        }
+        fetchStatus();
+    }, []);
+    if (isLoading) {
+        return null;
+    }
+    const initialRoute = Platform.OS === "ios" && !isLogin ? "fakescreen" : "Login";
+    return (
+        <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName={initialRoute}>
+            {Platform.OS === "ios" && (
+                <Stack.Screen name="fakescreen" component={TabHackingAppleNavigator} />
+            )}
             <Stack.Screen name="Login" component={LoginScreen} />
             <Stack.Screen name="NotFound" component={NotFoundScreen} />
             <Stack.Screen name="TabNavigator" component={TabNavigator} />

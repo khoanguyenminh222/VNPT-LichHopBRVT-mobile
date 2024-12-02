@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, ActivityIndicator, Alert, Image, Platform } from 'react-native';
+import { View, ActivityIndicator, Alert, Image, Platform, ImageBackground } from 'react-native';
 import { TextInput, Button, Text } from 'react-native-paper';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
@@ -12,6 +12,7 @@ import { Buffer } from 'buffer';
 import * as Linking from 'expo-linking';
 import { ScrollView } from 'react-native-gesture-handler';
 import { WebView } from 'react-native-webview';
+import Constants from 'expo-constants';
 
 const LoginScreen = ({ navigation }) => {
     const { user, updateUser, isLogin, logoutSystem } = useAuth();
@@ -411,6 +412,9 @@ const LoginScreen = ({ navigation }) => {
         }
     };
 
+    // Lấy phiên bản từ Constants.manifest.version
+    const appVersion = Constants.expoConfig?.version || 'Unknown';
+
     return (
         <View style={{ flex: 1, backgroundColor: 'white' }}>
             {showWebView ? (
@@ -449,34 +453,39 @@ const LoginScreen = ({ navigation }) => {
 
                 </View>
             ) : (
-                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ marginVertical: 'auto', paddingHorizontal: 12 }}>
-                    <Image source={require('../assets/logoVNPT.png')} style={{ width: 140, height: 140, alignSelf: 'center', }} />
-                    <View className="flex flex-col justify-center items-center">
-                        <Text variant='headlineMedium' className="font-bold my-6 uppercase">Đăng nhập</Text>
-                        <TextInput
-                            label="Tên đăng nhập"
-                            value={username}
-                            onChangeText={setUsername}
-                            mode="outlined"
-                            style={{ marginBottom: 10, width: '100%', maxWidth: 460 }}
-                        />
-                        <TextInput
-                            label="Mật khẩu"
-                            value={password}
-                            onChangeText={setPassword}
-                            secureTextEntry
-                            mode="outlined"
-                            style={{ marginBottom: 10, width: '100%', maxWidth: 460 }}
-                        />
-                        <Button mode="contained" onPress={handleLogin} disabled={loading} style={{ marginBottom: 10, width: '100%', maxWidth: 460 }}>
-                            {loading ? <ActivityIndicator color="#fff" /> : 'Đăng nhập'}
-                        </Button>
-                        <Button mode="text" onPress={handleLoginCAS} className="mt-4" style={{ marginBottom: 10, width: '100%', maxWidth: 460 }}>
-                            Đăng nhập bằng CAS
-                        </Button>
+                <ImageBackground source={require('../assets/bgVNPT.jpg')} resizeMode="cover" className="h-full w-full">
+                    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ marginVertical: 'auto', paddingHorizontal: 12 }}>
+                        <Image source={require('../assets/logoVNPT.png')} style={{ width: 140, height: 140, alignSelf: 'center', }} />
+                        <View className="flex flex-col justify-center items-center">
+                            <Text variant='headlineMedium' className="font-bold my-6 uppercase">Đăng nhập</Text>
+                            <TextInput
+                                label="Tên đăng nhập"
+                                value={username}
+                                onChangeText={setUsername}
+                                mode="outlined"
+                                style={{ marginBottom: 10, width: '100%', maxWidth: 460 }}
+                            />
+                            <TextInput
+                                label="Mật khẩu"
+                                value={password}
+                                onChangeText={setPassword}
+                                secureTextEntry
+                                mode="outlined"
+                                style={{ marginBottom: 10, width: '100%', maxWidth: 460 }}
+                            />
+                            <Button mode="contained" onPress={handleLogin} disabled={loading} style={{ marginBottom: 10, width: '100%', maxWidth: 460 }}>
+                                {loading ? <ActivityIndicator color="#fff" /> : 'Đăng nhập'}
+                            </Button>
+                            <Button mode="text" onPress={handleLoginCAS} className="mt-4" style={{ marginBottom: 10, width: '100%', maxWidth: 460 }}>
+                                Đăng nhập bằng CAS
+                            </Button>
+                        </View>
+                        
+                    </ScrollView>
+                    <View className="bottom-0 right-0 left-0 flex justify-center items-center">
+                        <Text className="text-center text-gray-500">Phiên bản: {appVersion}</Text>
                     </View>
-
-                </ScrollView>
+                </ImageBackground>
             )}
         </View>
     );

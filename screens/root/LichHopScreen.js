@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, Pressable, Linking, Alert } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import axiosInstance from '../../utils/axiosInstance';
@@ -39,6 +39,20 @@ const LichHopScreen = () => {
     const [selectedEvent, setSelectedEvent] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [modelEdit, setModelEdit] = useState(false);
+    const scrollViewRef = useRef(null);
+
+    // Khi selectedDate thay đổi, cuộn đến ngày được chọn
+    useEffect(() => {
+        if (scrollViewRef.current && selectedDate) {
+            // Tìm index của ngày được chọn
+            const selectedIndex = weekDates.findIndex(date => date.getDate() === selectedDate.getDate());
+
+            // Cuộn đến ngày được chọn (ví dụ: mỗi ngày cách nhau 50px)
+            if (selectedIndex !== -1) {
+                scrollViewRef.current.scrollTo({ x: selectedIndex * 50, animated: true });
+            }
+        }
+    }, [selectedDate, weekDates]); // Khi `selectedDate` thay đổi, thực hiện cuộn lại
 
     // Hàm hỗ trợ để highlight text
     const applyHighlight = (text) => {
@@ -401,36 +415,48 @@ const LichHopScreen = () => {
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
             <View className="flex-1 bg-gray-50">
-                <View className="flex-row justify-between items-center mb-6 w-full max-w-[460px] m-auto">
+                <View className="flex-row justify-between items-center mb-6 w-full max-w-[460px] m-auto rounded-lg px-2">
+                    {/* Nút trước */}
                     <Pressable
                         onPress={handlePreviousWeek}
-                        className={currentWeekIndex <= 1 ? "opacity-0 pointer-events-none" : "p-4"}
+                        className={`p-4 rounded-lg ${currentWeekIndex <= 1 ? "opacity-50 pointer-events-none" : "bg-blue-100 hover:bg-blue-200"}`}
                     >
-                        <Text className="text-2xl text-blue-600">{"<"}</Text>
+                        <Text className="text-2xl text-blue-600 font-semibold">{"<"}</Text>
                     </Pressable>
 
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ flexDirection: 'row', paddingHorizontal: 10 }}>
-                        {weekDates.map((item, index) => (
-                            <Pressable
-                                key={index}
-                                onPress={() => handleSelectDate(item)}
-                                className={`flex items-center p-3 mx-1 rounded-md ${selectedDate && selectedDate.getDate() === item.getDate() ? 'bg-blue-500' : 'bg-white'}`}
-                            >
-                                <Text className={`text-base ${selectedDate && selectedDate.getDate() === item.getDate() ? 'text-white font-semibold' : 'text-gray-600'}`}>
-                                    {item.toLocaleDateString('vi-VN', { weekday: 'short' })}
-                                </Text>
-                                <Text className={`text-lg ${selectedDate && selectedDate.getDate() === item.getDate() ? 'text-white font-bold' : 'text-gray-800'}`}>
-                                    {item.getDate()}
-                                </Text>
-                            </Pressable>
-                        ))}
+                    {/* Danh sách ngày */}
+                    <ScrollView
+                        ref={scrollViewRef}
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={{ flexDirection: 'row', gap: 8 }}
+                        className="flex-1 mx-4"
+                    >
+                        {weekDates.map((item, index) => {
+                            const isSelected = selectedDate && selectedDate.getDate() === item.getDate();
+                            return (
+                                <Pressable
+                                    key={index}
+                                    onPress={() => handleSelectDate(item)}
+                                    className={`w-16 flex items-center p-3 rounded-lg transition-all duration-200 border ${isSelected ? 'bg-blue-500 border-blue-500' : 'bg-white border-black'}`}
+                                >
+                                    <Text className={`text-sm uppercase tracking-wide ${isSelected ? 'text-white font-medium' : 'text-gray-500'}`}>
+                                        {item.toLocaleDateString('vi-VN', { weekday: 'short' })}
+                                    </Text>
+                                    <Text className={`text-lg font-semibold ${isSelected ? 'text-white' : 'text-gray-800'}`}>
+                                        {item.getDate()}
+                                    </Text>
+                                </Pressable>
+                            );
+                        })}
                     </ScrollView>
 
+                    {/* Nút sau */}
                     <Pressable
                         onPress={handleNextWeek}
-                        className={currentWeekIndex >= 2 ? "opacity-0 pointer-events-none" : "p-4"}
+                        className={`p-4 rounded-lg ${currentWeekIndex >= 2 ? "opacity-50 pointer-events-none" : "bg-blue-100 hover:bg-blue-200"}`}
                     >
-                        <Text className="text-2xl text-blue-600">{">"}</Text>
+                        <Text className="text-2xl text-blue-600 font-semibold">{">"}</Text>
                     </Pressable>
                 </View>
                 {/* Hiển thị thứ, ngày  */}

@@ -8,6 +8,7 @@ import Toast from 'react-native-toast-message';
 import axiosInstance from "../utils/axiosInstance";
 import { lichCaNhanRoute, uploadFileRoute } from "../api/baseURL";
 import unidecode from 'unidecode';
+import BouncyCheckbox from "react-native-bouncy-checkbox";
 
 const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDelete, onAccept, user }) => {
     const [editedEvent, setEditedEvent] = useState({
@@ -362,10 +363,10 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
             chuDe: "",
             diaDiem: "Ngoài cơ quan",
             noiDung: "",
-            ngayBatDau: "",
-            gioBatDau: "",
-            ngayKetThuc: "",
-            gioKetThuc: "",
+            ngayBatDau: new Date().toISOString().split('T')[0],
+            gioBatDau: new Date().toTimeString().split(' ')[0].substring(0, 5),
+            ngayKetThuc: new Date().toISOString().split('T')[0],
+            gioKetThuc: new Date().toTimeString().split(' ')[0].substring(0, 5),
             accountId: user?.id,
             fileDinhKem: "",
             trangThai: "duyet",
@@ -377,20 +378,24 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
     return (
         <Modal visible={visible} animationType="slide" transparent>
             <View className="flex-1 justify-center items-center" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
-                <View className="bg-white w-96 rounded-lg p-4">
+                <View className="bg-white w-96 rounded-lg p-4 my-8">
                     <ScrollView showsVerticalScrollIndicator={false}>
                         <Text className="text-xl font-bold text-center mb-4">{selectedEvent ? "Sửa sự kiện" : "Thêm sự kiện"}</Text>
 
                         {/* Quan trọng */}
                         <View className="flex-row items-center mb-4">
-                            <Checkbox
-                                status={editedEvent.trangThai === "quanTrong" ? "checked" : "unchecked"}
+                            <BouncyCheckbox
+                                isChecked={editedEvent.trangThai === "quanTrong" ? true : false}
                                 onPress={() => setEditedEvent({
                                     ...editedEvent,
                                     trangThai: editedEvent.trangThai === "quanTrong" ? "duyet" : "quanTrong"
                                 })}
+                                fillColor="blue"
+                                text="Quan trọng"
+                                textStyle={{
+                                    textDecorationLine: "none",
+                                }}
                             />
-                            <Text className="ml-2 text-base">Quan trọng</Text>
                         </View>
 
                         {/* Loại sự kiện */}
@@ -398,7 +403,6 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                             <Text className="text-base font-semibold mb-2">Loại sự kiện *</Text>
                             <View className="border rounded-md">
                                 <Picker
-
                                     selectedValue={editedEvent.loaiSuKien}
                                     onValueChange={(value) => setEditedEvent({ ...editedEvent, loaiSuKien: value })}
                                 >
@@ -454,10 +458,11 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                             {/* Nếu platform là ios thì hiện datetime picker */}
                             {Platform.OS === 'ios' ? (
                                 <DateTimePicker
-                                    value={editedEvent.ngayBatDau ? new Date(editedEvent.ngayBatDau) : new Date()}
+                                    value={editedEvent.ngayBatDau ? new Date(editedEvent.ngayBatDau) : new Date().toISOString().split('T')[0]}
                                     mode="date"
                                     display="default"
                                     onChange={(event, date) => handleDatePickerChange('ngayBatDau', event, date)}
+                                    locale="vi-VN"
                                 />
                             ) : (
                                 <Pressable onPress={() => openPicker('date', 'ngayBatDau')}>
@@ -476,10 +481,11 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                             {/* Nếu platform là ios thì hiện datetime picker */}
                             {Platform.OS === 'ios' ? (
                                 <DateTimePicker
-                                    value={editedEvent.gioBatDau ? new Date(`2000-01-01T${editedEvent.gioBatDau}:00`) : new Date()}
+                                    value={editedEvent.gioBatDau ? new Date(`2000-01-01T${editedEvent.gioBatDau}:00`) : new Date().toTimeString().split(' ')[0].substring(0, 5)}
                                     mode="time"
                                     display="default"
                                     onChange={(event, date) => handleDatePickerChange('gioBatDau', event, date)}
+                                    locale="vi-VN"
                                 />
                             ) : (
                                 <Pressable onPress={() => openPicker("time", "gioBatDau")}>
@@ -498,10 +504,11 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                             {/* Nếu platform là ios thì hiện datetime picker */}
                             {Platform.OS === 'ios' ? (
                                 <DateTimePicker
-                                    value={editedEvent.ngayKetThuc ? new Date(editedEvent.ngayKetThuc) : new Date()}
+                                    value={editedEvent.ngayKetThuc ? new Date(editedEvent.ngayKetThuc) : new Date().toISOString().split('T')[0]}
                                     mode="date"
                                     display="default"
                                     onChange={(event, date) => handleDatePickerChange('ngayKetThuc', event, date)}
+                                    locale="vi-VN"
                                 />
                             ) : (
                                 <Pressable onPress={() => openPicker('date', 'ngayKetThuc')}>
@@ -520,10 +527,11 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                             {/* Nếu platform là ios thì hiện datetime picker */}
                             {Platform.OS === 'ios' ? (
                                 <DateTimePicker
-                                    value={editedEvent.gioKetThuc ? new Date(`2000-01-01T${editedEvent.gioKetThuc}:00`) : new Date()}
+                                    value={editedEvent.gioKetThuc ? new Date(`2000-01-01T${editedEvent.gioKetThuc}:00`) : new Date().toTimeString().split(' ')[0].substring(0, 5)}
                                     mode="time"
                                     display="default"
                                     onChange={(event, date) => handleDatePickerChange('gioKetThuc', event, date)}
+                                    locale="vi-VN"
                                 />
                             ) : (
                                 <Pressable onPress={() => openPicker("time", "gioKetThuc")}>
@@ -562,7 +570,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                         )}
 
                         {/* Buttons */}
-                        <View className="flex-row items-end justify-between mt-4">
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 }}>
                             <Button onPress={hancleCloseModal} mode="text" textColor="black">
                                 Đóng
                             </Button>
@@ -584,7 +592,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                                     Xóa
                                 </Button>
                             )}
-                        </View>
+                        </ScrollView>
                     </ScrollView>
                 </View>
             </View>
