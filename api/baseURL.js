@@ -101,6 +101,22 @@ const lichCaNhanRoute = {
     findByAccountId: `${domain}/api/admin/lichCaNhan/account`, // /:accountId
 }
 
+const diaDiemHopRoute = {
+    findAll: `${domain}/api/admin/diaDiemHop`,
+    create: `${domain}/api/admin/diaDiemHop`,
+    findById: `${domain}/api/admin/diaDiemHop`, // /:id
+    update: `${domain}/api/admin/diaDiemHop`, // /:id
+    delete: `${domain}/api/admin/diaDiemHop`, // /:id
+}
+
+const thanhPhanThamDuRoute = {
+    findAll: `${domain}/api/admin/thanhPhanThamDu`,
+    create: `${domain}/api/admin/thanhPhanThamDu`,
+    update: `${domain}/api/admin/thanhPhanThamDu`, // /:id
+    delete: `${domain}/api/admin/thanhPhanThamDu`, // /:id
+    getCotCha: `${domain}/api/admin/thanhPhanThamDu/cotCha` // /:idCotCha
+}
+
 export {
     domain,
     publicfolder,
@@ -118,4 +134,6 @@ export {
     vaiTroRoute,
     eventRoute,
     lichCaNhanRoute,
+    diaDiemHopRoute,
+    thanhPhanThamDuRoute,
 };

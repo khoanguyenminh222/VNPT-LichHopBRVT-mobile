@@ -6,9 +6,10 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import * as DocumentPicker from 'expo-document-picker';
 import Toast from 'react-native-toast-message';
 import axiosInstance from "../utils/axiosInstance";
-import { lichCaNhanRoute, uploadFileRoute } from "../api/baseURL";
+import { diaDiemHopRoute, eventRoute, lichCaNhanRoute, uploadFileRoute } from "../api/baseURL";
 import unidecode from 'unidecode';
 import BouncyCheckbox from "react-native-bouncy-checkbox";
+import { Dropdown } from 'react-native-element-dropdown';
 
 const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDelete, onAccept, user }) => {
     const [editedEvent, setEditedEvent] = useState({
@@ -26,10 +27,31 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
     });
     const [attachedFiles, setAttachedFiles] = useState([]);
 
+    const [diaDiemHops, setDiaDiemHops] = useState([]);
+
     // Hàm mở DateTimePicker
     const [showPicker, setShowPicker] = useState(false);
     const [pickerMode, setPickerMode] = useState("date"); // 'date' hoặc 'time'
     const [pickerField, setPickerField] = useState("");
+
+    // Hàm gọi api địa điểm họp
+    const fetchDiaDiemHops = async () => {
+        try {
+            const response = await axiosInstance.get(diaDiemHopRoute.findAll);
+            const formattedDiaDiemHops = response.data.map(item => ({
+                label: item.tenDiaDiemHop,
+                value: item.tenDiaDiemHop,
+            }));
+            setDiaDiemHops(formattedDiaDiemHops);
+        } catch (error) {
+            console.log(error);
+            const errorMessage = error.response ? error.response.data.message : error.message;
+            Toast.show({
+                type: 'error',
+                text1: errorMessage,
+            });
+        }
+    }
 
     useEffect(() => {
         // Cập nhật editedEvent khi selectedEvent thay đổi
@@ -48,11 +70,12 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                 trangThai: selectedEvent.trangThai || "duyet",
             });
         }
+        fetchDiaDiemHops();
     }, [selectedEvent, user?.id]);
 
     // Lưu sự kiện
     const handleSave = async () => {
-        // console.log(editedEvent)
+        console.log(editedEvent)
         if (!editedEvent.noiDung || !editedEvent.loaiSuKien || !editedEvent.chuDe || !editedEvent.diaDiem || !editedEvent.ngayBatDau || !editedEvent.gioBatDau || !editedEvent.ngayKetThuc || !editedEvent.gioKetThuc) {
             Alert.alert("Lỗi", "Vui lòng điền đầy đủ thông tin bắt buộc");
             return;
@@ -217,6 +240,90 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                     text1: response.data.message,
                 });
             }
+        } catch (error) {
+            console.log(error);
+            const errorMessage = error.response ? error.response.data.message : error.message;
+            Toast.show({
+                type: 'error',
+                text1: errorMessage,
+            });
+        }
+    };
+
+    // Đăng ký lịch VTT
+    const handleTranferToLichHop = async () => {
+        try {
+            const response = await axiosInstance.put(lichCaNhanRoute.update + "/" + selectedEvent.id, { trangThai: "dangKy" });
+            if (response.status < 200 || response.status >= 300) {
+                return Toast.show({
+                    type: 'success',
+                    text1: response.data.message,
+                });
+            }
+            const data = {
+                ngayBatDau: editedEvent.ngayBatDau,
+                gioBatDau: editedEvent.gioBatDau,
+                ngayKetThuc: editedEvent.ngayKetThuc,
+                gioKetThuc: editedEvent.gioKetThuc,
+                noiDungCuocHop: editedEvent.chuDe,
+                chuTri: user?.name,
+                chuanBi: "",
+                thanhPhan: user?.name,
+                moi: "",
+                diaDiem: editedEvent.diaDiem,
+                ghiChu: editedEvent.noiDung,
+                fileDinhKem: editedEvent.fileDinhKem,
+                trangThai: "dangKy",
+            }
+            const responseLichHop = await axiosInstance.post(eventRoute.create, data);
+            if(responseLichHop.status < 200 || responseLichHop.status >= 300) {
+                return Toast.show({
+                    type: 'success',
+                    text1: responseLichHop.data.message,
+                });
+            }
+            Toast.show({
+                type: 'success',
+                text1: "Đăng ký lịch VTT thành công",
+            });
+            onAccept();
+            hancleCloseModal(); // Đóng modal
+        } catch (error) {
+            console.log(error);
+            const errorMessage = error.response ? error.response.data.message : error.message;
+            Toast.show({
+                type: 'error',
+                text1: errorMessage,
+            });
+        }
+    };
+
+    // Huỷ đăng ký lịch VTT
+    const handleCancleTranferToLichHop = async () => {
+        try {
+            const response = await axiosInstance.put(lichCaNhanRoute.update + "/" + selectedEvent.id, { trangThai: "duyet" });
+            if (response.status < 200 || response.status >= 300) {
+                return Toast.show({
+                    type: 'success',
+                    text1: response.data.message,
+                });
+            }
+            const responseLichHop = await axiosInstance.get(eventRoute.findAll);
+
+            // Sắp xếp lại danh sách lịch họp theo id
+            responseLichHop.data.sort((a, b) => b.id - a.id).forEach(async (item) => {
+                // Nếu chủ trì là tên của bạn và trạng thái là đăng ký thì xóa sau đó dừng vòng lặp, đảm bảo chỉ xoá 1 sự kiện
+                if (item.chuTri === user?.name && item.trangThai === "dangKy" && item.ngayBatDau==editedEvent.ngayBatDau && item.gioBatDau==editedEvent.gioBatDau && item.ngayKetThuc==editedEvent.ngayKetThuc && item.gioKetThuc==editedEvent.gioKetThuc) {
+                    await axiosInstance.delete(eventRoute.delete + "/" + item.id);
+                    return;
+                }
+            })
+            Toast.show({
+                type: 'success',
+                text1: "Huỷ đăng ký lịch VTT thành công",
+            });
+            onAccept(); // Cập nhật danh sách sự kiện
+            hancleCloseModal();
         } catch (error) {
             console.log(error);
             const errorMessage = error.response ? error.response.data.message : error.message;
@@ -402,14 +509,20 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                         <View className="mb-4">
                             <Text className="text-base font-semibold mb-2">Loại sự kiện *</Text>
                             <View className="border rounded-md">
-                                <Picker
-                                    selectedValue={editedEvent.loaiSuKien}
-                                    onValueChange={(value) => setEditedEvent({ ...editedEvent, loaiSuKien: value })}
-                                >
-                                    <Picker.Item label="Sự kiện công việc" value="Sự kiện công việc" />
-                                    <Picker.Item label="Vắng mặt" value="Vắng mặt" />
-                                    <Picker.Item label="Riêng tư" value="Riêng tư" />
-                                </Picker>
+                                <Dropdown
+                                    data={[
+                                        { label: 'Sự kiện công việc', value: 'Sự kiện công việc' },
+                                        { label: 'Vắng mặt', value: 'Vắng mặt' },
+                                        { label: 'Riêng tư', value: 'Riêng tư' },
+                                    ]}
+                                    labelField="label"
+                                    valueField="value"
+                                    placeholder="Chọn loại sự kiện"
+                                    value={editedEvent.loaiSuKien} // Giá trị hiện tại
+                                    onChange={item => setEditedEvent({ ...editedEvent, loaiSuKien: item.value })} // Cập nhật giá trị
+                                    search={true}
+                                    style={{ padding: 10 }}
+                                />
                             </View>
 
                         </View>
@@ -429,14 +542,16 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                         <View className="mb-4">
                             <Text className="text-base font-semibold mb-2">Địa điểm *</Text>
                             <View className="border rounded-md">
-                                <Picker
-                                    selectedValue={editedEvent.diaDiem}
-                                    onValueChange={(value) => setEditedEvent({ ...editedEvent, diaDiem: value })}
-                                >
-                                    <Picker.Item label="Ngoài cơ quan" value="Ngoài cơ quan" />
-                                    <Picker.Item label="Hội trường VTT" value="Hội trường VTT" />
-                                    <Picker.Item label="Phòng họp VTT" value="Phòng họp VTT" />
-                                </Picker>
+                                <Dropdown
+                                    data={diaDiemHops}
+                                    labelField="label"
+                                    valueField="value"
+                                    placeholder="Chọn địa điểm"
+                                    value={editedEvent.diaDiem} // Giá trị hiện tại
+                                    onChange={item => setEditedEvent({ ...editedEvent, diaDiem: item.value })} // Cập nhật giá trị
+                                    search={true}
+                                    style={{ padding: 10 }}
+                                />
                             </View>
                         </View>
                         {/* Nội dung */}
@@ -576,12 +691,12 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                             </Button>
                             {selectedEvent && (selectedEvent.trangThai === "duyet" || selectedEvent.trangThai === "quanTrong") && (
                                 <Button onPress={handleCancleEvent} mode="text" textColor="red">
-                                    Huỷ
+                                    Tắt
                                 </Button>
                             )}
                             {selectedEvent && (selectedEvent.trangThai === "huy" || selectedEvent.trangThai === "quanTrong") && (
                                 <Button onPress={handleAcceptEvent} mode="text">
-                                    Duyệt
+                                    Bật
                                 </Button>
                             )}
                             <Button onPress={handleSave}>
@@ -590,6 +705,18 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                             {selectedEvent && (
                                 <Button onPress={handleDeleteEvent} mode="text" textColor="red">
                                     Xóa
+                                </Button>
+                            )}
+                        </ScrollView>
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 }}>
+                            {selectedEvent && selectedEvent.trangThai !== "dangKy" && (
+                                <Button onPress={handleTranferToLichHop} mode="text" textColor="black">
+                                    Đăng ký lịch VTT
+                                </Button>
+                            )}
+                            {selectedEvent && selectedEvent.trangThai === "dangKy" && (
+                                <Button onPress={handleCancleTranferToLichHop} mode="text" textColor="black">
+                                    Huỷ đăng ký lịch VTT
                                 </Button>
                             )}
                         </ScrollView>

@@ -432,41 +432,41 @@ const LichCaNhanScreen = () => {
                                 >
                                     {/* Hiển thị danh sách sự kiện trong ngày */}
                                     {sortedEvents.map((event, index) => (
-                                        <View key={index} className={`${event.trangThai === 'huy' ? 'bg-gray-100 border-gray-300' : event.trangThai === 'quanTrong' ? 'bg-red-100 border-red-300' : 'bg-blue-100 border-blue-300'} p-6 mb-6 rounded-xl shadow-lg border relative`}>
+                                        <View key={index} className={`${event.trangThai === 'huy' ? 'bg-gray-100 border-gray-300' : event.trangThai === 'quanTrong' ? 'bg-red-100 border-red-300' : event.trangThai == 'dangKy' ? 'bg-purple-100 border-purple-300' : 'bg-blue-100 border-blue-300'} p-6 mb-6 rounded-xl shadow-lg border relative`}>
                                             {/* Loại sự kiện */}
-                                            <Text style={{ fontSize: Number(fontSize) + 4 }} className={`${event.trangThai === 'huy' ? 'text-gray-800 line-through' : event.trangThai == 'quanTrong' ? 'text-red-800' : 'text-blue-800'} font-bold text-xl mb-2 mt-4`}>
+                                            <Text style={{ fontSize: Number(fontSize) + 4 }} className={`${event.trangThai === 'huy' ? 'text-gray-800 line-through' : event.trangThai == 'quanTrong' ? 'text-red-800' : event.trangThai == 'dangKy' ? 'text-purple-800' : 'text-blue-800'} font-bold text-xl mb-2 mt-4`}>
                                                 Loại sự kiện: {applyHighlight(event.loaiSuKien)}
                                             </Text>
 
                                             {/* Chủ đề */}
-                                            <Text style={{ fontSize: Number(fontSize) + 6 }} className={`${event.trangThai === 'huy' ? 'text-gray-900 line-through' : event.trangThai == 'quanTrong' ? 'text-red-900' : 'text-blue-900'} font-bold text-2xl mb-2`}>
+                                            <Text style={{ fontSize: Number(fontSize) + 6 }} className={`${event.trangThai === 'huy' ? 'text-gray-900 line-through' : event.trangThai == 'quanTrong' ? 'text-red-900' : event.trangThai == 'dangKy' ? 'text-purple-900' : 'text-blue-900'} font-bold text-2xl mb-2`}>
                                                 Chủ đề: {applyHighlight(event.chuDe)}
                                             </Text>
 
                                             {/* Địa điểm */}
-                                            <Text style={{ fontSize: Number(fontSize) + 4 }} className={`${event.trangThai === 'huy' ? 'text-gray-500 line-through' : event.trangThai == 'quanTrong' ? 'text-red-500' : 'text-blue-500'} font-bold text-xl mb-2`}>
+                                            <Text style={{ fontSize: Number(fontSize) + 4 }} className={`${event.trangThai === 'huy' ? 'text-gray-500 line-through' : event.trangThai == 'quanTrong' ? 'text-red-500' : event.trangThai == 'dangKy' ? 'text-purple-500' : 'text-blue-500'} font-bold text-xl mb-2`}>
                                                 {applyHighlight(event.diaDiem)}
                                             </Text>
 
                                             {/* Thời gian */}
-                                            <Text style={{ fontSize: Number(fontSize) }} className={`${event.trangThai === 'huy' ? 'text-gray-500 line-through' : event.trangThai == 'quanTrong' ? 'text-red-500' : 'text-blue-500'} font-bold mb-2`}>
+                                            <Text style={{ fontSize: Number(fontSize) }} className={`${event.trangThai === 'huy' ? 'text-gray-500 line-through' : event.trangThai == 'quanTrong' ? 'text-red-500' : event.trangThai == 'dangKy' ? 'text-purple-500' : 'text-blue-500'} font-bold mb-2`}>
                                                 Thời gian: <Text style={{ fontSize: Number(fontSize) + 4 }} className="font-semibold text-xl">{applyHighlight(event.gioBatDau)} - {applyHighlight(event.gioKetThuc)}</Text>
                                             </Text>
 
                                             {/* Nội dung */}
-                                            <Text style={{ fontSize: Number(fontSize) }} className={`${event.trangThai === 'huy' ? 'text-gray-600 line-through' : event.trangThai == 'quanTrong' ? 'text-red-600' : 'text-blue-600'} font-bold mb-2`}>
+                                            <Text style={{ fontSize: Number(fontSize) }} className={`${event.trangThai === 'huy' ? 'text-gray-600 line-through' : event.trangThai == 'quanTrong' ? 'text-red-600' : event.trangThai == 'dangKy' ? 'text-purple-600' : 'text-blue-600'} font-bold mb-2`}>
                                                 Nội dung: {applyHighlight(event.noiDung)}
                                             </Text>
 
                                             {/* File đính kèm */}
                                             {event.fileDinhKem && (
                                                 <View className="mt-4">
-                                                    <Text style={{ fontSize: Number(fontSize) }} className={`${event.trangThai === 'huy' ? 'text-gray-800' : event.trangThai === 'quanTrong' ? 'text-red-800' : 'text-blue-800'} font-semibold`}>File đính kèm</Text>
+                                                    <Text style={{ fontSize: Number(fontSize) }} className={`${event.trangThai === 'huy' ? 'text-gray-800' : event.trangThai === 'quanTrong' ? 'text-red-800' : event.trangThai == 'dangKy' ? 'text-purple-800' : 'text-blue-800'} font-semibold`}>File đính kèm</Text>
                                                     {parseFileAttachments(event.fileDinhKem).map((fileName, index) => (
                                                         <Pressable
                                                             key={index}
                                                             onPress={() => handleDownload(publicfolder + "/documents/" + fileName)}
-                                                            className={`py-2 px-4 mt-2 rounded-md ${event.trangThai === 'huy' ? 'bg-gray-500 hover:bg-gray-600' : event.trangThai === 'quanTrong' ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-500 hover:bg-blue-600'}`}
+                                                            className={`py-2 px-4 mt-2 rounded-md ${event.trangThai === 'huy' ? 'bg-gray-500 hover:bg-gray-600' : event.trangThai === 'quanTrong' ? 'bg-red-500 hover:bg-red-600' : event.trangThai == 'dangKy' ? 'bg-purple-500 hover:bg-purple-600' : 'bg-blue-500 hover:bg-blue-600'}`}
                                                         >
                                                             <Text style={{ fontSize: Number(fontSize) }} className="flex items-center text-white">
                                                                 <FontAwesomeIcon color='white' icon={faDownload} className="mr-2" size={Number(fontSize) - 2} /> {applyHighlight(fileName)}
@@ -479,18 +479,18 @@ const LichCaNhanScreen = () => {
                                             <View className="absolute top-0 right-0 p-1 rounded-lg flex flex-row gap-2">
                                                 <Pressable
                                                     onPress={() => handleCopyText(event)}
-                                                    className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai === 'quanTrong' ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}
+                                                    className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai === 'quanTrong' ? 'bg-red-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : 'bg-blue-500'} rounded-lg`}
                                                 >
                                                     <FontAwesomeIcon color='white' icon={faClipboard} size={Number(fontSize) + 4} />
                                                 </Pressable>
                                                 <Pressable
                                                     onPress={() => { setModalVisible(true); setSelectedEvent(event); }}
-                                                    className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai === 'quanTrong' ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}>
+                                                    className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai === 'quanTrong' ? 'bg-red-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : 'bg-blue-500'} rounded-lg`}>
                                                     <FontAwesomeIcon color='white' icon={faClockFour} size={Number(fontSize) + 4} />
                                                 </Pressable>
                                                 <Pressable
                                                     onPress={() => { setModelEdit(true); setSelectedEvent(event); }}
-                                                    className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai === 'quanTrong' ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}>
+                                                    className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai === 'quanTrong' ? 'bg-red-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : 'bg-blue-500'} rounded-lg`}>
                                                     <FontAwesomeIcon color='white' icon={faEdit} size={Number(fontSize) + 4} />
                                                 </Pressable>
                                             </View>

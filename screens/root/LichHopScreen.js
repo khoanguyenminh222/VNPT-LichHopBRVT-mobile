@@ -481,49 +481,49 @@ const LichHopScreen = () => {
                                 >
                                     {/* Hiển thị danh sách sự kiện trong ngày */}
                                     {sortedEvents.map((event, index) => (
-                                        <View key={index} className={`${event.trangThai === 'huy' ? 'bg-gray-100 border-gray-300' : event.trangThai === 'quanTrong' ? 'bg-red-100 border-red-300' : 'bg-blue-100 border-blue-300'} p-6 mb-6 rounded-xl shadow-lg border relative`}>
+                                        <View key={index} className={`${event.trangThai === 'huy' ? 'bg-gray-100 border-gray-300' : event.trangThai === 'quanTrong' ? 'bg-red-100 border-red-300' : event.trangThai === 'dangKy' ? 'bg-purple-100 border-purple-500' : 'bg-blue-100 border-blue-300'} p-6 mb-6 rounded-xl shadow-lg border relative`}>
                                             {/* Tên sự kiện */}
-                                            <Text style={{ fontSize: Number(fontSize) + 6 }} className={`${event.trangThai === 'huy' ? 'text-gray-900 line-through' : event.trangThai == 'quanTrong' ? 'text-red-900' : 'text-blue-900'} font-bold text-2xl mb-2 mt-4`}>
+                                            <Text style={{ fontSize: Number(fontSize) + 6 }} className={`${event.trangThai === 'huy' ? 'text-gray-900 line-through' : event.trangThai == 'quanTrong' ? 'text-red-900' : event.trangThai == 'dangKy' ? 'text-purple-900' : 'text-blue-900'} font-bold text-2xl mb-2 mt-4`}>
                                                 {applyHighlight(event.noiDungCuocHop)}
                                             </Text>
 
                                             {/* Địa điểm */}
-                                            <Text style={{ fontSize: Number(fontSize) + 4 }} className={`${event.trangThai === 'huy' ? 'text-gray-700 line-through' : event.trangThai == 'quanTrong' ? 'text-red-700' : 'text-blue-700'} text-xl mb-2 font-extrabold`}>
+                                            <Text style={{ fontSize: Number(fontSize) + 4 }} className={`${event.trangThai === 'huy' ? 'text-gray-700 line-through' : event.trangThai == 'quanTrong' ? 'text-red-700' : event.trangThai == 'dangKy' ? 'text-purple-700' : 'text-blue-700'} text-xl mb-2 font-extrabold`}>
                                                 {applyHighlight(event.diaDiem)}
                                             </Text>
 
                                             {/* Thời gian */}
-                                            <Text style={{ fontSize: Number(fontSize) }} className={`${event.trangThai === 'huy' ? 'text-gray-500 line-through' : event.trangThai == 'quanTrong' ? 'text-red-500' : 'text-blue-500'} mb-2`}>
+                                            <Text style={{ fontSize: Number(fontSize) }} className={`${event.trangThai === 'huy' ? 'text-gray-500 line-through' : event.trangThai == 'quanTrong' ? 'text-red-500' : event.trangThai == 'dangKy' ? 'text-purple-500' : 'text-blue-500'} mb-2`}>
                                                 Thời gian: <Text style={{ fontSize: Number(fontSize) + 4 }} className="font-semibold text-xl">{applyHighlight(event.gioBatDau)} - {applyHighlight(event.gioKetThuc)}</Text>
                                             </Text>
 
                                             {/* Chủ trì */}
-                                            <Text style={{ fontSize: Number(fontSize) }} className={`${event.trangThai === 'huy' ? 'text-gray-600 line-through' : event.trangThai == 'quanTrong' ? 'text-red-600' : 'text-blue-600'} mb-2`}>
+                                            <Text style={{ fontSize: Number(fontSize) }} className={`${event.trangThai === 'huy' ? 'text-gray-600 line-through' : event.trangThai == 'quanTrong' ? 'text-red-600' : event.trangThai == 'dangKy' ? 'text-purple-600' : 'text-blue-600'} mb-2`}>
                                                 Chủ trì: {applyHighlight(event.chuTri)}
                                             </Text>
 
                                             {/* Chuẩn bị (nếu có) */}
                                             {event.chuanBi && (
-                                                <Text style={{ fontSize: Number(fontSize) }} className={`${event.trangThai === 'huy' ? 'text-gray-600 line-through' : event.trangThai == 'quanTrong' ? 'text-red-600' : 'text-blue-600'} mb-2`}>
+                                                <Text style={{ fontSize: Number(fontSize) }} className={`${event.trangThai === 'huy' ? 'text-gray-600 line-through' : event.trangThai == 'quanTrong' ? 'text-red-600' : event.trangThai == 'dangKy' ? 'text-purple-600' : 'text-blue-600'} mb-2`}>
                                                     Chuẩn bị: {applyHighlight(event.chuanBi)}
                                                 </Text>
                                             )}
 
                                             {/* Thành phần */}
-                                            <Text style={{ fontSize: Number(fontSize) }} className={`${event.trangThai === 'huy' ? 'text-gray-600 line-through' : event.trangThai == 'quanTrong' ? 'text-red-600' : 'text-blue-600'} mb-2`}>
+                                            <Text style={{ fontSize: Number(fontSize) }} className={`${event.trangThai === 'huy' ? 'text-gray-600 line-through' : event.trangThai == 'quanTrong' ? 'text-red-600' : event.trangThai == 'dangKy' ? 'text-purple-600' : 'text-blue-600'} mb-2`}>
                                                 Thành phần: {applyHighlight(event.thanhPhan)}
                                             </Text>
-
+                                            
                                             {/* Mời (nếu có) */}
                                             {event.moi && (
-                                                <Text style={{ fontSize: Number(fontSize) }} className={`${event.trangThai === 'huy' ? 'text-gray-600 line-through' : event.trangThai == 'quanTrong' ? 'text-red-600' : 'text-blue-600'} mb-2`}>
+                                                <Text style={{ fontSize: Number(fontSize) }} className={`${event.trangThai === 'huy' ? 'text-gray-600 line-through' : event.trangThai == 'quanTrong' ? 'text-red-600' : event.trangThai == 'dangKy' ? 'text-purple-600' : 'text-blue-600'} mb-2`}>
                                                     Mời: {applyHighlight(event.moi)}
                                                 </Text>
                                             )}
 
                                             {/* Ghi chú (nếu có) */}
                                             {event.ghiChu && (
-                                                <Text style={{ fontSize: Number(fontSize) }} className={`${event.trangThai === 'huy' ? 'text-gray-500 line-through' : event.trangThai === 'quanTrong' ? 'text-red-500' : 'text-blue-600'} mb-2`}>
+                                                <Text style={{ fontSize: Number(fontSize) }} className={`${event.trangThai === 'huy' ? 'text-gray-500 line-through' : event.trangThai === 'quanTrong' ? 'text-red-500' : event.trangThai == 'dangKy' ? 'text-purple-600' : 'text-blue-600'} mb-2`}>
                                                     Ghi chú: {applyHighlight(event.ghiChu)}
                                                 </Text>
                                             )}
@@ -531,12 +531,12 @@ const LichHopScreen = () => {
                                             {/* File đính kèm */}
                                             {event.fileDinhKem && (
                                                 <View className="mt-4">
-                                                    <Text style={{ fontSize: Number(fontSize) }} className={`${event.trangThai === 'huy' ? 'text-gray-800' : event.trangThai === 'quanTrong' ? 'text-red-800' : 'text-blue-800'} font-semibold`}>File đính kèm</Text>
+                                                    <Text style={{ fontSize: Number(fontSize) }} className={`${event.trangThai === 'huy' ? 'text-gray-800' : event.trangThai === 'quanTrong' ? 'text-red-800' : event.trangThai == 'dangKy' ? 'text-purple-800' : 'text-blue-800'} font-semibold`}>File đính kèm</Text>
                                                     {parseFileAttachments(event.fileDinhKem).map((fileName, index) => (
                                                         <Pressable
                                                             key={index}
                                                             onPress={() => handleDownload(publicfolder + "/documents/" + fileName)}
-                                                            className={`py-2 px-4 mt-2 rounded-md ${event.trangThai === 'huy' ? 'bg-gray-500 hover:bg-gray-600' : event.trangThai === 'quanTrong' ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-500 hover:bg-blue-600'}`}
+                                                            className={`py-2 px-4 mt-2 rounded-md ${event.trangThai === 'huy' ? 'bg-gray-500 hover:bg-gray-600' : event.trangThai === 'quanTrong' ? 'bg-red-500 hover:bg-red-600' : event.trangThai == 'dangKy' ? 'bg-purple-500 hover:bg-purple-600' : 'bg-blue-500 hover:bg-blue-600'}`}
                                                         >
                                                             <Text style={{ fontSize: Number(fontSize) }} className="flex items-center text-white">
                                                                 <FontAwesomeIcon color='white' icon={faDownload} className="mr-2" size={Number(fontSize) - 2} /> {applyHighlight(fileName)}
@@ -550,21 +550,21 @@ const LichHopScreen = () => {
                                                 {/* Gán lịch họp sang lịch cá nhân */}
                                                 <Pressable
                                                     onPress={() => handleToLichCaNhan(event)}
-                                                    className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai === 'quanTrong' ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}
+                                                    className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai === 'quanTrong' ? 'bg-red-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : 'bg-blue-500'} rounded-lg`}
                                                 >
                                                     <FontAwesomeIcon color='white' icon={faShuffle} size={Number(fontSize) + 4} />
                                                 </Pressable>
                                                 {/* Copy lịch */}
                                                 <Pressable
                                                     onPress={() => handleCopyText(event)}
-                                                    className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai === 'quanTrong' ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}
+                                                    className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai === 'quanTrong' ? 'bg-red-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : 'bg-blue-500'} rounded-lg`}
                                                 >
                                                     <FontAwesomeIcon color='white' icon={faClipboard} size={Number(fontSize) + 4} />
                                                 </Pressable>
                                                 {/* Nhắc nhở */}
                                                 <Pressable
                                                     onPress={() => { setModalVisible(true); setSelectedEvent(event); }}
-                                                    className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai === 'quanTrong' ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}
+                                                    className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai === 'quanTrong' ? 'bg-red-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : 'bg-blue-500'} rounded-lg`}
                                                 >
                                                     <FontAwesomeIcon color='white' icon={faClockFour} size={Number(fontSize) + 4} />
                                                 </Pressable>
@@ -572,7 +572,7 @@ const LichHopScreen = () => {
                                                 {(hasAccess(screenUrls.ChinhSuaLichHop, userAllowedUrls) || user?.vaiTro == 'admin') &&
                                                     <Pressable
                                                         onPress={() => { setModelEdit(true); setSelectedEvent(event); }}
-                                                        className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai === 'quanTrong' ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}>
+                                                        className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai === 'quanTrong' ? 'bg-red-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : 'bg-blue-500'} rounded-lg`}>
                                                         <FontAwesomeIcon color='white' icon={faEdit} size={Number(fontSize) + 4} />
                                                     </Pressable>
                                                 }

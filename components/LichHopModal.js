@@ -6,9 +6,11 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import * as DocumentPicker from 'expo-document-picker';
 import Toast from 'react-native-toast-message';
 import axiosInstance from "../utils/axiosInstance";
-import { eventRoute, uploadFileRoute } from "../api/baseURL";
+import { accountRoute, diaDiemHopRoute, eventRoute, thanhPhanThamDuRoute, uploadFileRoute } from "../api/baseURL";
 import unidecode from 'unidecode';
 import BouncyCheckbox from "react-native-bouncy-checkbox";
+import { Dropdown } from 'react-native-element-dropdown';
+import TreeSelectModal from "./TreeSelectModal";
 
 const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDelete, onAccept, user }) => {
     const [editedEvent, setEditedEvent] = useState({
@@ -28,10 +30,73 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
     });
     const [attachedFiles, setAttachedFiles] = useState([]);
 
+    const [chuTris, setChuTris] = useState([]);
+    const [diaDiemHops, setDiaDiemHops] = useState([]);
+    const [thanhPhanThamDus, setThanhPhanThamDus] = useState([]);
+    const [treeSelectModalVisibleVisible, setTreeSelectModalVisible] = useState(false);
     // Hàm mở DateTimePicker
     const [showPicker, setShowPicker] = useState(false);
     const [pickerMode, setPickerMode] = useState("date"); // 'date' hoặc 'time'
     const [pickerField, setPickerField] = useState("");
+
+    // Hàm gọi api địa điểm họp
+    const fetchDiaDiemHops = async () => {
+        try {
+            const response = await axiosInstance.get(diaDiemHopRoute.findAll);
+            const formattedDiaDiemHops = response.data.map(item => ({
+                label: item.tenDiaDiemHop,
+                value: item.tenDiaDiemHop,
+            }));
+            setDiaDiemHops(formattedDiaDiemHops);
+        } catch (error) {
+            console.log(error);
+            const errorMessage = error.response ? error.response.data.message : error.message;
+            Toast.show({
+                type: 'error',
+                text1: errorMessage,
+            });
+        }
+    }
+
+    // Gọi api lấy ra thành phần tham dự
+    const fetchThanhPhanThamDu = async () => {
+        try {
+            const response = await axiosInstance.get(thanhPhanThamDuRoute.findAll);
+            if (response.status >= 200 && response.status < 300) {
+                setThanhPhanThamDus(response.data.filter(item => item.idCotCha === null));
+            }
+        } catch (error) {
+            const errorMessage = error.response ? error.response.data.message : error.message;
+            console.log(errorMessage);
+        }
+    };
+
+    // Gọi api lấy ra account lưu vào chuTris
+    const fetchChuTris = async () => {
+        try {
+            const response = await axiosInstance.get(accountRoute.findAll);
+            if (response.status >= 200 && response.status < 300) {
+                console.log(response.data)
+                const formattedChuTris = response.data.map(item => ({
+                    label: item.name,
+                    value: item.name,
+                }));
+                setChuTris(formattedChuTris);
+            } else {
+                Toast.show({
+                    type: 'error',
+                    text1: response.data.message,
+                });
+            }
+        } catch (error) {
+            console.log(error);
+            const errorMessage = error.response ? error.response.data.message : error.message;
+            Toast.show({
+                type: 'error',
+                text1: errorMessage,
+            });
+        }
+    };
 
     useEffect(() => {
         // Cập nhật editedEvent khi selectedEvent thay đổi
@@ -52,6 +117,9 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                 trangThai: selectedEvent.trangThai,
             });
         }
+        fetchDiaDiemHops();
+        fetchThanhPhanThamDu();
+        fetchChuTris();
     }, [selectedEvent, user?.id]);
 
     // Lưu sự kiện
@@ -381,6 +449,28 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
         onClose();
     }
 
+    // Xử lý khi người dùng chọn thành phần
+    const handleSelection = (selectedItems) => {
+        const selectedNames = selectedItems.join(', ');
+        setEditedEvent({ ...editedEvent, thanhPhan: selectedNames });
+    };
+    const updateTreeSelection = (data, selectedNames, titleKey) => {
+        return data.map((item) => ({
+            ...item,
+            isSelected: selectedNames.includes(item[titleKey]), // Đánh dấu checkbox nếu tên nằm trong mảng selectedNames
+            children: item.children
+                ? updateTreeSelection(item.children, selectedNames, titleKey) // Đệ quy để cập nhật con
+                : [],
+        }));
+    };
+    const handleOpenTreeSelect = () => {
+        const selectedNames = editedEvent.thanhPhan
+            ? editedEvent.thanhPhan.split(', ').map((name) => name.trim()) // Tách chuỗi thành mảng
+            : [];
+        const updatedData = updateTreeSelection(thanhPhanThamDus, selectedNames, "tenThanhPhan");
+        setTreeSelectModalVisible(true);
+        setThanhPhanThamDus(updatedData); // Cập nhật dữ liệu cho TreeSelect
+    };
     return (
         <Modal visible={visible} animationType="slide" transparent>
             <View className="flex-1 justify-center items-center" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
@@ -417,12 +507,24 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                         {/* Chủ trì */}
                         <View className="mb-4">
                             <Text className="text-base font-semibold mb-2">Chủ trì *</Text>
-                            <TextInput
+                            {/* <TextInput
                                 className="border rounded-md p-2"
-                                placeholder="Chủ đề *"
+                                placeholder="Chủ trì *"
                                 value={editedEvent.chuTri}
                                 onChangeText={(text) => setEditedEvent({ ...editedEvent, chuTri: text })}
-                            />
+                            /> */}
+                            <View className="border rounded-md">
+                                <Dropdown
+                                    data={chuTris}
+                                    labelField="label"
+                                    valueField="value"
+                                    placeholder="Chủ trì *"
+                                    value={editedEvent.chuTri} // Giá trị hiện tại
+                                    onChange={item => setEditedEvent({ ...editedEvent, chuTri: item.value })} // Cập nhật giá trị
+                                    search={true}
+                                    style={{ padding: 10 }}
+                                />
+                            </View>
                         </View>
 
                         {/* Chuẩn bị */}
@@ -439,11 +541,20 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                         {/* Thành phần */}
                         <View className="mb-4">
                             <Text className="text-base font-semibold mb-2">Thành phần *</Text>
-                            <TextInput
+                            <TextInput 
                                 className="border rounded-md p-2"
-                                placeholder="Thành phần *"
                                 value={editedEvent.thanhPhan}
-                                onChangeText={(text) => setEditedEvent({ ...editedEvent, thanhPhan: text })}
+                                // onFocus={() => setTreeSelectModalVisible(true)}
+                                onFocus={handleOpenTreeSelect}
+                            />
+
+                            <TreeSelectModal
+                                visible={treeSelectModalVisibleVisible}
+                                onClose={() => setTreeSelectModalVisible(false)}
+                                onSelect={handleSelection}
+                                data={thanhPhanThamDus}
+                                childKey="children"
+                                titleKey="tenThanhPhan"
                             />
                         </View>
 
@@ -462,14 +573,16 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                         <View className="mb-4">
                             <Text className="text-base font-semibold mb-2">Địa điểm *</Text>
                             <View className="border rounded-md">
-                                <Picker
-                                    selectedValue={editedEvent.diaDiem}
-                                    onValueChange={(value) => setEditedEvent({ ...editedEvent, diaDiem: value })}
-                                >
-                                    <Picker.Item label="Ngoài cơ quan" value="Ngoài cơ quan" />
-                                    <Picker.Item label="Hội trường VTT" value="Hội trường VTT" />
-                                    <Picker.Item label="Phòng họp VTT" value="Phòng họp VTT" />
-                                </Picker>
+                                <Dropdown
+                                    data={diaDiemHops}
+                                    labelField="label"
+                                    valueField="value"
+                                    placeholder="Chọn địa điểm"
+                                    value={editedEvent.diaDiem} // Giá trị hiện tại
+                                    onChange={item => setEditedEvent({ ...editedEvent, diaDiem: item.value })} // Cập nhật giá trị
+                                    search={true}
+                                    style={{ padding: 10 }}
+                                />
                             </View>
                         </View>
 
@@ -611,7 +724,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                     Huỷ
                                 </Button>
                             )}
-                            {selectedEvent && (selectedEvent.trangThai === "huy" || selectedEvent.trangThai === "quanTrong") && (
+                            {selectedEvent && (selectedEvent.trangThai === "huy" || selectedEvent.trangThai === "dangKy" || selectedEvent.trangThai === "quanTrong") && (
                                 <Button onPress={handleAcceptEvent} mode="text">
                                     Duyệt
                                 </Button>
