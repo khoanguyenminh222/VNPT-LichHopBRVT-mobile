@@ -36,6 +36,7 @@ const TreeSelectModal = ({ visible, onClose, onSelect, data, childKey, titleKey 
                         value={localSelectedItems}
                         onCheckBoxPress={onCheckBoxPress}
                         autoSelectParents={false}
+                        autoSelectChildren={false}
                         parentContainerStyles={{
                             flexDirection: 'row',
                             alignItems: 'center',

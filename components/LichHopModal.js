@@ -76,7 +76,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
         try {
             const response = await axiosInstance.get(accountRoute.findAll);
             if (response.status >= 200 && response.status < 300) {
-                console.log(response.data)
+
                 const formattedChuTris = response.data.map(item => ({
                     label: item.name,
                     value: item.name,
