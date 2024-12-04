@@ -25,8 +25,8 @@ const TreeSelectModal = ({ visible, onClose, onSelect, data, childKey, titleKey 
     return (
         <Modal transparent={true} visible={visible} onRequestClose={onClose}>
             <View className="flex-1 bg-black/50">
-                <View className="bg-white p-6 rounded-lg w-96 max-w-[460px] m-auto">
-                    <Text className="text-xl font-bold">Chọn Thành Phần</Text>
+                <View className="bg-white rounded-lg w-96 max-w-[460px] m-auto">
+                    <Text className="text-xl p-6 font-bold">Chọn Thành Phần</Text>
 
                     <TreeSelect
                         data={data}
@@ -39,23 +39,34 @@ const TreeSelectModal = ({ visible, onClose, onSelect, data, childKey, titleKey 
                         parentContainerStyles={{
                             flexDirection: 'row',
                             alignItems: 'center',
-                            backgroundColor: 'rgb(59 130 246)',
+                            backgroundColor: 'white',
                             borderRadius: 8,
+                            marginBottom: 14,
                         }}
                         parentTextStyles={{
-                            color: 'white',
+                            color: 'black',
+                            fontSize: 16,
+                            maxWidth: '80%',
                         }}
                         childContainerStyles={{
-                            backgroundColor: 'rgb(59 130 246)',
-                            marginBottom: 4,
+                            backgroundColor: 'white',
+                            marginBottom: 14,
                             width: 'auto',
                         }}
                         childTextStyles={{
-                            color: 'white',
+                            color: 'blue',
+                            fontSize: 16,
+
+                        }}
+                        leftIconStyles={{ tintColor: 'black' }}
+                        rightIconStyles={{ tintColor: 'black' }}
+                        flatListProps={{
+                            style: { maxHeight: 600 },
+                            showsVerticalScrollIndicator: false,
                         }}
                     />
 
-                    <View className="flex-row justify-between">
+                    <View className="flex-row justify-between p-6">
                         <Button onPress={onClose} mode="text" textColor="red">
                             Hủy
                         </Button>
