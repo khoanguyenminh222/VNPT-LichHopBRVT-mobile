@@ -16,7 +16,7 @@ const ThongTinFakeScreen = () => {
                 {/* Ảnh và giới thiệu */}
                 <View className="bg-white p-4 rounded-lg shadow-md">
                     <Image
-                        source={require('../assets/logo-vnpt.png')}
+                        source={require('../assets/logoTextVnpt.png')}
                         className="w-full h-40 object-contain"
                         resizeMode="contain"
                     />
