@@ -276,7 +276,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                 trangThai: "dangKy",
             }
             const responseLichHop = await axiosInstance.post(eventRoute.create, data);
-            if(responseLichHop.status < 200 || responseLichHop.status >= 300) {
+            if (responseLichHop.status < 200 || responseLichHop.status >= 300) {
                 return Toast.show({
                     type: 'success',
                     text1: responseLichHop.data.message,
@@ -313,7 +313,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
             // Sắp xếp lại danh sách lịch họp theo id
             responseLichHop.data.sort((a, b) => b.id - a.id).forEach(async (item) => {
                 // Nếu chủ trì là tên của bạn và trạng thái là đăng ký thì xóa sau đó dừng vòng lặp, đảm bảo chỉ xoá 1 sự kiện
-                if (item.chuTri === user?.name && item.trangThai === "dangKy" && item.ngayBatDau==editedEvent.ngayBatDau && item.gioBatDau==editedEvent.gioBatDau && item.ngayKetThuc==editedEvent.ngayKetThuc && item.gioKetThuc==editedEvent.gioKetThuc) {
+                if (item.chuTri === user?.name && item.trangThai === "dangKy" && item.ngayBatDau == editedEvent.ngayBatDau && item.gioBatDau == editedEvent.gioBatDau && item.ngayKetThuc == editedEvent.ngayKetThuc && item.gioKetThuc == editedEvent.gioKetThuc) {
                     await axiosInstance.delete(eventRoute.delete + "/" + item.id);
                     return;
                 }
@@ -502,6 +502,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                                 textStyle={{
                                     textDecorationLine: "none",
                                 }}
+                                disabled={editedEvent.trangThai === "dangKy"}
                             />
                         </View>
 
@@ -522,6 +523,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                                     onChange={item => setEditedEvent({ ...editedEvent, loaiSuKien: item.value })} // Cập nhật giá trị
                                     search={true}
                                     style={{ padding: 10 }}
+                                    disable={editedEvent.trangThai === "dangKy"}
                                 />
                             </View>
 
@@ -534,6 +536,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                                 placeholder="Chủ đề *"
                                 value={editedEvent.chuDe}
                                 onChangeText={(text) => setEditedEvent({ ...editedEvent, chuDe: text })}
+                                readOnly={editedEvent.trangThai === "dangKy"}
                             />
                         </View>
 
@@ -551,6 +554,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                                     onChange={item => setEditedEvent({ ...editedEvent, diaDiem: item.value })} // Cập nhật giá trị
                                     search={true}
                                     style={{ padding: 10 }}
+                                    disable={editedEvent.trangThai === "dangKy"}
                                 />
                             </View>
                         </View>
@@ -563,6 +567,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                                 multiline
                                 value={editedEvent.noiDung}
                                 onChangeText={(text) => setEditedEvent({ ...editedEvent, noiDung: text })}
+                                readOnly={editedEvent.trangThai === "dangKy"}
                             />
                         </View>
 
@@ -578,9 +583,10 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                                     display="default"
                                     onChange={(event, date) => handleDatePickerChange('ngayBatDau', event, date)}
                                     locale="vi-VN"
+                                    disabled={editedEvent.trangThai === "dangKy"}
                                 />
                             ) : (
-                                <Pressable onPress={() => openPicker('date', 'ngayBatDau')}>
+                                <Pressable onPress={() => openPicker('date', 'ngayBatDau')} disabled={editedEvent.trangThai === "dangKy"}>
                                     <TextInput
                                         className="border rounded-md p-2"
                                         placeholder="Ngày bắt đầu *"
@@ -601,9 +607,10 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                                     display="default"
                                     onChange={(event, date) => handleDatePickerChange('gioBatDau', event, date)}
                                     locale="vi-VN"
+                                    disabled={editedEvent.trangThai === "dangKy"}
                                 />
                             ) : (
-                                <Pressable onPress={() => openPicker("time", "gioBatDau")}>
+                                <Pressable onPress={() => openPicker("time", "gioBatDau")} disabled={editedEvent.trangThai === "dangKy"}>
                                     <TextInput
                                         className="border rounded-md p-2"
                                         placeholder="Giờ bắt đầu *"
@@ -624,9 +631,10 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                                     display="default"
                                     onChange={(event, date) => handleDatePickerChange('ngayKetThuc', event, date)}
                                     locale="vi-VN"
+                                    disabled={editedEvent.trangThai === "dangKy"}
                                 />
                             ) : (
-                                <Pressable onPress={() => openPicker('date', 'ngayKetThuc')}>
+                                <Pressable onPress={() => openPicker('date', 'ngayKetThuc')} disabled={editedEvent.trangThai === "dangKy"}>
                                     <TextInput
                                         className="border rounded-md p-2"
                                         placeholder="Ngày kết thúc *"
@@ -647,9 +655,10 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                                     display="default"
                                     onChange={(event, date) => handleDatePickerChange('gioKetThuc', event, date)}
                                     locale="vi-VN"
+                                    disabled={editedEvent.trangThai === "dangKy"}
                                 />
                             ) : (
-                                <Pressable onPress={() => openPicker("time", "gioKetThuc")}>
+                                <Pressable onPress={() => openPicker("time", "gioKetThuc")} disabled={editedEvent.trangThai === "dangKy"}>
                                     <TextInput
                                         className="border rounded-md p-2"
                                         placeholder="Giờ kết thúc *"
@@ -662,7 +671,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
 
                         <View className="mb-4">
                             <Text className="text-base font-semibold mb-2">Tệp đính kèm</Text>
-                            <Pressable onPress={handleFileChange}>
+                            <Pressable onPress={handleFileChange} disabled={editedEvent.trangThai === "dangKy"}>
                                 <Text className="text-blue-500">Chọn tệp</Text>
                             </Pressable>
                             <View className="mt-2">
@@ -699,10 +708,15 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                                     Bật
                                 </Button>
                             )}
-                            <Button onPress={handleSave}>
-                                Lưu
-                            </Button>
-                            {selectedEvent && (
+                            {selectedEvent && selectedEvent.trangThai === "dangKy" ?
+                                <></>
+                                :
+                                <Button onPress={handleSave}>
+                                    Lưu
+                                </Button>
+                            }
+
+                            {selectedEvent && selectedEvent.trangThai !== "dangKy" && (
                                 <Button onPress={handleDeleteEvent} mode="text" textColor="red">
                                     Xóa
                                 </Button>

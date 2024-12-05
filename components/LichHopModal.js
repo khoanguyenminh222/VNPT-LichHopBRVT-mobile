@@ -6,7 +6,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import * as DocumentPicker from 'expo-document-picker';
 import Toast from 'react-native-toast-message';
 import axiosInstance from "../utils/axiosInstance";
-import { accountRoute, diaDiemHopRoute, eventRoute, thanhPhanThamDuRoute, uploadFileRoute } from "../api/baseURL";
+import { accountRoute, diaDiemHopRoute, eventRoute, lichCaNhanRoute, thanhPhanThamDuRoute, uploadFileRoute } from "../api/baseURL";
 import unidecode from 'unidecode';
 import BouncyCheckbox from "react-native-bouncy-checkbox";
 import { Dropdown } from 'react-native-element-dropdown';
@@ -18,6 +18,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
         chuTri: "",
         chuanBi: "",
         thanhPhan: "",
+        ghiChuThanhPhan: "",
         moi: "",
         diaDiem: "Ngoài cơ quan",
         ghiChu: "",
@@ -33,7 +34,8 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
     const [chuTris, setChuTris] = useState([]);
     const [diaDiemHops, setDiaDiemHops] = useState([]);
     const [thanhPhanThamDus, setThanhPhanThamDus] = useState([]);
-    const [treeSelectModalVisibleVisible, setTreeSelectModalVisible] = useState(false);
+    const [thanhPhanSelectModalVisible, setThanhPhanSelectModalVisible] = useState(false);
+    const [chuTriSelectModalVisible, setChuTriSelectModalVisible] = useState(false);
     // Hàm mở DateTimePicker
     const [showPicker, setShowPicker] = useState(false);
     const [pickerMode, setPickerMode] = useState("date"); // 'date' hoặc 'time'
@@ -106,6 +108,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                 chuTri: selectedEvent.chuTri,
                 chuanBi: selectedEvent.chuanBi,
                 thanhPhan: selectedEvent.thanhPhan,
+                ghiChuThanhPhan: selectedEvent.ghiChuThanhPhan,
                 moi: selectedEvent.moi,
                 diaDiem: selectedEvent.diaDiem,
                 ghiChu: selectedEvent.ghiChu,
@@ -125,7 +128,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
     // Lưu sự kiện
     const handleSave = async () => {
         console.log(editedEvent)
-        if (!editedEvent.noiDungCuocHop || !editedEvent.chuTri || !editedEvent.thanhPhan || !editedEvent.diaDiem || !editedEvent.ngayBatDau || !editedEvent.gioBatDau || !editedEvent.ngayKetThuc || !editedEvent.gioKetThuc) {
+        if (!editedEvent.noiDungCuocHop || !editedEvent.chuTri || (!editedEvent.thanhPhan && !editedEvent.ghiChuThanhPhan) || !editedEvent.diaDiem || !editedEvent.ngayBatDau || !editedEvent.gioBatDau || !editedEvent.ngayKetThuc || !editedEvent.gioKetThuc) {
             Alert.alert("Lỗi", "Vui lòng điền đầy đủ thông tin bắt buộc");
             return;
         }
@@ -248,6 +251,27 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
     // Sự kiện Duyệt event
     const handleAcceptEvent = async () => {
         try {
+            if (editedEvent.trangThai === "dangKy") {
+                const responseLichCaNhan = await axiosInstance.get(lichCaNhanRoute.findAll);
+                responseLichCaNhan.data.sort((a, b) => b.id - a.id).forEach(async (item) => {
+                    // Lấy thông tin tài khoản theo id
+                    const responseAccount = await axiosInstance.get(accountRoute.findById + "/" + item.accountId);
+                    const account = responseAccount.data;
+
+                    // Kiểm tra nếu có sự kiện trùng lặp
+                    if (item.accountId == account.id &&
+                        item.trangThai == "dangKy" &&
+                        item.ngayBatDau == editedEvent.ngayBatDau &&
+                        item.gioBatDau == editedEvent.gioBatDau &&
+                        item.ngayKetThuc == editedEvent.ngayKetThuc &&
+                        item.gioKetThuc == editedEvent.gioKetThuc) {
+                        // Cập nhật trạng thái sự kiện thành đã duyệt
+                        await axiosInstance.put(lichCaNhanRoute.update + "/" + item.id, { trangThai: "duyet" });
+                        return;
+                    }
+                });
+            }
+
             const response = await axiosInstance.put(eventRoute.update + "/" + selectedEvent.id, { trangThai: "duyet" });
             if (response.status >= 200 && response.status < 300) {
                 Toast.show({
@@ -275,6 +299,28 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
     // Sự kiện Huỷ event
     const handleCancleEvent = async () => {
         try {
+            // Kiểm tra nếu trangThai là đăng ký thì tìm trong bảng lịch cá nhân xem có sự kiện nào trùng không
+            if (editedEvent.trangThai === "dangKy") {
+                const responseLichCaNhan = await axiosInstance.get(lichCaNhanRoute.findAll);
+                responseLichCaNhan.data.sort((a, b) => b.id - a.id).forEach(async (item) => {
+                    // Lấy thông tin tài khoản theo id
+                    const responseAccount = await axiosInstance.get(accountRoute.findById + "/" + item.accountId);
+                    const account = responseAccount.data;
+
+                    // Kiểm tra nếu có sự kiện trùng lặp
+                    if (item.accountId == account.id &&
+                        item.trangThai == "dangKy" &&
+                        item.ngayBatDau == editedEvent.ngayBatDau &&
+                        item.gioBatDau == editedEvent.gioBatDau &&
+                        item.ngayKetThuc == editedEvent.ngayKetThuc &&
+                        item.gioKetThuc == editedEvent.gioKetThuc) {
+                        // Cập nhật trạng thái sự kiện thành đã duyệt
+                        await axiosInstance.put(lichCaNhanRoute.update + "/" + item.id, { trangThai: "duyet" });
+                        return;
+                    }
+                });
+            }
+
             const response = await axiosInstance.put(eventRoute.update + "/" + selectedEvent.id, { trangThai: "huy" });
             if (response.status >= 200 && response.status < 300) {
                 Toast.show({
@@ -307,10 +353,10 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
         }
 
         let formattedValue = '';
-        if (field?.includes('ngay') || (pickerMode==="date" && Platform.OS !== 'ios')) {
+        if (field?.includes('ngay') || (pickerMode === "date" && Platform.OS !== 'ios')) {
             // Nếu trường là Ngày
             formattedValue = selectedDate.toISOString().split('T')[0]; // YYYY-MM-DD
-        } else if(field?.includes('gio') || (pickerMode==="time" && Platform.OS !== 'ios')) {
+        } else if (field?.includes('gio') || (pickerMode === "time" && Platform.OS !== 'ios')) {
             // Nếu trường là Giờ
             formattedValue = selectedDate.toTimeString().split(' ')[0].substring(0, 5); // HH:mm
         }
@@ -435,6 +481,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
             chuTri: "",
             chuanBi: "",
             thanhPhan: "",
+            ghiChuThanhPhan: "",
             moi: "",
             diaDiem: "Ngoài cơ quan",
             ghiChu: "",
@@ -450,9 +497,9 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
     }
 
     // Xử lý khi người dùng chọn thành phần
-    const handleSelection = (selectedItems) => {
+    const handleSelection = (selectedItems, field) => {
         const selectedNames = selectedItems.join(', ');
-        setEditedEvent({ ...editedEvent, thanhPhan: selectedNames });
+        setEditedEvent({ ...editedEvent, [field]: selectedNames });
     };
     const updateTreeSelection = (data, selectedNames, titleKey) => {
         return data.map((item) => ({
@@ -463,12 +510,19 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                 : [],
         }));
     };
-    const handleOpenTreeSelect = () => {
-        const selectedNames = editedEvent.thanhPhan
-            ? editedEvent.thanhPhan.split(', ').map((name) => name.trim()) // Tách chuỗi thành mảng
+
+    const handleOpenSelect = (type) => {
+        const selectedNames = editedEvent[type]
+            ? editedEvent[type].split(', ').map((name) => name.trim()) // Tách chuỗi thành mảng
             : [];
         const updatedData = updateTreeSelection(thanhPhanThamDus, selectedNames, "tenThanhPhan");
-        setTreeSelectModalVisible(true);
+
+        if (type === 'thanhPhan') {
+            setThanhPhanSelectModalVisible(true);
+        } else if (type === 'chuTri') {
+            setChuTriSelectModalVisible(true);
+        }
+
         setThanhPhanThamDus(updatedData); // Cập nhật dữ liệu cho TreeSelect
     };
     return (
@@ -491,6 +545,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                 textStyle={{
                                     textDecorationLine: "none",
                                 }}
+                                disabled={editedEvent.trangThai === "dangKy"}
                             />
                         </View>
 
@@ -502,29 +557,28 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                 placeholder="Nội dung cuộc họp *"
                                 value={editedEvent.noiDungCuocHop}
                                 onChangeText={(text) => setEditedEvent({ ...editedEvent, noiDungCuocHop: text })}
+                                readOnly={editedEvent.trangThai === "dangKy"}
                             />
                         </View>
                         {/* Chủ trì */}
                         <View className="mb-4">
                             <Text className="text-base font-semibold mb-2">Chủ trì *</Text>
-                            {/* <TextInput
+                            <TextInput
                                 className="border rounded-md p-2"
-                                placeholder="Chủ trì *"
                                 value={editedEvent.chuTri}
-                                onChangeText={(text) => setEditedEvent({ ...editedEvent, chuTri: text })}
-                            /> */}
-                            <View className="border rounded-md">
-                                <Dropdown
-                                    data={chuTris}
-                                    labelField="label"
-                                    valueField="value"
-                                    placeholder="Chủ trì *"
-                                    value={editedEvent.chuTri} // Giá trị hiện tại
-                                    onChange={item => setEditedEvent({ ...editedEvent, chuTri: item.value })} // Cập nhật giá trị
-                                    search={true}
-                                    style={{ padding: 10 }}
-                                />
-                            </View>
+                                onFocus={() => handleOpenSelect('chuTri')}
+                                readOnly={editedEvent.trangThai === "dangKy"}
+                            />
+
+                            <TreeSelectModal
+                                visible={chuTriSelectModalVisible}
+                                onClose={() => setChuTriSelectModalVisible(false)}
+                                onSelect={handleSelection}
+                                data={thanhPhanThamDus}
+                                childKey="children"
+                                titleKey="tenThanhPhan"
+                                field="chuTri"
+                            />
                         </View>
 
                         {/* Chuẩn bị */}
@@ -535,26 +589,36 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                 placeholder="Chuẩn bị"
                                 value={editedEvent.chuanBi}
                                 onChangeText={(text) => setEditedEvent({ ...editedEvent, chuanBi: text })}
+                                readOnly={editedEvent.trangThai === "dangKy"}
                             />
                         </View>
 
                         {/* Thành phần */}
                         <View className="mb-4">
                             <Text className="text-base font-semibold mb-2">Thành phần *</Text>
-                            <TextInput 
+                            <TextInput
                                 className="border rounded-md p-2"
                                 value={editedEvent.thanhPhan}
-                                // onFocus={() => setTreeSelectModalVisible(true)}
-                                onFocus={handleOpenTreeSelect}
+                                // onFocus={() => setThanhPhanSelectModalVisible(true)}
+                                onFocus={() => handleOpenSelect('thanhPhan')}
+                                readOnly={editedEvent.trangThai === "dangKy"}
                             />
 
                             <TreeSelectModal
-                                visible={treeSelectModalVisibleVisible}
-                                onClose={() => setTreeSelectModalVisible(false)}
+                                visible={thanhPhanSelectModalVisible}
+                                onClose={() => setThanhPhanSelectModalVisible(false)}
                                 onSelect={handleSelection}
                                 data={thanhPhanThamDus}
                                 childKey="children"
                                 titleKey="tenThanhPhan"
+                                field="thanhPhan"
+                            />
+                            <TextInput
+                                className="border rounded-md p-2 mt-4"
+                                placeholder="Ghi chú thành phần tham dự, phối hợp"
+                                value={editedEvent.ghiChuThanhPhan}
+                                onChangeText={(text) => setEditedEvent({ ...editedEvent, ghiChuThanhPhan: text })}
+                                readOnly={editedEvent.trangThai === "dangKy"}
                             />
                         </View>
 
@@ -566,6 +630,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                 placeholder="Mời"
                                 value={editedEvent.moi}
                                 onChangeText={(text) => setEditedEvent({ ...editedEvent, moi: text })}
+                                readOnly={editedEvent.trangThai === "dangKy"}
                             />
                         </View>
 
@@ -582,6 +647,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                     onChange={item => setEditedEvent({ ...editedEvent, diaDiem: item.value })} // Cập nhật giá trị
                                     search={true}
                                     style={{ padding: 10 }}
+                                    disable={editedEvent.trangThai === "dangKy"}
                                 />
                             </View>
                         </View>
@@ -594,6 +660,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                 placeholder="Ghi chú"
                                 value={editedEvent.ghiChu}
                                 onChangeText={(text) => setEditedEvent({ ...editedEvent, ghiChu: text })}
+                                readOnly={editedEvent.trangThai === "dangKy"}
                             />
                         </View>
 
@@ -608,9 +675,10 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                     display="default"
                                     onChange={(event, date) => handleDatePickerChange('ngayBatDau', event, date)}
                                     locale="vi-VN"
+                                    disabled={editedEvent.trangThai === "dangKy"}
                                 />
                             ) : (
-                                <Pressable onPress={() => openPicker('date', 'ngayBatDau')}>
+                                <Pressable onPress={() => openPicker('date', 'ngayBatDau')} disabled={editedEvent.trangThai === "dangKy"}>
                                     <TextInput
                                         className="border rounded-md p-2"
                                         placeholder="Ngày bắt đầu *"
@@ -631,9 +699,10 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                     display="default"
                                     onChange={(event, date) => handleDatePickerChange('gioBatDau', event, date)}
                                     locale="vi-VN"
+                                    disabled={editedEvent.trangThai === "dangKy"}
                                 />
                             ) : (
-                                <Pressable onPress={() => openPicker("time", "gioBatDau")}>
+                                <Pressable onPress={() => openPicker("time", "gioBatDau")} disabled={editedEvent.trangThai === "dangKy"}>
                                     <TextInput
                                         className="border rounded-md p-2"
                                         placeholder="Giờ bắt đầu *"
@@ -654,9 +723,10 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                     display="default"
                                     onChange={(event, date) => handleDatePickerChange('ngayKetThuc', event, date)}
                                     locale="vi-VN"
+                                    disabled={editedEvent.trangThai === "dangKy"}
                                 />
                             ) : (
-                                <Pressable onPress={() => openPicker('date', 'ngayKetThuc')}>
+                                <Pressable onPress={() => openPicker('date', 'ngayKetThuc')} disabled={editedEvent.trangThai === "dangKy"}>
                                     <TextInput
                                         className="border rounded-md p-2"
                                         placeholder="Ngày kết thúc *"
@@ -677,9 +747,10 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                     display="default"
                                     onChange={(event, date) => handleDatePickerChange('gioKetThuc', event, date)}
                                     locale="vi-VN"
+                                    disabled={editedEvent.trangThai === "dangKy"}
                                 />
                             ) : (
-                                <Pressable onPress={() => openPicker("time", "gioKetThuc")}>
+                                <Pressable onPress={() => openPicker("time", "gioKetThuc")} disabled={editedEvent.trangThai === "dangKy"}>
                                     <TextInput
                                         className="border rounded-md p-2"
                                         placeholder="Giờ kết thúc *"
@@ -692,7 +763,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
 
                         <View className="mb-4">
                             <Text className="text-base font-semibold mb-2">Tệp đính kèm</Text>
-                            <Pressable onPress={handleFileChange}>
+                            <Pressable onPress={handleFileChange} disabled={editedEvent.trangThai === "dangKy"}>
                                 <Text className="text-blue-500">Chọn tệp</Text>
                             </Pressable>
                             <View className="mt-2">
@@ -719,7 +790,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                             <Button onPress={hancleCloseModal} mode="text" textColor="black">
                                 Đóng
                             </Button>
-                            {selectedEvent && (selectedEvent.trangThai === "duyet" || selectedEvent.trangThai === "quanTrong") && (
+                            {selectedEvent && (selectedEvent.trangThai === "duyet" || selectedEvent.trangThai === "dangKy" || selectedEvent.trangThai === "quanTrong") && (
                                 <Button onPress={handleCancleEvent} mode="text" textColor="red">
                                     Huỷ
                                 </Button>
@@ -729,9 +800,13 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                     Duyệt
                                 </Button>
                             )}
-                            <Button onPress={handleSave}>
-                                Lưu
-                            </Button>
+                            {selectedEvent && selectedEvent.trangThai === "dangKy" ?
+                                <></>
+                                :
+                                <Button onPress={handleSave}>
+                                    Lưu
+                                </Button>
+                            }
                             {selectedEvent && (
                                 <Button onPress={handleDeleteEvent} mode="text" textColor="red">
                                     Xóa

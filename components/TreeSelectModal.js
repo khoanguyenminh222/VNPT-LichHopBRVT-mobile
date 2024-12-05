@@ -3,12 +3,12 @@ import { Modal, View, Text, TouchableOpacity } from 'react-native';
 import { Button } from 'react-native-paper';
 import { TreeSelect } from 'react-native-tree-selection';
 
-const TreeSelectModal = ({ visible, onClose, onSelect, data, childKey, titleKey }) => {
+const TreeSelectModal = ({ visible, onClose, onSelect, data, childKey, titleKey, field }) => {
 
     const [localSelectedItems, setLocalSelectedItems] = useState(data);
 
     const handleConfirm = () => {
-        onSelect(localSelectedItems); // Trả về các phần tử đã chọn
+        onSelect(localSelectedItems, field); // Trả về các phần tử đã chọn
         onClose(); // Đóng modal
     };
 
@@ -23,10 +23,10 @@ const TreeSelectModal = ({ visible, onClose, onSelect, data, childKey, titleKey 
     };
 
     return (
-        <Modal transparent={true} visible={visible} onRequestClose={onClose}>
+        <Modal transparent={true} visible={visible} animationType="slide" onRequestClose={onClose}>
             <View className="flex-1 bg-black/50">
-                <View className="bg-white rounded-lg w-96 max-w-[460px] m-auto">
-                    <Text className="text-xl p-6 font-bold">Chọn Thành Phần</Text>
+                <View className="bg-white rounded-lg w-96 max-w-[460px] m-auto h-5/6">
+                    <Text className="text-xl p-6 font-bold">Chọn</Text>
 
                     <TreeSelect
                         data={data}
