@@ -23,9 +23,9 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
         diaDiem: "Ngoài cơ quan",
         ghiChu: "",
         ngayBatDau: new Date().toISOString().split('T')[0],
-        gioBatDau: new Date().toTimeString().split(' ')[0].substring(0, 5),
+        gioBatDau: "08:00",
         ngayKetThuc: new Date().toISOString().split('T')[0],
-        gioKetThuc: new Date().toTimeString().split(' ')[0].substring(0, 5),
+        gioKetThuc: "09:00",
         fileDinhKem: "",
         trangThai: "duyet",
     });
@@ -40,6 +40,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
     const [showPicker, setShowPicker] = useState(false);
     const [pickerMode, setPickerMode] = useState("date"); // 'date' hoặc 'time'
     const [pickerField, setPickerField] = useState("");
+    const [valueDateTime, setValueDateTime] = useState(new Date());
 
     // Hàm gọi api địa điểm họp
     const fetchDiaDiemHops = async () => {
@@ -362,15 +363,28 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
         }
 
         if (field) {
-            setEditedEvent(prevState => {
+            setEditedEvent((prevState) => {
                 const updatedEvent = {
                     ...prevState,
                     [field]: formattedValue,
                 };
-
-                // Đóng picker sau khi trạng thái được cập nhật
-                //setShowPicker(false);
-
+        
+                // Kiểm tra nếu giờ bắt đầu thay đổi, cập nhật giờ kết thúc
+                if (field === "gioBatDau") {
+                    const [hours, minutes] = formattedValue.split(":").map(Number);
+                    const startTime = new Date();
+                    startTime.setHours(hours, minutes);
+        
+                    // Thêm 60 phút
+                    const endTime = new Date(startTime);
+                    endTime.setMinutes(startTime.getMinutes() + 60);
+        
+                    updatedEvent.gioKetThuc = endTime.toTimeString().split(" ")[0].substring(0, 5); // HH:mm
+                }
+                // Kiểm tra nếu ngày bắt đầu thay đổi, cập nhật ngày kết thúc bằng ngày bắt đầu
+                if (field === "ngayBatDau") {
+                    updatedEvent.ngayKetThuc = formattedValue;
+                }
                 return updatedEvent;
             });
         } else {
@@ -379,7 +393,22 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                     ...prevState,
                     [pickerField]: formattedValue,
                 };
+                // Kiểm tra nếu giờ bắt đầu thay đổi, cập nhật giờ kết thúc
+                if (pickerField === "gioBatDau") {
+                    const [hours, minutes] = formattedValue.split(":").map(Number);
+                    const startTime = new Date();
+                    startTime.setHours(hours, minutes);
 
+                    // Thêm 60 phút
+                    const endTime = new Date(startTime);
+                    endTime.setMinutes(startTime.getMinutes() + 60);
+
+                    updatedEvent.gioKetThuc = endTime.toTimeString().split(" ")[0].substring(0, 5); // HH:mm
+                }
+                // Kiểm tra nếu ngày bắt đầu thay đổi, cập nhật ngày kết thúc bằng ngày bắt đầu
+                if (pickerField === "ngayBatDau") {
+                    updatedEvent.ngayKetThuc = formattedValue;
+                }
                 // Đóng picker sau khi trạng thái được cập nhật
                 setShowPicker(false);
 
@@ -388,10 +417,11 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
         }
     };
 
-    const openPicker = (mode, field) => {
+    const openPicker = (mode, field, value) => {
         setPickerMode(mode);
         setPickerField(field);
         setShowPicker(true);
+        setValueDateTime(new Date(value))
     };
 
     // Hàm chọn file
@@ -486,9 +516,9 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
             diaDiem: "Ngoài cơ quan",
             ghiChu: "",
             ngayBatDau: new Date().toISOString().split('T')[0],
-            gioBatDau: new Date().toTimeString().split(' ')[0].substring(0, 5),
+            gioBatDau: "08:00",
             ngayKetThuc: new Date().toISOString().split('T')[0],
-            gioKetThuc: new Date().toTimeString().split(' ')[0].substring(0, 5),
+            gioKetThuc: "09:00",
             fileDinhKem: "",
             trangThai: "duyet",
         });
@@ -678,7 +708,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                     disabled={editedEvent.trangThai === "dangKy"}
                                 />
                             ) : (
-                                <Pressable onPress={() => openPicker('date', 'ngayBatDau')} disabled={editedEvent.trangThai === "dangKy"}>
+                                <Pressable onPress={() => openPicker('date', 'ngayBatDau', editedEvent.ngayBatDau)} disabled={editedEvent.trangThai === "dangKy"}>
                                     <TextInput
                                         className="border rounded-md p-2"
                                         placeholder="Ngày bắt đầu *"
@@ -694,7 +724,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                             {/* Nếu platform là ios thì hiện datetime picker */}
                             {Platform.OS === 'ios' ? (
                                 <DateTimePicker
-                                    value={editedEvent.gioBatDau ? new Date(`2000-01-01T${editedEvent.gioBatDau}:00`) : new Date().toTimeString().split(' ')[0].substring(0, 5)}
+                                    value={editedEvent.gioBatDau ? new Date(`2000-01-01T${editedEvent.gioBatDau}:00`) : '08:00'}
                                     mode="time"
                                     display="default"
                                     onChange={(event, date) => handleDatePickerChange('gioBatDau', event, date)}
@@ -702,7 +732,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                     disabled={editedEvent.trangThai === "dangKy"}
                                 />
                             ) : (
-                                <Pressable onPress={() => openPicker("time", "gioBatDau")} disabled={editedEvent.trangThai === "dangKy"}>
+                                <Pressable onPress={() => openPicker("time", "gioBatDau", `2000-01-01T${editedEvent.gioBatDau}`)} disabled={editedEvent.trangThai === "dangKy"}>
                                     <TextInput
                                         className="border rounded-md p-2"
                                         placeholder="Giờ bắt đầu *"
@@ -726,7 +756,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                     disabled={editedEvent.trangThai === "dangKy"}
                                 />
                             ) : (
-                                <Pressable onPress={() => openPicker('date', 'ngayKetThuc')} disabled={editedEvent.trangThai === "dangKy"}>
+                                <Pressable onPress={() => openPicker('date', 'ngayKetThuc', editedEvent.ngayKetThuc)} disabled={editedEvent.trangThai === "dangKy"}>
                                     <TextInput
                                         className="border rounded-md p-2"
                                         placeholder="Ngày kết thúc *"
@@ -750,7 +780,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                     disabled={editedEvent.trangThai === "dangKy"}
                                 />
                             ) : (
-                                <Pressable onPress={() => openPicker("time", "gioKetThuc")} disabled={editedEvent.trangThai === "dangKy"}>
+                                <Pressable onPress={() => openPicker("time", "gioKetThuc", `2000-01-01T${editedEvent.gioKetThuc}`)} disabled={editedEvent.trangThai === "dangKy"}>
                                     <TextInput
                                         className="border rounded-md p-2"
                                         placeholder="Giờ kết thúc *"
@@ -778,7 +808,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                         {/* Hiển thị DateTimePicker */}
                         {showPicker && (
                             <DateTimePicker
-                                value={new Date()}
+                                value={valueDateTime}
                                 mode={pickerMode}
                                 display="default"
                                 onChange={(event, date) => handleDatePickerChange(null, event, date)}
