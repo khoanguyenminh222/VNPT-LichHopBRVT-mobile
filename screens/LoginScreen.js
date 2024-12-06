@@ -455,9 +455,9 @@ const LoginScreen = ({ navigation }) => {
             ) : (
                 <ImageBackground source={require('../assets/bgVNPT.jpg')} resizeMode="cover" className="h-full w-full">
                     <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ marginVertical: 'auto', paddingHorizontal: 12 }}>
-                        <Image source={require('../assets/logoVNPT.png')} style={{ width: 140, height: 140, alignSelf: 'center', }} />
+                        <Image source={require('../assets/logoHeader.png')} style={{ width: 140, height: 140, alignSelf: 'center', }} />
                         <View className="flex flex-col justify-center items-center">
-                            <Text variant='headlineMedium' className="font-bold my-6 uppercase">Đăng nhập</Text>
+                            <Text className="my-6 text-3xl" style={{ color: 'rgb(75 85 99)' }}>VNPT Lịch Họp</Text>
                             <TextInput
                                 label="Tên đăng nhập"
                                 value={username}
@@ -473,17 +473,18 @@ const LoginScreen = ({ navigation }) => {
                                 mode="outlined"
                                 style={{ marginBottom: 10, width: '100%', maxWidth: 460 }}
                             />
-                            <Button mode="contained" onPress={handleLogin} disabled={loading} style={{ marginBottom: 10, width: '100%', maxWidth: 460 }}>
+                            <Button mode="contained" onPress={handleLogin} disabled={loading} style={{ marginTop: 10, width: '100%', maxWidth: 460 }}>
                                 {loading ? <ActivityIndicator color="#fff" /> : 'Đăng nhập'}
                             </Button>
-                            <Button mode="text" onPress={handleLoginCAS} className="mt-4" style={{ marginBottom: 10, width: '100%', maxWidth: 460 }}>
+                            <Button mode="text" onPress={handleLoginCAS} style={{ marginBottom: 10, width: '100%', maxWidth: 460 }}>
                                 Đăng nhập bằng CAS
                             </Button>
                         </View>
-                        
+
                     </ScrollView>
                     <View className="bottom-0 right-0 left-0 flex justify-center items-center">
-                        <Text className="text-center text-gray-500">Phiên bản: {appVersion}</Text>
+                        <Text className="text-center" style={{color: 'rgb(107 114 128)'}}>Phiên bản: {appVersion}</Text>
+                        <Text className="text-center">Bản quyền thuộc về Viễn Thông Bà Rịa Vũng Tàu</Text>
                     </View>
                 </ImageBackground>
             )}

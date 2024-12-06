@@ -598,6 +598,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                 value={editedEvent.chuTri}
                                 onFocus={() => handleOpenSelect('chuTri')}
                                 readOnly={editedEvent.trangThai === "dangKy"}
+                                placeholder="Chủ trì *"
                             />
 
                             <TreeSelectModal
@@ -632,6 +633,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                 // onFocus={() => setThanhPhanSelectModalVisible(true)}
                                 onFocus={() => handleOpenSelect('thanhPhan')}
                                 readOnly={editedEvent.trangThai === "dangKy"}
+                                placeholder="Thành phần"
                             />
 
                             <TreeSelectModal
@@ -648,6 +650,9 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                 placeholder="Ghi chú thành phần tham dự, phối hợp"
                                 value={editedEvent.ghiChuThanhPhan}
                                 onChangeText={(text) => setEditedEvent({ ...editedEvent, ghiChuThanhPhan: text })}
+                                multiline
+                                numberOfLines={2}
+                                textAlignVertical="top"
                                 readOnly={editedEvent.trangThai === "dangKy"}
                             />
                         </View>

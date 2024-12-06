@@ -511,7 +511,9 @@ const LichHopScreen = () => {
 
                                             {/* Thành phần */}
                                             <Text style={{ fontSize: Number(fontSize) }} className={`${event.trangThai === 'huy' ? 'text-gray-600 line-through' : event.trangThai == 'quanTrong' ? 'text-red-600' : event.trangThai == 'dangKy' ? 'text-purple-600' : 'text-blue-600'} mb-2`}>
-                                                Thành phần: {applyHighlight([event.thanhPhan,event.ghiChuThanhPhan].filter(Boolean).join(', '))}
+                                                Thành phần:
+                                                {event.thanhPhan && applyHighlight(event.thanhPhan.split('\n').map(line => `\n- ${line}`).join('\n'))}
+                                                {event.ghiChuThanhPhan && applyHighlight(`\n${event.ghiChuThanhPhan}`)}
                                             </Text>
                                             
                                             {/* Mời (nếu có) */}
