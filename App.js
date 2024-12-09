@@ -120,7 +120,7 @@ const AppNavigator = () => {
             try {
                 const response = await axios.get(`${accountRoute.findByUsername}/appstore`);
                 if (response.status >= 200 && response.status < 300) {
-                    if(response.data.trangThai === 0) {
+                    if(response.data.trangThai === 0) { // Trạng thái appstore không hoạt động thì không có có màn hình login
                         setIsLogin(false);
                     }
                 }

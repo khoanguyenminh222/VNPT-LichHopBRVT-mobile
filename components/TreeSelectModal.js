@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, View, Text, TouchableOpacity } from 'react-native';
+import { Modal, View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { Button } from 'react-native-paper';
 import { TreeSelect } from 'react-native-tree-selection';
 
@@ -27,46 +27,49 @@ const TreeSelectModal = ({ visible, onClose, onSelect, data, childKey, titleKey,
             <View className="flex-1 bg-black/50">
                 <View className="bg-white rounded-lg w-96 max-w-[460px] m-auto h-5/6">
                     <Text className="text-xl p-6 font-bold">Chọn</Text>
-
-                    <TreeSelect
-                        data={data}
-                        childKey={childKey}
-                        titleKey={titleKey}
-                        multiple
-                        value={localSelectedItems}
-                        onCheckBoxPress={onCheckBoxPress}
-                        autoSelectParents={false}
-                        autoSelectChildren={false}
-                        parentContainerStyles={{
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            backgroundColor: 'white',
-                            borderRadius: 8,
-                            marginBottom: 14,
-                        }}
-                        parentTextStyles={{
-                            color: 'black',
-                            fontSize: 16,
-                            maxWidth: '80%',
-                        }}
-                        childContainerStyles={{
-                            backgroundColor: 'white',
-                            marginBottom: 14,
-                            width: 'auto',
-                        }}
-                        childTextStyles={{
-                            color: 'blue',
-                            fontSize: 16,
-
-                        }}
-                        leftIconStyles={{ tintColor: 'black' }}
-                        rightIconStyles={{ tintColor: 'black' }}
-                        flatListProps={{
-                            style: { maxHeight: 600 },
-                            showsVerticalScrollIndicator: false,
-                        }}
-                    />
-
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                        <TreeSelect
+                            data={data}
+                            childKey={childKey}
+                            titleKey={titleKey}
+                            multiple
+                            value={localSelectedItems}
+                            onCheckBoxPress={onCheckBoxPress}
+                            autoSelectParents={false}
+                            autoSelectChildren={false}
+                            parentContainerStyles={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                backgroundColor: 'white',
+                                borderRadius: 8,
+                                marginBottom: 20,
+                                width: 'auto',
+                            }}
+                            parentTextStyles={{
+                                color: 'black',
+                                fontSize: 16,
+                                flexShrink: 0,
+                                width: 'auto',
+                            }}
+                            childContainerStyles={{
+                                backgroundColor: 'white',
+                                marginBottom: 20,
+                                width: 'auto',
+                            }}
+                            childTextStyles={{
+                                color: 'blue',
+                                fontSize: 16,
+                                flexShrink: 0,
+                                width: 'auto',
+                            }}
+                            leftIconStyles={{ tintColor: 'black' }}
+                            rightIconStyles={{ tintColor: 'black' }}
+                            flatListProps={{
+                                style: { maxHeight: 600 },
+                                showsVerticalScrollIndicator: false,
+                            }}
+                        />
+                    </ScrollView>
                     <View className="flex-row justify-between p-6">
                         <Button onPress={onClose} mode="text" textColor="red">
                             Hủy
