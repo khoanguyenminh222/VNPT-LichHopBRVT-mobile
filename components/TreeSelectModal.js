@@ -43,13 +43,13 @@ const TreeSelectModal = ({ visible, onClose, onSelect, data, childKey, titleKey,
                                 backgroundColor: 'white',
                                 borderRadius: 8,
                                 marginBottom: 20,
-                                width: 'auto',
+                                
                             }}
                             parentTextStyles={{
                                 color: 'black',
                                 fontSize: 16,
-                                flexShrink: 0,
-                                width: 'auto',
+                                flexShrink: 1,
+                                width: '80%',
                             }}
                             childContainerStyles={{
                                 backgroundColor: 'white',
@@ -59,8 +59,8 @@ const TreeSelectModal = ({ visible, onClose, onSelect, data, childKey, titleKey,
                             childTextStyles={{
                                 color: 'blue',
                                 fontSize: 16,
-                                flexShrink: 0,
-                                width: 'auto',
+                                flexShrink: 1,
+                                width: '80%',
                             }}
                             leftIconStyles={{ tintColor: 'black' }}
                             rightIconStyles={{ tintColor: 'black' }}
