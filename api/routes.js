@@ -4,5 +4,6 @@ export const screenUrls = {
     LichHop: "/lich-hop",
     ThemLichHop: "/lich-hop/create",
     ChinhSuaLichHop: "/lich-hop/edit",
+    DuyetLichHop: "/lich-hop/duyet",
     LichCaNhan: "/lich-ca-nhan",
 };

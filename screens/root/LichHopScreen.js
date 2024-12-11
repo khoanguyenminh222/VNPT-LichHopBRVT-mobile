@@ -2,12 +2,12 @@ import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, Pressable, Linking, Alert } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import axiosInstance from '../../utils/axiosInstance';
-import { eventRoute, lichCaNhanRoute, publicfolder } from '../../api/baseURL';
+import { accountDuyetLichRoute, eventRoute, lichCaNhanRoute, publicfolder } from '../../api/baseURL';
 import Toast from 'react-native-toast-message';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faDownload } from '@fortawesome/free-solid-svg-icons/faDownload';
 import { PanGestureHandler, State, ScrollView, RefreshControl } from 'react-native-gesture-handler';
-import { faAdd, faClipboard, faClockFour, faEdit, faShuffle } from '@fortawesome/free-solid-svg-icons';
+import { faAdd, faCheck, faClipboard, faClockFour, faEdit, faShuffle } from '@fortawesome/free-solid-svg-icons';
 import ReminderModal from '../../components/ReminderModal';
 import * as Notifications from 'expo-notifications';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -404,6 +404,45 @@ const LichHopScreen = () => {
         }
     };
 
+    const [isAccountDuyetLich, setIsAccountDuyetLich] = useState(false);
+    useEffect(() => {
+        const checkAccountDuyetLich = async () => {
+            try {
+                const response = await axiosInstance.get(accountDuyetLichRoute.findAll);
+
+                // Lấy ngày hiện tại (chỉ lấy phần ngày)
+                const currentDate = new Date();
+                const currentDateOnly = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+                // Kiểm tra user có username trong danh sách và ngày nằm giữa ngayBatDau và ngayKetThuc
+                const isAccountDuyetLich = response.data.some(account => {
+                    if (account.username === user?.username) {
+                        const ngayBatDau = new Date(account.ngayBatDau);
+                        const ngayKetThuc = new Date(account.ngayKetThuc);
+    
+                        // Chỉ lấy phần ngày của ngayBatDau và ngayKetThuc
+                        const ngayBatDauOnly = new Date(ngayBatDau.getFullYear(), ngayBatDau.getMonth(), ngayBatDau.getDate());
+                        const ngayKetThucOnly = new Date(ngayKetThuc.getFullYear(), ngayKetThuc.getMonth(), ngayKetThuc.getDate());
+
+                        return currentDateOnly >= ngayBatDauOnly && currentDateOnly <= ngayKetThucOnly;
+                    }
+                    return false;
+                });
+                setIsAccountDuyetLich(isAccountDuyetLich);
+            }
+            catch (error) {
+                console.log('Failed to fetch account duyet lich:', error);
+                const errorMessage = error.response ? error.response.data.message : error.message;
+                Toast.show({
+                    type: 'error',
+                    text1: errorMessage,
+                    position: 'top',
+                    visibilityTime: 3000,
+                });
+            }
+        }
+        checkAccountDuyetLich();
+    }, []);
+
     if (isLoading) {
         return (
             <View className="flex-1 justify-center items-center">
@@ -571,7 +610,15 @@ const LichHopScreen = () => {
                                                     <FontAwesomeIcon color='white' icon={faClockFour} size={Number(fontSize) + 4} />
                                                 </Pressable>
                                                 {/* Chỉnh sửa */}
-                                                {(hasAccess(screenUrls.ChinhSuaLichHop, userAllowedUrls) || user?.vaiTro == 'admin') &&
+                                                {(hasAccess(screenUrls.ChinhSuaLichHop, userAllowedUrls) || user?.vaiTro == 'admin') && event.trangThai !== 'dangKy' &&
+                                                    <Pressable
+                                                        onPress={() => { setModelEdit(true); setSelectedEvent(event); }}
+                                                        className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai === 'quanTrong' ? 'bg-red-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : 'bg-blue-500'} rounded-lg`}>
+                                                        <FontAwesomeIcon color='white' icon={faEdit} size={Number(fontSize) + 4} />
+                                                    </Pressable>
+                                                }
+                                                {/* Có duyền duyệt hoặc là account được uỷ quyền */}
+                                                {(hasAccess(screenUrls.DuyetLichHop, userAllowedUrls) || isAccountDuyetLich || user?.vaiTro == 'admin') && event.trangThai === 'dangKy' &&
                                                     <Pressable
                                                         onPress={() => { setModelEdit(true); setSelectedEvent(event); }}
                                                         className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai === 'quanTrong' ? 'bg-red-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : 'bg-blue-500'} rounded-lg`}>

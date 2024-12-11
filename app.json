@@ -14,7 +14,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.vnpt.ttcntt.lichhop",
+      "bundleIdentifier": "com.vnpt.ttcntt.lichhopv2",
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "The app accesses your photos to let you share them with your friends.",
         "NSDocumentsFolderUsageDescription": "The app accesses your documents to allow you to share and upload files.",

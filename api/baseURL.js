@@ -117,6 +117,13 @@ const thanhPhanThamDuRoute = {
     getCotCha: `${domain}/api/admin/thanhPhanThamDu/cotCha` // /:idCotCha
 }
 
+const accountDuyetLichRoute = {
+    findAll: `${domain}/api/admin/accountDuyetLich`,
+    create: `${domain}/api/admin/accountDuyetLich`,
+    update: `${domain}/api/admin/accountDuyetLich`, // /:username body là accountDuyetLich
+    delete: `${domain}/api/admin/accountDuyetLich`, // /:id
+}
+
 export {
     domain,
     publicfolder,
@@ -136,4 +143,5 @@ export {
     lichCaNhanRoute,
     diaDiemHopRoute,
     thanhPhanThamDuRoute,
+    accountDuyetLichRoute,
 };
