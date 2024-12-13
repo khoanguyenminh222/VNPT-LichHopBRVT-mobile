@@ -5,7 +5,7 @@
     "scheme": "vnptlichhop",
     "version": "1.1.2",
     "orientation": "default",
-    "icon": "./assets/iconLich.png",
+    "icon": "./assets/iconLich2.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/logoVNPT.png",

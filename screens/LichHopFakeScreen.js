@@ -1,11 +1,11 @@
 import { faClock, faLocationPin } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Platform } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, Platform, TextInput, Alert } from 'react-native';
 import Constants from 'expo-constants';
 
 const LichHopFakeScreen = () => {
-    const fakeMeetings = [
+    const [meetings, setMeetings] = useState([
         {
             title: "Họp phát triển dự án",
             time: "9:00 - 11:00, Thứ Hai",
@@ -21,11 +21,53 @@ const LichHopFakeScreen = () => {
             time: "10:00 - 12:00, Thứ Sáu",
             location: "Phòng họp C",
         },
-    ];
+    ]);
+
+    const [newMeeting, setNewMeeting] = useState({ title: '', time: '', location: '' });
+
+    const handleAddMeeting = () => {
+        if (!newMeeting.title || !newMeeting.time || !newMeeting.location) {
+            Alert.alert("Thông báo", "Vui lòng nhập đủ thông tin.");
+            return;
+        }
+        setMeetings([...meetings, newMeeting]);
+        setNewMeeting({ title: '', time: '', location: '' });
+    };
+
+    const handleDeleteMeeting = (index) => {
+        setMeetings(meetings.filter((_, i) => i !== index));
+    };
+
+    const handleEditMeeting = (index) => {
+        const meetingToEdit = meetings[index];
+        Alert.prompt(
+            "Chỉnh sửa thông tin",
+            "Vui lòng nhập thông tin mới",
+            [
+                {
+                    text: "Hủy",
+                    style: "cancel",
+                },
+                {
+                    text: "Lưu",
+                    onPress: (newTitle) => {
+                        const updatedMeetings = meetings.map((item, i) =>
+                            i === index ? { ...meetingToEdit, title: newTitle } : item
+                        );
+                        setMeetings(updatedMeetings);
+                    },
+                },
+            ],
+            "plain-text",
+            meetingToEdit.title
+        );
+    };
+
     // Lấy phiên bản từ Constants.manifest.version
     const appVersion = Constants.expoConfig?.version || 'Unknown';
+
     return (
-        <View className="flex-1 bg-gray-100" style={{marginTop: Platform.OS === 'android' ? 25 : 0}}>
+        <View className="flex-1 bg-gray-100" style={{ marginTop: Platform.OS === 'android' ? 25 : 0 }}>
             {/* Header */}
             <View className="bg-blue-600 p-6 shadow-lg">
                 <Text className="text-3xl font-bold text-center text-white">Lịch họp</Text>
@@ -33,7 +75,7 @@ const LichHopFakeScreen = () => {
 
             {/* Nội dung lịch họp */}
             <ScrollView className="p-4 space-y-6">
-                {fakeMeetings.map((meeting, index) => (
+                {meetings.map((meeting, index) => (
                     <TouchableOpacity
                         key={index}
                         activeOpacity={0.8}
@@ -41,24 +83,55 @@ const LichHopFakeScreen = () => {
                     >
                         <View className="bg-white p-4 rounded-lg">
                             <Text className="text-lg font-semibold text-gray-800">{meeting.title}</Text>
-                            <Text className="text-gray-600 mt-2"><FontAwesomeIcon icon={faClock}/>{meeting.time}</Text>
-                            <Text className="text-gray-600 mt-1"><FontAwesomeIcon icon={faLocationPin} color='red'/>{meeting.location}</Text>
+                            <Text className="text-gray-600 mt-2">
+                                <FontAwesomeIcon icon={faClock} /> {meeting.time}
+                            </Text>
+                            <Text className="text-gray-600 mt-1">
+                                <FontAwesomeIcon icon={faLocationPin} color="red" /> {meeting.location}
+                            </Text>
+
+                            {/* Nút sửa và xoá */}
+                            <View className="flex-row mt-4 space-x-2">
+                                <TouchableOpacity
+                                    onPress={() => handleDeleteMeeting(index)}
+                                    className="bg-red-500 p-2 rounded-lg"
+                                >
+                                    <Text className="text-white text-center">Xoá</Text>
+                                </TouchableOpacity>
+                            </View>
                         </View>
                     </TouchableOpacity>
                 ))}
-            </ScrollView>
 
-            {/* Footer */}
-            <View className="absolute bottom-6 left-0 right-0 px-6">
-                <View className="bg-gray-100 p-4 border-t border-gray-300 rounded-lg">
-                    <Text className="text-center text-gray-500 text-sm">
-                        Ứng dụng lịch họp {appVersion}
-                    </Text>
-                    <Text className="text-center text-gray-500 text-sm mt-1">
-                        Phát triển bởi: <Text className="font-semibold text-gray-700">Trung tâm Công nghệ Thông tin - Viễn thông Bà Rịa - Vũng Tàu</Text>
-                    </Text>
+                {/* Thêm mới lịch họp */}
+                <View className="bg-white p-4 rounded-lg mt-6">
+                    <Text className="text-lg font-bold text-gray-800 mb-4">Thêm lịch họp mới</Text>
+                    <TextInput
+                        placeholder="Tiêu đề"
+                        className="border p-2 mb-2 rounded-lg"
+                        value={newMeeting.title}
+                        onChangeText={(text) => setNewMeeting({ ...newMeeting, title: text })}
+                    />
+                    <TextInput
+                        placeholder="Thời gian"
+                        className="border p-2 mb-2 rounded-lg"
+                        value={newMeeting.time}
+                        onChangeText={(text) => setNewMeeting({ ...newMeeting, time: text })}
+                    />
+                    <TextInput
+                        placeholder="Địa điểm"
+                        className="border p-2 mb-2 rounded-lg"
+                        value={newMeeting.location}
+                        onChangeText={(text) => setNewMeeting({ ...newMeeting, location: text })}
+                    />
+                    <TouchableOpacity
+                        onPress={handleAddMeeting}
+                        className="bg-green-500 p-2 rounded-lg"
+                    >
+                        <Text className="text-white text-center">Thêm</Text>
+                    </TouchableOpacity>
                 </View>
-            </View>
+            </ScrollView>
         </View>
     );
 };
