@@ -1,70 +1,156 @@
-import { View, Text, ScrollView, Image, Platform } from 'react-native';
-import React from 'react';
+import React, { useContext } from 'react';
+import { View, Text, TouchableOpacity, Platform, Switch } from 'react-native';
+import { FakeIOSContext } from '../context/FakeIOSContext';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faCheckCircle } from '@fortawesome/free-solid-svg-icons';
+import { faPalette, faMoon, faSun } from '@fortawesome/free-solid-svg-icons';
+import { Dropdown } from 'react-native-element-dropdown';
 
 const ThongTinFakeScreen = () => {
+    const { isDarkMode, setIsDarkMode, fontSize, setFontSize } = useContext(FakeIOSContext);
+
+    const increaseFontSize = () => setFontSize((prev) => Math.min(prev + 2, 30));
+    const decreaseFontSize = () => setFontSize((prev) => Math.max(prev - 2, 12));
+
     return (
-        <View className="flex-1 bg-gray-100" style={{marginTop: Platform.OS === 'android' ? 25 : 0}}>
+        <View
+            style={{
+                flex: 1,
+                backgroundColor: isDarkMode ? '#121212' : '#f5f5f5',
+                padding: 16,
+                marginTop: Platform.OS === 'android' ? 25 : 0,
+            }}
+        >
             {/* Header */}
-            <View className="bg-blue-600 p-6 shadow-lg">
-                <Text className="text-3xl font-bold text-center text-white">Giới Thiệu VNPT BRVT</Text>
+            <View
+                style={{
+                    padding: 16,
+                    backgroundColor: isDarkMode ? '#1e1e1e' : '#4f46e5',
+                    borderRadius: 10,
+                    marginBottom: 20,
+                    shadowColor: '#000',
+                    shadowOpacity: 0.1,
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowRadius: 4,
+                }}
+            >
+                <Text
+                    style={{
+                        fontSize: 24,
+                        fontWeight: 'bold',
+                        textAlign: 'center',
+                        color: '#fff',
+                    }}
+                >
+                    Thiết lập
+                </Text>
             </View>
 
-            {/* Nội dung */}
-            <ScrollView className="p-4 space-y-6">
-                {/* Ảnh và giới thiệu */}
-                <View className="bg-white p-4 rounded-lg shadow-md">
-                    <Image
-                        source={require('../assets/logoTextVnpt.png')}
-                        className="w-full h-40 object-contain"
-                        resizeMode="contain"
+            {/* Chuyển đổi chế độ sáng/tối */}
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <FontAwesomeIcon
+                        icon={isDarkMode ? faMoon : faSun}
+                        size={20}
+                        color={isDarkMode ? '#fff' : '#000'}
+                        style={{ marginRight: 10 }}
                     />
-                    <Text className="text-lg font-semibold text-gray-800 mt-4">
-                        VNPT BRVT - Đơn vị hàng đầu trong lĩnh vực viễn thông và công nghệ thông tin.
-                    </Text>
-                    <Text className="text-gray-600 mt-2">
-                        VNPT BRVT (Bà Rịa - Vũng Tàu) tự hào là nhà cung cấp dịch vụ viễn thông và công nghệ thông tin hàng đầu tại khu vực. Với đội ngũ chuyên gia giàu kinh nghiệm, chúng tôi cam kết mang đến giải pháp hiện đại, tối ưu, góp phần thúc đẩy sự phát triển kinh tế - xã hội của tỉnh nhà.
+                    <Text style={{ fontSize: 16, color: isDarkMode ? '#fff' : '#000' }}>
+                        Chế độ {isDarkMode ? 'Tối' : 'Sáng'}
                     </Text>
                 </View>
+                <Switch value={isDarkMode} onValueChange={() => setIsDarkMode((prev) => !prev)} />
+            </View>
 
-                {/* Thông tin ứng dụng lịch họp */}
-                <View className="bg-white p-4 rounded-lg shadow-md">
-                    <Text className="text-xl font-bold text-blue-600">Ứng Dụng Lịch Họp</Text>
-                    <Text className="text-gray-600 mt-2">
-                        Ứng dụng Lịch họp được phát triển bởi đội ngũ của VNPT BRVT nhằm hỗ trợ quản lý và tổ chức các cuộc họp một cách dễ dàng, tiện lợi. Với các tính năng thông minh, ứng dụng giúp:
-                    </Text>
-                    <Text className="text-gray-600 mt-4">
-                        - Lên lịch họp chi tiết với thông tin thời gian, địa điểm rõ ràng.
-                    </Text>
-                    <Text className="text-gray-600">
-                        - Gửi thông báo tự động tới người tham dự.
-                    </Text>
-                    <Text className="text-gray-600">
-                        - Quản lý danh sách các cuộc họp trong tuần hoặc tháng.
-                    </Text>
+            {/* Văn bản xem trước */}
+            <View
+                style={{
+                    backgroundColor: isDarkMode ? '#1e1e1e' : '#fff',
+                    padding: 20,
+                    borderRadius: 10,
+                    marginBottom: 20,
+                    alignItems: 'center',
+                    shadowColor: '#000',
+                    shadowOpacity: 0.1,
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowRadius: 4,
+                }}
+            >
+                <Text
+                    style={{
+                        fontSize: fontSize,
+                        color: isDarkMode ? '#fff' : '#000',
+                        textAlign: 'center',
+                    }}
+                >
+                    Đây là văn bản mẫu! Bạn có thể thay đổi kích thước của nó.
+                </Text>
+            </View>
+
+            {/* Điều chỉnh cỡ chữ */}
+            <View
+                style={{
+                    backgroundColor: isDarkMode ? '#1e1e1e' : '#fff',
+                    padding: 20,
+                    borderRadius: 10,
+                    shadowColor: '#000',
+                    shadowOpacity: 0.1,
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowRadius: 4,
+                }}
+            >
+                <Text
+                    style={{
+                        textAlign: 'center',
+                        marginBottom: 16,
+                        fontSize: 16,
+                        color: isDarkMode ? '#ccc' : '#666',
+                    }}
+                >
+                    Cỡ chữ hiện tại: {fontSize}px
+                </Text>
+
+                {/* Nút tăng/giảm cỡ chữ */}
+                <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginBottom: 16 }}>
+                    <TouchableOpacity
+                        style={{
+                            padding: 12,
+                            borderRadius: 8,
+                            backgroundColor: isDarkMode ? '#b91c1c' : '#ef4444',
+                        }}
+                        onPress={decreaseFontSize}
+                    >
+                        <Text style={{ color: '#fff', fontWeight: 'bold' }}>Giảm</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={{
+                            padding: 12,
+                            borderRadius: 8,
+                            backgroundColor: isDarkMode ? '#15803d' : '#22c55e',
+                        }}
+                        onPress={increaseFontSize}
+                    >
+                        <Text style={{ color: '#fff', fontWeight: 'bold' }}>Tăng</Text>
+                    </TouchableOpacity>
                 </View>
 
-                {/* Cam kết */}
-                <View className="bg-white p-6 rounded-lg shadow-md border-l-4 border-blue-500 flex-row items-start space-x-8 my-10">
-                    {/* Biểu tượng minh họa */}
-                    <View className="bg-blue-500 p-2 rounded-full mr-4">
-                        <FontAwesomeIcon icon={faCheckCircle} color='white'/>
-                    </View>
-
-                    {/* Nội dung */}
-                    <View className="flex-1">
-                        <Text className="text-xl font-bold text-gray-800">Cam Kết</Text>
-                        <Text className="text-gray-600 mt-2">
-                            VNPT BRVT cam kết đồng hành cùng khách hàng trong việc mang đến các giải pháp công nghệ hiện đại nhất. Chúng tôi không ngừng cải tiến để tạo nên những sản phẩm mang tính đột phá, phục vụ tốt nhất cho công việc và cuộc sống.
-                        </Text>
-                    </View>
-                </View>
-            </ScrollView>
-
-            {/* Footer */}
-            <View className="bg-gray-100 p-4 border-t border-gray-300">
-                <Text className="text-center text-gray-500 text-sm">© 2024 VNPT BRVT.</Text>
+                {/* Dropdown chỉnh cỡ chữ */}
+                <Dropdown
+                    label="Chọn cỡ chữ"
+                    data={[...Array(19).keys()].map((i) => {
+                        const value = i + 12; // Giá trị từ 12 đến 30
+                        return { label: `${value}px`, value: value };
+                    })}
+                    value={fontSize}
+                    labelField="label"
+                    valueField="value"
+                    onChange={(itemValue) => setFontSize(itemValue.value)}
+                    style={{
+                        borderRadius: 8,
+                        padding: 12,
+                        backgroundColor: isDarkMode ? '#333' : '#f0f0f0',
+                        color: isDarkMode ? '#fff' : '#000',
+                    }}
+                />
             </View>
         </View>
     );

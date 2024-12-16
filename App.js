@@ -30,6 +30,7 @@ import axios from 'axios';
 import { accountRoute } from './api/baseURL';
 import ThongTinFakeScreen from './screens/ThongTinFakeScreen';
 import { Platform } from 'react-native';
+import { FakeIOSProvider } from './context/FakeIOSContext';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -89,6 +90,7 @@ const TabNavigator = () => {
 const TabHackingAppleNavigator = () => {
     const { colors } = useTheme();
     return (
+        <FakeIOSProvider>
         <Tab.Navigator screenOptions={{ headerShown: false }}>
             <Tab.Screen
                 name="Lịch họp"
@@ -100,7 +102,7 @@ const TabHackingAppleNavigator = () => {
                 }}
             />
             <Tab.Screen
-                name="Thông tin"
+                name="Cài đặt"
                 component={ThongTinFakeScreen}
                 options={{
                     tabBarIcon: ({ focused }) => (
@@ -109,6 +111,7 @@ const TabHackingAppleNavigator = () => {
                 }}
             />
         </Tab.Navigator>
+        </FakeIOSProvider>
     );
 };
 
