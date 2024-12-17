@@ -1,11 +1,12 @@
-import { faClock, faLocationPin } from '@fortawesome/free-solid-svg-icons';
+import { faClock, faLocationPin, faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Platform } from 'react-native';
-import Constants from 'expo-constants';
+import React, { useState, useContext } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, Alert, Platform } from 'react-native';
+import { FakeIOSContext } from '../context/FakeIOSContext';
 
 const LichHopFakeScreen = () => {
-    const fakeMeetings = [
+    const { isDarkMode, fontSize } = useContext(FakeIOSContext);
+    const [meetings, setMeetings] = useState([
         {
             title: "Họp phát triển dự án",
             time: "9:00 - 11:00, Thứ Hai",
@@ -21,44 +22,182 @@ const LichHopFakeScreen = () => {
             time: "10:00 - 12:00, Thứ Sáu",
             location: "Phòng họp C",
         },
-    ];
-    // Lấy phiên bản từ Constants.manifest.version
-    const appVersion = Constants.expoConfig?.version || 'Unknown';
+    ]);
+
+    const [newMeeting, setNewMeeting] = useState({ title: '', time: '', location: '' });
+    const [editingIndex, setEditingIndex] = useState(null);
+    const [searchText, setSearchText] = useState('');
+
+    const handleAddOrUpdateMeeting = () => {
+        if (!newMeeting.title || !newMeeting.time || !newMeeting.location) {
+            Alert.alert("Thông báo", "Vui lòng nhập đầy đủ thông tin.");
+            return;
+        }
+
+        if (editingIndex !== null) {
+            const updatedMeetings = [...meetings];
+            updatedMeetings[editingIndex] = newMeeting;
+            setMeetings(updatedMeetings);
+            setEditingIndex(null);
+        } else {
+            setMeetings([...meetings, newMeeting]);
+        }
+
+        setNewMeeting({ title: '', time: '', location: '' });
+    };
+
+    const handleEditMeeting = (index) => {
+        setNewMeeting(meetings[index]);
+        setEditingIndex(index);
+    };
+
+    const handleDeleteMeeting = (index) => {
+        Alert.alert("Xác nhận", "Bạn có chắc chắn muốn xóa cuộc họp này?", [
+            { text: "Hủy", style: "cancel" },
+            {
+                text: "Xóa",
+                onPress: () => setMeetings(meetings.filter((_, i) => i !== index)),
+                style: "destructive",
+            },
+        ]);
+    };
+
+    const filteredMeetings = meetings.filter(
+        (meeting) =>
+            meeting.title.toLowerCase().includes(searchText.toLowerCase()) ||
+            meeting.time.toLowerCase().includes(searchText.toLowerCase()) ||
+            meeting.location.toLowerCase().includes(searchText.toLowerCase())
+    );
+
     return (
-        <View className="flex-1 bg-gray-100" style={{marginTop: Platform.OS === 'android' ? 25 : 0}}>
+        <View
+            className="flex-1"
+            style={{
+                backgroundColor: isDarkMode ? '#121212' : '#f9f9f9',
+                marginTop: Platform.OS === 'android' ? 25 : 0,
+            }}
+        >
             {/* Header */}
-            <View className="bg-blue-600 p-6 shadow-lg">
-                <Text className="text-3xl font-bold text-center text-white">Lịch họp</Text>
+            <View
+                className="p-6 shadow-lg"
+                style={{ backgroundColor: isDarkMode ? '#1e1e1e' : '#4f46e5' }}
+            >
+                <Text
+                    className="text-3xl font-bold text-center"
+                    style={{ color: isDarkMode ? '#fff' : '#fff', fontSize }}
+                >
+                    Lịch họp
+                </Text>
+                <TextInput
+                    placeholder="Tìm kiếm lịch họp..."
+                    placeholderTextColor={isDarkMode ? '#aaa' : '#555'}
+                    value={searchText}
+                    onChangeText={(text) => setSearchText(text)}
+                    className="mt-3 p-2 rounded-lg"
+                    style={{
+                        backgroundColor: isDarkMode ? '#333' : '#fff',
+                        color: isDarkMode ? '#fff' : '#000',
+                    }}
+                />
             </View>
 
-            {/* Nội dung lịch họp */}
-            <ScrollView className="p-4 space-y-6">
-                {fakeMeetings.map((meeting, index) => (
+            {/* Danh sách lịch họp */}
+            <ScrollView className="p-4 space-y-6 mb-4">
+                {/* Form thêm/sửa cuộc họp */}
+                <View className="p-4 border-t" style={{ backgroundColor: isDarkMode ? '#1e1e1e' : '#fff' }}>
+                    <TextInput
+                        placeholder="Tiêu đề cuộc họp"
+                        placeholderTextColor={isDarkMode ? '#aaa' : '#555'}
+                        value={newMeeting.title}
+                        onChangeText={(text) => setNewMeeting({ ...newMeeting, title: text })}
+                        className="mb-3 p-2 rounded-lg"
+                        style={{
+                            backgroundColor: isDarkMode ? '#333' : '#f1f1f1',
+                            color: isDarkMode ? '#fff' : '#000',
+                        }}
+                    />
+                    <TextInput
+                        placeholder="Thời gian họp"
+                        placeholderTextColor={isDarkMode ? '#aaa' : '#555'}
+                        value={newMeeting.time}
+                        onChangeText={(text) => setNewMeeting({ ...newMeeting, time: text })}
+                        className="mb-3 p-2 rounded-lg"
+                        style={{
+                            backgroundColor: isDarkMode ? '#333' : '#f1f1f1',
+                            color: isDarkMode ? '#fff' : '#000',
+                        }}
+                    />
+                    <TextInput
+                        placeholder="Địa điểm họp"
+                        placeholderTextColor={isDarkMode ? '#aaa' : '#555'}
+                        value={newMeeting.location}
+                        onChangeText={(text) => setNewMeeting({ ...newMeeting, location: text })}
+                        className="mb-3 p-2 rounded-lg"
+                        style={{
+                            backgroundColor: isDarkMode ? '#333' : '#f1f1f1',
+                            color: isDarkMode ? '#fff' : '#000',
+                        }}
+                    />
                     <TouchableOpacity
-                        key={index}
-                        activeOpacity={0.8}
-                        className="p-1 rounded-lg mt-4 border"
+                        onPress={handleAddOrUpdateMeeting}
+                        className="p-3 rounded-lg"
+                        style={{
+                            backgroundColor: isDarkMode ? '#4ade80' : '#15803d',
+                            alignItems: 'center',
+                        }}
                     >
-                        <View className="bg-white p-4 rounded-lg">
-                            <Text className="text-lg font-semibold text-gray-800">{meeting.title}</Text>
-                            <Text className="text-gray-600 mt-2"><FontAwesomeIcon icon={faClock}/>{meeting.time}</Text>
-                            <Text className="text-gray-600 mt-1"><FontAwesomeIcon icon={faLocationPin} color='red'/>{meeting.location}</Text>
-                        </View>
+                        <Text className="font-semibold" style={{ color: '#fff', fontSize }}>
+                            {editingIndex !== null ? 'Cập nhật' : 'Thêm'}
+                        </Text>
                     </TouchableOpacity>
+                </View>
+                {filteredMeetings.map((meeting, index) => (
+                    <View
+                        key={index}
+                        className="p-4 rounded-lg border my-4"
+                        style={{
+                            backgroundColor: isDarkMode ? '#1e1e1e' : '#fff',
+                            borderColor: isDarkMode ? '#444' : '#ddd',
+                        }}
+                    >
+                        <Text
+                            className="font-semibold"
+                            style={{
+                                fontSize,
+                                color: isDarkMode ? '#fff' : '#000',
+                            }}
+                        >
+                            {meeting.title}
+                        </Text>
+                        <Text
+                            className="mt-2"
+                            style={{
+                                color: isDarkMode ? '#ccc' : '#555',
+                                fontSize: fontSize - 2,
+                            }}
+                        >
+                            <FontAwesomeIcon icon={faClock} /> {meeting.time}
+                        </Text>
+                        <Text
+                            className="mt-1"
+                            style={{
+                                color: isDarkMode ? '#ccc' : '#555',
+                                fontSize: fontSize - 2,
+                            }}
+                        >
+                            <FontAwesomeIcon icon={faLocationPin} color="red" /> {meeting.location}
+                        </Text>
+                        <View className="flex-row justify-end mt-3 space-x-3">
+                            <TouchableOpacity onPress={() => handleEditMeeting(index)}>
+                                <FontAwesomeIcon icon={faEdit} color={isDarkMode ? '#4ade80' : '#15803d'} />
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => handleDeleteMeeting(index)}>
+                                <FontAwesomeIcon icon={faTrash} color={isDarkMode ? '#f87171' : '#b91c1c'} />
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 ))}
             </ScrollView>
-
-            {/* Footer */}
-            <View className="absolute bottom-6 left-0 right-0 px-6">
-                <View className="bg-gray-100 p-4 border-t border-gray-300 rounded-lg">
-                    <Text className="text-center text-gray-500 text-sm">
-                        Ứng dụng lịch họp {appVersion}
-                    </Text>
-                    <Text className="text-center text-gray-500 text-sm mt-1">
-                        Phát triển bởi: <Text className="font-semibold text-gray-700">Trung tâm Công nghệ Thông tin - Viễn thông Bà Rịa - Vũng Tàu</Text>
-                    </Text>
-                </View>
-            </View>
         </View>
     );
 };

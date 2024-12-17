@@ -129,7 +129,6 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
     // Lưu sự kiện
     const handleSave = async () => {
         console.log(editedEvent)
-        editedEvent.trangThai == "" ? editedEvent.trangThai = "dangKy" : editedEvent.trangThai;
         if (!editedEvent.noiDungCuocHop || !editedEvent.chuTri || (!editedEvent.thanhPhan && !editedEvent.ghiChuThanhPhan) || !editedEvent.diaDiem || !editedEvent.ngayBatDau || !editedEvent.gioBatDau || !editedEvent.ngayKetThuc || !editedEvent.gioKetThuc) {
             Alert.alert("Lỗi", "Vui lòng điền đầy đủ thông tin bắt buộc");
             return;
@@ -189,7 +188,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                 return;
             }
         }
-
+        editedEvent.trangThai == "" ? editedEvent.trangThai = "dangKy" : editedEvent.trangThai;
         try {
             let response;
             if (selectedEvent) {
