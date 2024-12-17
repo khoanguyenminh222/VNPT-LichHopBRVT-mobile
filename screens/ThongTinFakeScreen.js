@@ -24,7 +24,7 @@ const ThongTinFakeScreen = () => {
             <View
                 style={{
                     padding: 16,
-                    backgroundColor: isDarkMode ? '#1e1e1e' : '#4f46e5',
+                    //backgroundColor: isDarkMode ? '#1e1e1e' : '#4f46e5',
                     borderRadius: 10,
                     marginBottom: 20,
                     shadowColor: '#000',
@@ -38,7 +38,7 @@ const ThongTinFakeScreen = () => {
                         fontSize: 24,
                         fontWeight: 'bold',
                         textAlign: 'center',
-                        color: '#fff',
+                        color: isDarkMode ? '#fff' : '#000',
                     }}
                 >
                     Thiết lập
