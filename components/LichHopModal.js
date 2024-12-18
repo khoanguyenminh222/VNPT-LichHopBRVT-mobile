@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Modal, View, Text, TextInput, ScrollView, Pressable, Alert, Platform, TouchableWithoutFeedback } from "react-native";
-import { Checkbox, Button } from "react-native-paper";
+import { Modal, View, Text, ScrollView, Pressable, Alert, Platform, TouchableWithoutFeedback } from "react-native";
+import { Checkbox, Button, TextInput } from "react-native-paper";
 import { Picker } from "@react-native-picker/picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as DocumentPicker from 'expo-document-picker';
@@ -528,6 +528,11 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
 
     // Xử lý khi người dùng chọn thành phần
     const handleSelection = (selectedItems, field) => {
+        // Kiểm tra mảng selectedItems có phù hợp không, mảng selectedItems đúng sẽ có dạng ["Tên thành phần 1", "Tên thành phần 2"]
+        const hasUnselectedItem = selectedItems.some(item => item.tenThanhPhan);
+        if (hasUnselectedItem) {
+            return;
+        }
         const selectedNames = selectedItems.join(', ');
         setEditedEvent({ ...editedEvent, [field]: selectedNames });
     };
@@ -581,25 +586,23 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                         </View>
 
                         {/* Nội dung cuộc họp */}
-                        <View className="mb-4">
-                            <Text className="text-base font-semibold mb-2">Nội dung cuộc họp *</Text>
+                        <View className="mb-2">
                             <TextInput
-                                className="border rounded-md p-2"
-                                placeholder="Nội dung cuộc họp *"
+                                label="Nội dung cuộc họp *"
+                                mode="outlined"
                                 value={editedEvent.noiDungCuocHop}
                                 onChangeText={(text) => setEditedEvent({ ...editedEvent, noiDungCuocHop: text })}
                                 readOnly={editedEvent.trangThai === "dangKy"}
                             />
                         </View>
                         {/* Chủ trì */}
-                        <View className="mb-4">
-                            <Text className="text-base font-semibold mb-2">Chủ trì *</Text>
+                        <View className="mb-2">
                             <TextInput
-                                className="border rounded-md p-2"
                                 value={editedEvent.chuTri}
                                 onFocus={() => handleOpenSelect('chuTri')}
                                 readOnly={editedEvent.trangThai === "dangKy"}
-                                placeholder="Chủ trì *"
+                                label="Chủ trì *"
+                                mode="outlined"
                             />
 
                             <TreeSelectModal
@@ -614,11 +617,10 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                         </View>
 
                         {/* Chuẩn bị */}
-                        <View className="mb-4">
-                            <Text className="text-base font-semibold mb-2">Chuẩn bị</Text>
+                        <View className="mb-2">
                             <TextInput
-                                className="border rounded-md p-2"
-                                placeholder="Chuẩn bị"
+                                label="Chuẩn bị"
+                                mode="outlined"
                                 value={editedEvent.chuanBi}
                                 onChangeText={(text) => setEditedEvent({ ...editedEvent, chuanBi: text })}
                                 readOnly={editedEvent.trangThai === "dangKy"}
@@ -626,16 +628,32 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                         </View>
 
                         {/* Thành phần */}
-                        <View className="mb-4">
-                            <Text className="text-base font-semibold mb-2">Thành phần *</Text>
-                            <TextInput
-                                className="border rounded-md p-2"
-                                value={editedEvent.thanhPhan}
-                                // onFocus={() => setThanhPhanSelectModalVisible(true)}
-                                onFocus={() => handleOpenSelect('thanhPhan')}
-                                readOnly={editedEvent.trangThai === "dangKy"}
-                                placeholder="Thành phần"
-                            />
+                        <View className="mb-2">
+                            <Text className="text-base font-semibold">Thành phần *</Text>
+                            <View className="flex flex-row justify-between items-center">
+                                <View className="w-7/12">
+                                    <TextInput
+                                        mode="outlined"
+                                        value={editedEvent.thanhPhan}
+                                        // onFocus={() => setThanhPhanSelectModalVisible(true)}
+                                        onFocus={() => handleOpenSelect('thanhPhan')}
+                                        readOnly={editedEvent.trangThai === "dangKy"}
+                                        label="Thành phần"
+                                    />
+                                </View>
+                                <View className="w-4/12">
+                                    <TextInput
+                                        label="Ghi chú thành phần tham dự, phối hợp"
+                                        mode="outlined"
+                                        value={editedEvent.ghiChuThanhPhan}
+                                        onChangeText={(text) => setEditedEvent({ ...editedEvent, ghiChuThanhPhan: text })}
+                                        multiline
+                                        textAlignVertical="top"
+                                        readOnly={editedEvent.trangThai === "dangKy"}
+                                    />
+                                </View>
+
+                            </View>
 
                             <TreeSelectModal
                                 visible={thanhPhanSelectModalVisible}
@@ -646,24 +664,14 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                 titleKey="tenThanhPhan"
                                 field="thanhPhan"
                             />
-                            <TextInput
-                                className="border rounded-md p-2 mt-4"
-                                placeholder="Ghi chú thành phần tham dự, phối hợp"
-                                value={editedEvent.ghiChuThanhPhan}
-                                onChangeText={(text) => setEditedEvent({ ...editedEvent, ghiChuThanhPhan: text })}
-                                multiline
-                                numberOfLines={2}
-                                textAlignVertical="top"
-                                readOnly={editedEvent.trangThai === "dangKy"}
-                            />
+
                         </View>
 
                         {/* Mời */}
-                        <View className="mb-4">
-                            <Text className="text-base font-semibold mb-2">Mời</Text>
+                        <View className="mb-5">
                             <TextInput
-                                className="border rounded-md p-2"
-                                placeholder="Mời"
+                                label="Mời"
+                                mode="outlined"
                                 value={editedEvent.moi}
                                 onChangeText={(text) => setEditedEvent({ ...editedEvent, moi: text })}
                                 readOnly={editedEvent.trangThai === "dangKy"}
@@ -671,14 +679,15 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                         </View>
 
                         {/* Địa điểm */}
-                        <View className="mb-4">
-                            <Text className="text-base font-semibold mb-2">Địa điểm *</Text>
-                            <View className="border rounded-md">
+                        <View className="flex flex-row justify-center items-center mb-2">
+                            <View className="border rounded-md w-full relative">
+                                <Text className="absolute left-3 -top-3 bg-white text-sm px-1">Địa điểm</Text>
                                 <Dropdown
                                     data={diaDiemHops}
                                     labelField="label"
                                     valueField="value"
-                                    placeholder="Chọn địa điểm"
+                                    placeholder="Địa điểm"
+                                    searchPlaceholder="Tìm kiếm"
                                     value={editedEvent.diaDiem} // Giá trị hiện tại
                                     onChange={item => setEditedEvent({ ...editedEvent, diaDiem: item.value })} // Cập nhật giá trị
                                     search={true}
@@ -689,11 +698,10 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                         </View>
 
                         {/* Ghi chú */}
-                        <View className="mb-4">
-                            <Text className="text-base font-semibold mb-2">Ghi chú</Text>
+                        <View className="mb-2">
                             <TextInput
-                                className="border rounded-md p-2"
-                                placeholder="Ghi chú"
+                                label="Ghi chú"
+                                mode="outlined"
                                 value={editedEvent.ghiChu}
                                 onChangeText={(text) => setEditedEvent({ ...editedEvent, ghiChu: text })}
                                 readOnly={editedEvent.trangThai === "dangKy"}
@@ -701,102 +709,96 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                         </View>
 
                         {/* Ngày và giờ bắt đầu */}
-                        <View className="mb-4">
-                            <Text className="text-base font-semibold mb-2">Ngày bắt đầu * </Text>
+                        <View className="mb-2">
                             {/* Nếu platform là ios thì hiện datetime picker */}
                             {Platform.OS === 'ios' ? (
-                                <DateTimePicker
-                                    value={editedEvent.ngayBatDau ? new Date(editedEvent.ngayBatDau) : new Date().toISOString().split('T')[0]}
-                                    mode="date"
-                                    display="default"
-                                    onChange={(event, date) => handleDatePickerChange('ngayBatDau', event, date)}
-                                    locale="vi-VN"
-                                    disabled={editedEvent.trangThai === "dangKy"}
-                                />
-                            ) : (
-                                <Pressable onPress={() => openPicker('date', 'ngayBatDau', editedEvent.ngayBatDau)} disabled={editedEvent.trangThai === "dangKy"}>
-                                    <TextInput
-                                        className="border rounded-md p-2"
-                                        placeholder="Ngày bắt đầu *"
-                                        value={editedEvent.ngayBatDau}
-                                        editable={false}
+                                <View className="flex flex-row justify-between items-center">
+                                    <DateTimePicker
+                                        value={editedEvent.ngayBatDau ? new Date(editedEvent.ngayBatDau) : new Date().toISOString().split('T')[0]}
+                                        mode="date"
+                                        display="default"
+                                        onChange={(event, date) => handleDatePickerChange('ngayBatDau', event, date)}
+                                        locale="vi-VN"
+                                        disabled={editedEvent.trangThai === "dangKy"}
                                     />
-                                </Pressable>
+                                    <DateTimePicker
+                                        value={editedEvent.gioBatDau ? new Date(`2000-01-01T${editedEvent.gioBatDau}:00`) : '08:00'}
+                                        mode="time"
+                                        display="default"
+                                        onChange={(event, date) => handleDatePickerChange('gioBatDau', event, date)}
+                                        locale="vi-VN"
+                                        disabled={editedEvent.trangThai === "dangKy"}
+                                    />
+                                </View>
+
+                            ) : (
+                                <View className="flex flex-row justify-between items-center">
+                                    <Pressable className="w-7/12" onPress={() => openPicker('date', 'ngayBatDau', editedEvent.ngayBatDau)} disabled={editedEvent.trangThai === "dangKy"}>
+                                        <TextInput
+                                            label="Ngày bắt đầu *"
+                                            mode="outlined"
+                                            value={editedEvent.ngayBatDau}
+                                            editable={false}
+                                        />
+                                    </Pressable>
+                                    <Pressable className="w-4/12" onPress={() => openPicker("time", "gioBatDau", `2000-01-01T${editedEvent.gioBatDau}`)} disabled={editedEvent.trangThai === "dangKy"}>
+                                        <TextInput
+                                            label="Giờ bắt đầu *"
+                                            mode="outlined"
+                                            value={editedEvent.gioBatDau}
+                                            editable={false}
+                                        />
+                                    </Pressable>
+                                </View>
+
                             )}
                         </View>
 
-                        <View className="mb-4">
-                            <Text className="text-base font-semibold mb-2">Giờ bắt đầu * </Text>
-                            {/* Nếu platform là ios thì hiện datetime picker */}
-                            {Platform.OS === 'ios' ? (
-                                <DateTimePicker
-                                    value={editedEvent.gioBatDau ? new Date(`2000-01-01T${editedEvent.gioBatDau}:00`) : '08:00'}
-                                    mode="time"
-                                    display="default"
-                                    onChange={(event, date) => handleDatePickerChange('gioBatDau', event, date)}
-                                    locale="vi-VN"
-                                    disabled={editedEvent.trangThai === "dangKy"}
-                                />
-                            ) : (
-                                <Pressable onPress={() => openPicker("time", "gioBatDau", `2000-01-01T${editedEvent.gioBatDau}`)} disabled={editedEvent.trangThai === "dangKy"}>
-                                    <TextInput
-                                        className="border rounded-md p-2"
-                                        placeholder="Giờ bắt đầu *"
-                                        value={editedEvent.gioBatDau}
-                                        editable={false}
-                                    />
-                                </Pressable>
-                            )}
-                        </View>
                         {/* Ngày và giờ kết thúc */}
                         <View className="mb-4">
-                            <Text className="text-base font-semibold mb-2">Ngày kết thúc * </Text>
                             {/* Nếu platform là ios thì hiện datetime picker */}
                             {Platform.OS === 'ios' ? (
-                                <DateTimePicker
-                                    value={editedEvent.ngayKetThuc ? new Date(editedEvent.ngayKetThuc) : new Date().toISOString().split('T')[0]}
-                                    mode="date"
-                                    display="default"
-                                    onChange={(event, date) => handleDatePickerChange('ngayKetThuc', event, date)}
-                                    locale="vi-VN"
-                                    disabled={editedEvent.trangThai === "dangKy"}
-                                />
-                            ) : (
-                                <Pressable onPress={() => openPicker('date', 'ngayKetThuc', editedEvent.ngayKetThuc)} disabled={editedEvent.trangThai === "dangKy"}>
-                                    <TextInput
-                                        className="border rounded-md p-2"
-                                        placeholder="Ngày kết thúc *"
-                                        value={editedEvent.ngayKetThuc}
-                                        editable={false}
+                                <View className="flex flex-row justify-between items-center">
+                                    <DateTimePicker
+                                        value={editedEvent.ngayKetThuc ? new Date(editedEvent.ngayKetThuc) : new Date().toISOString().split('T')[0]}
+                                        mode="date"
+                                        display="default"
+                                        onChange={(event, date) => handleDatePickerChange('ngayKetThuc', event, date)}
+                                        locale="vi-VN"
+                                        disabled={editedEvent.trangThai === "dangKy"}
                                     />
-                                </Pressable>
+                                    <DateTimePicker
+                                        value={editedEvent.gioKetThuc ? new Date(`2000-01-01T${editedEvent.gioKetThuc}:00`) : new Date().toTimeString().split(' ')[0].substring(0, 5)}
+                                        mode="time"
+                                        display="default"
+                                        onChange={(event, date) => handleDatePickerChange('gioKetThuc', event, date)}
+                                        locale="vi-VN"
+                                        disabled={editedEvent.trangThai === "dangKy"}
+                                    />
+                                </View>
+
+                            ) : (
+                                <View className="flex flex-row justify-between items-center">
+                                    <Pressable className="w-7/12" onPress={() => openPicker('date', 'ngayKetThuc', editedEvent.ngayKetThuc)} disabled={editedEvent.trangThai === "dangKy"}>
+                                        <TextInput
+                                            label="Ngày kết thúc *"
+                                            mode="outlined"
+                                            value={editedEvent.ngayKetThuc}
+                                            editable={false}
+                                        />
+                                    </Pressable>
+                                    <Pressable className="w-4/12" onPress={() => openPicker("time", "gioKetThuc", `2000-01-01T${editedEvent.gioKetThuc}`)} disabled={editedEvent.trangThai === "dangKy"}>
+                                        <TextInput
+                                            label="Giờ kết thúc *"
+                                            mode="outlined"
+                                            value={editedEvent.gioKetThuc}
+                                            editable={false}
+                                        />
+                                    </Pressable>
+                                </View>
                             )}
                         </View>
-
-                        <View className="mb-4">
-                            <Text className="text-base font-semibold mb-2">Giờ kết thúc * </Text>
-                            {/* Nếu platform là ios thì hiện datetime picker */}
-                            {Platform.OS === 'ios' ? (
-                                <DateTimePicker
-                                    value={editedEvent.gioKetThuc ? new Date(`2000-01-01T${editedEvent.gioKetThuc}:00`) : new Date().toTimeString().split(' ')[0].substring(0, 5)}
-                                    mode="time"
-                                    display="default"
-                                    onChange={(event, date) => handleDatePickerChange('gioKetThuc', event, date)}
-                                    locale="vi-VN"
-                                    disabled={editedEvent.trangThai === "dangKy"}
-                                />
-                            ) : (
-                                <Pressable onPress={() => openPicker("time", "gioKetThuc", `2000-01-01T${editedEvent.gioKetThuc}`)} disabled={editedEvent.trangThai === "dangKy"}>
-                                    <TextInput
-                                        className="border rounded-md p-2"
-                                        placeholder="Giờ kết thúc *"
-                                        value={editedEvent.gioKetThuc}
-                                        editable={false}
-                                    />
-                                </Pressable>
-                            )}
-                        </View>
-
+                        {/* Tệp đính kèm */}
                         <View className="mb-4">
                             <Text className="text-base font-semibold mb-2">Tệp đính kèm</Text>
                             <Pressable onPress={handleFileChange} disabled={editedEvent.trangThai === "dangKy"}>
