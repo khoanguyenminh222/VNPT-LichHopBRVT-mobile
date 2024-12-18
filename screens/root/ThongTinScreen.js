@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, Pressable, Alert } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
 import Toast from 'react-native-toast-message';
-import { ScrollView } from 'react-native-gesture-handler';
+import { ScrollView, RefreshControl } from 'react-native-gesture-handler';
 import Constants from 'expo-constants';
 import TreeSelectWithDatetimeModal from '../../components/TreeSelectWithDatetimeModal';
 import { accountDuyetLichRoute, thanhPhanThamDuRoute } from '../../api/baseURL';
@@ -20,6 +20,7 @@ const ThongTinScreen = () => {
     const [selectModalVisible, setSelectModalVisible] = useState(false);
     const [thanhPhanThamDus, setThanhPhanThamDus] = useState([]);
     const [uyQuyens, setUyQuyens] = useState([]);
+    const [refreshing, setRefreshing] = useState(false);
 
     // Lấy phiên bản từ Constants.manifest.version
     const appVersion = Constants.expoConfig?.version || 'Unknown';
@@ -75,9 +76,15 @@ const ThongTinScreen = () => {
         }
     };
 
+    const fetchData = async () => {
+        if(user.username !== 'test') {
+            await fetchThanhPhanThamDu();
+            await fetchUyQuyen();
+        }
+    };
+
     useEffect(() => {
-        fetchThanhPhanThamDu();
-        fetchUyQuyen();
+        fetchData();
     }, []);
 
     const handleSelection = async (selectedItems, field, thoiGianBatDau, thoiGianKetThuc) => {
@@ -166,7 +173,17 @@ const ThongTinScreen = () => {
     };
 
     return (
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <ScrollView 
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+                <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={() => {
+                        fetchData();
+                    }}
+                />
+            }
+        >
             <View className="flex-1 justify-center items-center bg-gray-100 py-6">
                 <View className="bg-white p-6 rounded-lg shadow-lg w-11/12 max-w-md text-center mb-4">
                     <Text className="text-2xl font-semibold text-blue-600 text-center">Xin chào</Text>

@@ -25,12 +25,13 @@ import { screenUrls } from './api/routes';
 import SettingScreen from './screens/root/SettingScreen';
 import { FontSizeProvider } from './context/FontSizeContext';
 import { HighlightTextProvider } from './context/HighlightTextContext';
-import LichHopFakeScreen from './screens/LichHopFakeScreen';
 import axios from 'axios';
 import { accountRoute } from './api/baseURL';
-import ThongTinFakeScreen from './screens/ThongTinFakeScreen';
 import { Platform } from 'react-native';
 import { FakeIOSProvider } from './context/FakeIOSContext';
+import LichHopFakeScreen from './screens/fakeScreen/LichHopFakeScreen';
+import ThongTinFakeScreen from './screens/fakeScreen/ThongTinFakeScreen';
+import ComplaintFakeScreen from './screens/fakeScreen/ComplaintFakeScreen';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -93,7 +94,7 @@ const TabHackingAppleNavigator = () => {
         <FakeIOSProvider>
         <Tab.Navigator screenOptions={{ headerShown: false }}>
             <Tab.Screen
-                name="Lịch họp"
+                name="Tin tức"
                 component={LichHopFakeScreen}
                 options={{
                     tabBarIcon: ({ focused }) => (
@@ -102,11 +103,20 @@ const TabHackingAppleNavigator = () => {
                 }}
             />
             <Tab.Screen
+                name="Phản hồi"
+                component={ComplaintFakeScreen}
+                options={{
+                    tabBarIcon: ({ focused }) => (
+                        <IconButton icon="lightbulb" iconColor={focused ? colors.primary : colors.disabled} size={24} />
+                    )
+                }}
+            />
+            <Tab.Screen
                 name="Cài đặt"
                 component={ThongTinFakeScreen}
                 options={{
                     tabBarIcon: ({ focused }) => (
-                        <IconButton icon="book" iconColor={focused ? colors.primary : colors.disabled} size={24} />
+                        <IconButton icon="wrench" iconColor={focused ? colors.primary : colors.disabled} size={24} />
                     )
                 }}
             />

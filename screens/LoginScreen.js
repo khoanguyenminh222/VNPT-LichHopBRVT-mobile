@@ -57,7 +57,7 @@ const LoginScreen = ({ navigation }) => {
     const handleLogin = async () => {
         setLoading(true);
         if (username === 'test' && password === '123456') {
-            updateUser({ id: 0, username: 'admin' }, []);
+            updateUser({ id: 0, username: 'test' }, []);
             // Thông báo đăng nhập thành công
             Toast.show({
                 type: 'success',

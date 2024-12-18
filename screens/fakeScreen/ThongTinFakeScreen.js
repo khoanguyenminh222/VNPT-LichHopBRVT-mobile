@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { View, Text, TouchableOpacity, Platform, Switch } from 'react-native';
-import { FakeIOSContext } from '../context/FakeIOSContext';
+import { FakeIOSContext } from '../../context/FakeIOSContext';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faPalette, faMoon, faSun } from '@fortawesome/free-solid-svg-icons';
 import { Dropdown } from 'react-native-element-dropdown';
