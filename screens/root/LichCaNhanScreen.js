@@ -39,6 +39,25 @@ const LichCaNhanScreen = () => {
     const [modelEdit, setModelEdit] = useState(false);
     const scrollViewRef = useRef(null);
 
+    // Hàm hỗ trợ để lấy ngày bắt đầu và ngày kết thúc của tuần hiện tại
+    const getWeekDates = (date) => {
+        const startDate = new Date(date);
+        const startDay = startDate.getDay();
+        const diff = startDay >= 1 ? startDay - 1 : 6;
+        startDate.setDate(startDate.getDate() - diff);
+
+        const days = [];
+        for (let i = 0; i < 7; i++) {
+            const newDate = new Date(startDate);
+            newDate.setDate(startDate.getDate() + i);
+            days.push(newDate);
+        }
+
+        return days;
+    };
+    
+    const weekDates = getWeekDates(currentWeek);
+
     // Khi selectedDate thay đổi, cuộn đến ngày được chọn
     useEffect(() => {
         if (scrollViewRef.current && selectedDate) {
@@ -68,22 +87,7 @@ const LichCaNhanScreen = () => {
         );
     };
 
-    // Hàm hỗ trợ để lấy ngày bắt đầu và ngày kết thúc của tuần hiện tại
-    const getWeekDates = (date) => {
-        const startDate = new Date(date);
-        const startDay = startDate.getDay();
-        const diff = startDay >= 1 ? startDay - 1 : 6;
-        startDate.setDate(startDate.getDate() - diff);
-
-        const days = [];
-        for (let i = 0; i < 7; i++) {
-            const newDate = new Date(startDate);
-            newDate.setDate(startDate.getDate() + i);
-            days.push(newDate);
-        }
-
-        return days;
-    };
+    
 
     // Hàm hỗ trợ để lấy tất cả các ngày trong khoảng thời gian sự kiện
     const getEventDays = (ngayBatDau, ngayKetThuc) => {
@@ -120,7 +124,7 @@ const LichCaNhanScreen = () => {
         fetchEvents();
     }, []);
 
-    const weekDates = getWeekDates(currentWeek);
+    
 
     // Hàm lấy ra các sự kiện cho ngày đã chọn
     const getEventsForDate = (date) => {
