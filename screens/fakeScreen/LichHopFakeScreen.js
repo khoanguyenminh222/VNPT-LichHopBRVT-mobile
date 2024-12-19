@@ -189,7 +189,7 @@ const LichHopFakeScreen = () => {
                 styles.container,
                 {
                     backgroundColor: isDarkMode ? "#121212" : "#f9f9f9",
-                    marginTop: Platform.OS === "android" ? 25 : 0,
+                    marginTop: 25
                 },
             ]}
         >
@@ -232,6 +232,7 @@ const styles = StyleSheet.create({
     articleDetail: {
         flex: 1,
         padding: 10,
+        marginTop: 25,
     },
     articleDetailImage: {
         width: "100%",

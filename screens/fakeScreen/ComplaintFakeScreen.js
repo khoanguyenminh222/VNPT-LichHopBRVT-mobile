@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     backgroundColor: "#fff",
-    marginTop: Platform.OS === "android" ? 25 : 0,
+    marginTop: 25,
   },
   title: {
     fontSize: 24,
