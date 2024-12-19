@@ -647,7 +647,6 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                         mode="outlined"
                                         value={editedEvent.ghiChuThanhPhan}
                                         onChangeText={(text) => setEditedEvent({ ...editedEvent, ghiChuThanhPhan: text })}
-                                        multiline
                                         textAlignVertical="top"
                                         readOnly={editedEvent.trangThai === "dangKy"}
                                     />
