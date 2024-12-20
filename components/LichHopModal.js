@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Modal, View, Text, ScrollView, Pressable, Alert, Platform, TouchableWithoutFeedback } from "react-native";
 import { Checkbox, Button, TextInput } from "react-native-paper";
 import { Picker } from "@react-native-picker/picker";
@@ -41,6 +41,10 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
     const [pickerMode, setPickerMode] = useState("date"); // 'date' hoặc 'time'
     const [pickerField, setPickerField] = useState("");
     const [valueDateTime, setValueDateTime] = useState(new Date());
+
+    // Ref cho input chủ trì, thành phần
+    const chuTriRef = useRef(null);
+    const thanhPhanRef = useRef(null);
 
     // Hàm gọi api địa điểm họp
     const fetchDiaDiemHops = async () => {
@@ -535,6 +539,14 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
         }
         const selectedNames = selectedItems.join(', ');
         setEditedEvent({ ...editedEvent, [field]: selectedNames });
+
+        if (chuTriRef.current) {
+            chuTriRef.current.blur(); // Đảm bảo blur sau khi chọn
+        }
+
+        if (thanhPhanRef.current) {
+            thanhPhanRef.current.blur(); // Đảm bảo blur sau khi chọn
+        }
     };
     const updateTreeSelection = (data, selectedNames, titleKey) => {
         return data.map((item) => ({
@@ -598,6 +610,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                         {/* Chủ trì */}
                         <View className="mb-2">
                             <TextInput
+                                ref={chuTriRef}
                                 value={editedEvent.chuTri}
                                 onFocus={() => handleOpenSelect('chuTri')}
                                 readOnly={editedEvent.trangThai === "dangKy"}
@@ -607,7 +620,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
 
                             <TreeSelectModal
                                 visible={chuTriSelectModalVisible}
-                                onClose={() => setChuTriSelectModalVisible(false)}
+                                onClose={() => {setChuTriSelectModalVisible(false), chuTriRef.current.blur()}}
                                 onSelect={handleSelection}
                                 data={thanhPhanThamDus}
                                 childKey="children"
@@ -633,6 +646,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                             <View className="flex flex-row justify-between items-center">
                                 <View className="w-7/12">
                                     <TextInput
+                                        ref={thanhPhanRef}
                                         mode="outlined"
                                         value={editedEvent.thanhPhan}
                                         // onFocus={() => setThanhPhanSelectModalVisible(true)}
@@ -656,7 +670,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
 
                             <TreeSelectModal
                                 visible={thanhPhanSelectModalVisible}
-                                onClose={() => setThanhPhanSelectModalVisible(false)}
+                                onClose={() => {setThanhPhanSelectModalVisible(false), thanhPhanRef.current.blur()}}
                                 onSelect={handleSelection}
                                 data={thanhPhanThamDus}
                                 childKey="children"
