@@ -559,6 +559,12 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
     };
 
     const handleOpenSelect = (type) => {
+        if (chuTriRef.current) {
+            chuTriRef.current.blur(); // Đảm bảo TextInput mất focus
+        }
+        if (thanhPhanRef.current) {
+            thanhPhanRef.current.blur(); // Đảm bảo TextInput mất focus
+        }
         const selectedNames = editedEvent[type]
             ? editedEvent[type].split(', ').map((name) => name.trim()) // Tách chuỗi thành mảng
             : [];
@@ -728,6 +734,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                 <View className="flex flex-row justify-start items-center">
                                     <Text className="text-base font-semibold w-1/4">Ngày giờ bắt đầu *</Text>
                                     <DateTimePicker
+                                        style={{width: '33%'}}
                                         value={editedEvent.ngayBatDau ? new Date(editedEvent.ngayBatDau) : new Date().toISOString().split('T')[0]}
                                         mode="date"
                                         display="default"
@@ -736,6 +743,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                         disabled={editedEvent.trangThai === "dangKy"}
                                     />
                                     <DateTimePicker
+                                        style={{width: '33%'}}
                                         value={editedEvent.gioBatDau ? new Date(`2000-01-01T${editedEvent.gioBatDau}:00`) : '08:00'}
                                         mode="time"
                                         display="default"
@@ -775,6 +783,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                 <View className="flex flex-row justify-start items-center">
                                     <Text className="text-base font-semibold w-1/4">Ngày giờ kết thúc *</Text>
                                     <DateTimePicker
+                                        style={{width: '33%'}}
                                         value={editedEvent.ngayKetThuc ? new Date(editedEvent.ngayKetThuc) : new Date().toISOString().split('T')[0]}
                                         mode="date"
                                         display="default"
@@ -783,6 +792,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                         disabled={editedEvent.trangThai === "dangKy"}
                                     />
                                     <DateTimePicker
+                                        style={{width: '33%'}}
                                         value={editedEvent.gioKetThuc ? new Date(`2000-01-01T${editedEvent.gioKetThuc}:00`) : new Date().toTimeString().split(' ')[0].substring(0, 5)}
                                         mode="time"
                                         display="default"
