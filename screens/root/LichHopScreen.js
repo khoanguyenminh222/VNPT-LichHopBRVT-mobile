@@ -41,6 +41,45 @@ const LichHopScreen = () => {
     const [modelEdit, setModelEdit] = useState(false);
     const scrollViewRef = useRef(null);
 
+    const [isAccountDuyetLich, setIsAccountDuyetLich] = useState(false);
+    useEffect(() => {
+        const checkAccountDuyetLich = async () => {
+            try {
+                const response = await axiosInstance.get(accountDuyetLichRoute.findAll);
+
+                // Lấy ngày hiện tại (chỉ lấy phần ngày)
+                const currentDate = new Date();
+                const currentDateOnly = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+                // Kiểm tra user có username trong danh sách và ngày nằm giữa ngayBatDau và ngayKetThuc
+                const isAccountDuyetLich = response.data.some(account => {
+                    if (account.username === user?.username) {
+                        const ngayBatDau = new Date(account.ngayBatDau);
+                        const ngayKetThuc = new Date(account.ngayKetThuc);
+    
+                        // Chỉ lấy phần ngày của ngayBatDau và ngayKetThuc
+                        const ngayBatDauOnly = new Date(ngayBatDau.getFullYear(), ngayBatDau.getMonth(), ngayBatDau.getDate());
+                        const ngayKetThucOnly = new Date(ngayKetThuc.getFullYear(), ngayKetThuc.getMonth(), ngayKetThuc.getDate());
+
+                        return currentDateOnly >= ngayBatDauOnly && currentDateOnly <= ngayKetThucOnly;
+                    }
+                    return false;
+                });
+                setIsAccountDuyetLich(isAccountDuyetLich);
+            }
+            catch (error) {
+                console.log('Failed to fetch account duyet lich:', error);
+                const errorMessage = error.response ? error.response.data.message : error.message;
+                Toast.show({
+                    type: 'error',
+                    text1: errorMessage,
+                    position: 'top',
+                    visibilityTime: 3000,
+                });
+            }
+        }
+        checkAccountDuyetLich();
+    }, []);
+
     // Hàm hỗ trợ để lấy ngày bắt đầu và ngày kết thúc của tuần hiện tại
     const getWeekDates = (date) => {
         const startDate = new Date(date);
@@ -106,7 +145,16 @@ const LichHopScreen = () => {
     // Hàm lấy ra event từ server
     const fetchEvents = async () => {
         try {
-            const response = await axiosInstance.get(eventRoute.findAll);
+            let response;
+            if (hasAccess(screenUrls.DuyetLichHop, userAllowedUrls) || isAccountDuyetLich || user.vaiTro === "admin") {
+                response = await axiosInstance.get(eventRoute.findAll);
+            } else {
+                response = await axiosInstance.get(eventRoute.findAll, {
+                    params: {
+                        accountId: user.id,
+                    },
+                });
+            }
             setEvents(response.data);
         } catch (error) {
             console.log('Failed to fetch events:', error);
@@ -123,7 +171,7 @@ const LichHopScreen = () => {
     }
     useEffect(() => {
         fetchEvents();
-    }, []);
+    }, [isAccountDuyetLich]);
 
     // Hàm lấy ra các sự kiện cho ngày đã chọn
     const getEventsForDate = (date) => {
@@ -405,44 +453,7 @@ const LichHopScreen = () => {
         }
     };
 
-    const [isAccountDuyetLich, setIsAccountDuyetLich] = useState(false);
-    useEffect(() => {
-        const checkAccountDuyetLich = async () => {
-            try {
-                const response = await axiosInstance.get(accountDuyetLichRoute.findAll);
-
-                // Lấy ngày hiện tại (chỉ lấy phần ngày)
-                const currentDate = new Date();
-                const currentDateOnly = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
-                // Kiểm tra user có username trong danh sách và ngày nằm giữa ngayBatDau và ngayKetThuc
-                const isAccountDuyetLich = response.data.some(account => {
-                    if (account.username === user?.username) {
-                        const ngayBatDau = new Date(account.ngayBatDau);
-                        const ngayKetThuc = new Date(account.ngayKetThuc);
-    
-                        // Chỉ lấy phần ngày của ngayBatDau và ngayKetThuc
-                        const ngayBatDauOnly = new Date(ngayBatDau.getFullYear(), ngayBatDau.getMonth(), ngayBatDau.getDate());
-                        const ngayKetThucOnly = new Date(ngayKetThuc.getFullYear(), ngayKetThuc.getMonth(), ngayKetThuc.getDate());
-
-                        return currentDateOnly >= ngayBatDauOnly && currentDateOnly <= ngayKetThucOnly;
-                    }
-                    return false;
-                });
-                setIsAccountDuyetLich(isAccountDuyetLich);
-            }
-            catch (error) {
-                console.log('Failed to fetch account duyet lich:', error);
-                const errorMessage = error.response ? error.response.data.message : error.message;
-                Toast.show({
-                    type: 'error',
-                    text1: errorMessage,
-                    position: 'top',
-                    visibilityTime: 3000,
-                });
-            }
-        }
-        checkAccountDuyetLich();
-    }, []);
+   
 
     if (isLoading) {
         return (

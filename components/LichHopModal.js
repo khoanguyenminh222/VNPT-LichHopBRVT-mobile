@@ -28,6 +28,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
         gioKetThuc: "09:00",
         fileDinhKem: "",
         trangThai: "",
+        accountId: user?.id,
     });
     const [attachedFiles, setAttachedFiles] = useState([]);
 
@@ -123,6 +124,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                 gioKetThuc: selectedEvent.gioKetThuc,
                 fileDinhKem: selectedEvent.fileDinhKem,
                 trangThai: selectedEvent.trangThai,
+                accountId: selectedEvent.accountId,
             });
         }
         fetchDiaDiemHops();
@@ -510,7 +512,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
     };
 
     const handleCloseModal = () => {
-        setEditedEvent({
+         ({
             noiDungCuocHop: "",
             chuTri: "",
             chuanBi: "",
@@ -525,6 +527,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
             gioKetThuc: "09:00",
             fileDinhKem: "",
             trangThai: "",
+            accountId: user?.id,
         });
         setAttachedFiles([]);
         onClose();

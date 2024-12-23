@@ -275,6 +275,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                 ghiChu: editedEvent.noiDung,
                 fileDinhKem: editedEvent.fileDinhKem,
                 trangThai: "dangKy",
+                accountId: user?.id,
             }
             const responseLichHop = await axiosInstance.post(eventRoute.create, data);
             if (responseLichHop.status < 200 || responseLichHop.status >= 300) {
