@@ -29,6 +29,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
         fileDinhKem: "",
         trangThai: "",
         accountId: user?.id,
+        quanTrong: 0,
     });
     const [attachedFiles, setAttachedFiles] = useState([]);
 
@@ -125,6 +126,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                 fileDinhKem: selectedEvent.fileDinhKem,
                 trangThai: selectedEvent.trangThai,
                 accountId: selectedEvent.accountId,
+                quanTrong: selectedEvent.quanTrong,
             });
         }
         fetchDiaDiemHops();
@@ -512,7 +514,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
     };
 
     const handleCloseModal = () => {
-         ({
+        setEditedEvent({
             noiDungCuocHop: "",
             chuTri: "",
             chuanBi: "",
@@ -528,6 +530,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
             fileDinhKem: "",
             trangThai: "",
             accountId: user?.id,
+            quanTrong: 0,
         });
         setAttachedFiles([]);
         onClose();
@@ -592,10 +595,10 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                         {/* Quan trọng */}
                         <View className="flex-row items-center mb-4">
                             <BouncyCheckbox
-                                isChecked={editedEvent.trangThai === "quanTrong" ? true : false}
+                                isChecked={editedEvent.quanTrong === 1 ? true : false}
                                 onPress={() => setEditedEvent({
                                     ...editedEvent,
-                                    trangThai: editedEvent.trangThai === "quanTrong" ? "duyet" : "quanTrong"
+                                    quanTrong: editedEvent.quanTrong === 1 ? 0 : 1
                                 })}
                                 fillColor="blue"
                                 text="Quan trọng"

@@ -24,6 +24,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
         accountId: user?.id,
         fileDinhKem: "",
         trangThai: "duyet",
+        quanTrong: 0,
     });
     const [attachedFiles, setAttachedFiles] = useState([]);
 
@@ -69,6 +70,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                 accountId: user?.id,
                 fileDinhKem: selectedEvent.fileDinhKem || "",
                 trangThai: selectedEvent.trangThai || "duyet",
+                quanTrong: selectedEvent.quanTrong || 0,
             });
         }
         fetchDiaDiemHops();
@@ -276,6 +278,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                 fileDinhKem: editedEvent.fileDinhKem,
                 trangThai: "dangKy",
                 accountId: user?.id,
+                quanTrong: editedEvent.quanTrong,
             }
             const responseLichHop = await axiosInstance.post(eventRoute.create, data);
             if (responseLichHop.status < 200 || responseLichHop.status >= 300) {
@@ -508,6 +511,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
             accountId: user?.id,
             fileDinhKem: "",
             trangThai: "duyet",
+            quanTrong: 0,
         });
         setAttachedFiles([]);
         onClose();
@@ -523,10 +527,10 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                         {/* Quan trọng */}
                         <View className="flex-row items-center mb-4">
                             <BouncyCheckbox
-                                isChecked={editedEvent.trangThai === "quanTrong" ? true : false}
+                                isChecked={editedEvent.quanTrong === 1 ? true : false}
                                 onPress={() => setEditedEvent({
                                     ...editedEvent,
-                                    trangThai: editedEvent.trangThai === "quanTrong" ? "duyet" : "quanTrong"
+                                    quanTrong: editedEvent.quanTrong === 1 ? 0 : 1
                                 })}
                                 fillColor="blue"
                                 text="Quan trọng"
