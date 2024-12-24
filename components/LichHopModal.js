@@ -590,7 +590,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
 
                 <View className="bg-white w-96 rounded-lg p-4 my-8">
                     <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-                        <Text className="text-xl font-bold text-center mb-4 fixed top-0">{selectedEvent ? "Sửa sự kiện" : "Thêm sự kiện"}</Text>
+                        <Text className="text-xl font-bold text-center mb-4 fixed top-0">{selectedEvent ? "Sửa lịch" : "Thêm lịch"}</Text>
 
                         {/* Quan trọng */}
                         <View className="flex-row items-center mb-4">

@@ -522,7 +522,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
             <View className="flex-1 justify-center items-center" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
                 <View className="bg-white w-96 rounded-lg p-4 my-8">
                     <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-                        <Text className="text-xl font-bold text-center mb-4">{selectedEvent ? "Sửa sự kiện" : "Thêm sự kiện"}</Text>
+                        <Text className="text-xl font-bold text-center mb-4">{selectedEvent ? "Sửa lịch" : "Thêm lịch"}</Text>
 
                         {/* Quan trọng */}
                         <View className="flex-row items-center mb-4">
