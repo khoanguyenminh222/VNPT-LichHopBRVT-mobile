@@ -14,27 +14,27 @@ import { FakeIOSContext } from '../../context/FakeIOSContext';
 const articles = [
     {
         id: 1,
-        title: "Hà Nội chuẩn bị kế hoạch đón Tết 2025",
-        image: "https://static.vinwonders.com/2022/10/du-lich-tet-ha-noi-2023-1.jpg",
-        date: "17/12/2024",
+        title: "Vinaphone chính thức phủ sóng 5G trên cả nước",
+        image: "https://scontent.fhan4-6.fna.fbcdn.net/v/t39.30808-6/470231999_981922260625349_8095651155625154935_n.jpg?_nc_cat=109&ccb=1-7&_nc_sid=127cfc&_nc_ohc=f3zopowb1roQ7kNvgGVgxg7&_nc_oc=Adi8i5Ebe2bpOmq2AUyIeDCvGTOys6iDk5aGDn0C5_lhTzqz9chOF6MdxE_mpiZ9QF0&_nc_zt=23&_nc_ht=scontent.fhan4-6.fna&_nc_gid=Ajtpxs6uYAeaKtuxsPqvEeP&oh=00_AYA1tFJi00zNS_OQjlRQnA77tuo3_N9C_vdhS_ZBfU9psA&oe=67717C0D",
+        date: "20/12/2024",
         content:
-            "Hà Nội đang rục rịch triển khai các kế hoạch trang trí đường phố, tổ chức lễ hội chào đón Tết Nguyên Đán 2025.",
+            "Vinaphone 5G hoạt động trên băng tần ưu việt 3.700 – 3.800 MHz với lợi thế băng thông lớn, độ trễ cực thấp, mang đến tốc độ internet tối ưu, tốc độ thương mại thực tế có thể lên đến 1,5 Gbps, gấp 10-20 lần 4G.",
     },
     {
         id: 2,
-        title: "TP.HCM công bố tuyến metro mới",
-        image: "https://baogiaothong.mediacdn.vn/603483875699699712/2024/6/28/metro-1-1719585682087863498530.png",
-        date: "15/12/2024",
+        title: "VNPT nâng tốc độ Internet hơn 3 lần – giá không đổi, thúc đẩy kiến tạo “cuộc sống số”",
+        image: "https://bariavungtau.vnpt.vn/upload/news/files/2024/img_vm_2412171350439035.jpg",
+        date: "23-12-2024",
         content:
-            "Tuyến metro số 2 tại TP.HCM chính thức được khởi công xây dựng, dự kiến hoàn thành vào năm 2027.",
+            "Tốc độ Internet mới của VNPT sẽ được nâng lên tối thiểu 200Mbps, áp dụng với khách hàng đang sử dụng các gói cước từ 100Mbps trở xuống, tương ứng mức tăng trên 100%. Khách hàng sử dụng gói cước từ trên 100Mbps tới 150Mbps và từ trên 150Mbps đến 200Mbps sẽ được tăng lên khoảng 3 lần, lần lượt lên các mốc 300Mbps và 500Mbps. Riêng nhóm khách hàng có gói cước từ trên 200Mbps sẽ được tăng tới 5 lần với tốc độ mới đạt đến 1Gbps.",
     },
     {
         id: 3,
-        title: "Sự kiện công nghệ lớn nhất 2024",
-        image: "https://cdnphoto.dantri.com.vn/xOiGRulftnRStx0fGijftAqXIpo=/2024/12/04/loi-man-hinh-xanh-1733328275701.png",
-        date: "14/12/2024",
+        title: "Khách hàng VNPT, VinaPhone đón Tết linh đình với kho quà gần 5,6 tỷ đồng",
+        image: "https://capquangvnpt24h.com/files/assets/vnpt-ba-ria-vung-tau_1_1.webp",
+        date: "04-12-2024",
         content:
-            "Hàng loạt sản phẩm công nghệ mới đã được ra mắt tại sự kiện công nghệ quốc tế tổ chức ở Mỹ.",
+            "Chỉ với 20.000đ nạp thẻ, đăng ký, gia hạn gói cước Di động VinaPhone hoặc Internet VNPT, khách hàng sẽ có ngay cơ hội trúng iPhone 16 Pro Max, iPhone 16 cùng hàng ngàn quà tặng giá trị trong siêu khuyến mại mùa Tết của nhà mạng.",
     },
     {
         id: 4,
