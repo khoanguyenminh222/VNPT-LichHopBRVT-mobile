@@ -48,6 +48,8 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
     const chuTriRef = useRef(null);
     const thanhPhanRef = useRef(null);
 
+    const [errors, setErrors] = useState({});
+
     // Hàm gọi api địa điểm họp
     const fetchDiaDiemHops = async () => {
         try {
@@ -129,6 +131,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                 quanTrong: selectedEvent.quanTrong,
             });
         }
+        setErrors({});
         fetchDiaDiemHops();
         fetchThanhPhanThamDu();
         fetchChuTris();
@@ -136,9 +139,20 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
 
     // Lưu sự kiện
     const handleSave = async () => {
-        console.log(editedEvent)
-        if (!editedEvent.noiDungCuocHop || !editedEvent.chuTri || (!editedEvent.thanhPhan && !editedEvent.ghiChuThanhPhan) || !editedEvent.diaDiem || !editedEvent.ngayBatDau || !editedEvent.gioBatDau || !editedEvent.ngayKetThuc || !editedEvent.gioKetThuc) {
-            Alert.alert("Lỗi", "Vui lòng điền đầy đủ thông tin bắt buộc");
+        const newErrors = {};
+        if (!editedEvent.noiDungCuocHop) newErrors.noiDungCuocHop = "Vui lòng nhập nội dung cuộc họp.";
+        if (!editedEvent.chuTri) newErrors.chuTri = "Vui lòng chọn chủ trì.";
+        if (!editedEvent.thanhPhan && !editedEvent.ghiChuThanhPhan) newErrors.thanhPhan = "Vui lòng chọn hoặc nhập ghi chú thành phần.";
+        if (!editedEvent.diaDiem) newErrors.diaDiem = "Vui lòng chọn địa điểm.";
+        if (!editedEvent.ngayBatDau) newErrors.ngayBatDau = "Vui lòng chọn ngày bắt đầu.";
+        if (!editedEvent.gioBatDau) newErrors.gioBatDau = "Vui lòng chọn giờ bắt đầu.";
+        if (!editedEvent.ngayKetThuc) newErrors.ngayKetThuc = "Vui lòng chọn ngày kết thúc.";
+        if (!editedEvent.gioKetThuc) newErrors.gioKetThuc = "Vui lòng chọn giờ kết thúc.";
+
+        setErrors(newErrors);
+
+        if (Object.keys(newErrors).length > 0) {
+            Alert.alert("Lỗi", "Vui lòng nhập đầy đủ thông tin bắt buộc");
             return;
         }
 
@@ -532,6 +546,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
             accountId: user?.id,
             quanTrong: 0,
         });
+        setErrors({});
         setAttachedFiles([]);
         onClose();
     }
@@ -617,6 +632,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                 value={editedEvent.noiDungCuocHop}
                                 onChangeText={(text) => setEditedEvent({ ...editedEvent, noiDungCuocHop: text })}
                                 readOnly={editedEvent.trangThai === "dangKy"}
+                                error={errors.noiDungCuocHop}
                             />
                         </View>
                         {/* Chủ trì */}
@@ -628,6 +644,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                 readOnly={editedEvent.trangThai === "dangKy"}
                                 label="Chủ trì *"
                                 mode="outlined"
+                                error={errors.chuTri}
                             />
 
                             <TreeSelectModal
@@ -665,6 +682,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                         onFocus={() => handleOpenSelect('thanhPhan')}
                                         readOnly={editedEvent.trangThai === "dangKy"}
                                         label="Thành phần"
+                                        error={errors.thanhPhan || errors.ghiChuThanhPhan}
                                     />
                                 </View>
                                 <View className="w-4/12">

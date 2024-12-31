@@ -36,6 +36,8 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
     const [pickerField, setPickerField] = useState("");
     const [valueDateTime, setValueDateTime] = useState(new Date());
 
+    const [errors, setErrors] = useState({});
+
     // Hàm gọi api địa điểm họp
     const fetchDiaDiemHops = async () => {
         try {
@@ -73,14 +75,24 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                 quanTrong: selectedEvent.quanTrong || 0,
             });
         }
+        setErrors({});
         fetchDiaDiemHops();
     }, [selectedEvent, user?.id]);
 
     // Lưu sự kiện
     const handleSave = async () => {
-        console.log(editedEvent)
-        if (!editedEvent.noiDung || !editedEvent.loaiSuKien || !editedEvent.chuDe || !editedEvent.diaDiem || !editedEvent.ngayBatDau || !editedEvent.gioBatDau || !editedEvent.ngayKetThuc || !editedEvent.gioKetThuc) {
-            Alert.alert("Lỗi", "Vui lòng điền đầy đủ thông tin bắt buộc");
+        const newErrors = {};
+        if (!editedEvent.loaiSuKien) newErrors.loaiSuKien = "Vui lòng chọn loại sự kiện";
+        if (!editedEvent.chuDe) newErrors.chuDe = "Vui lòng nhập chủ đề";
+        if (!editedEvent.diaDiem) newErrors.diaDiem = "Vui lòng chọn địa điểm";
+        if (!editedEvent.noiDung) newErrors.noiDung = "Vui lòng nhập nội dung";
+        if (!editedEvent.ngayBatDau) newErrors.ngayBatDau = "Vui lòng chọn ngày bắt đầu";
+        if (!editedEvent.gioBatDau) newErrors.gioBatDau = "Vui lòng chọn giờ bắt đầu";
+        if (!editedEvent.ngayKetThuc) newErrors.ngayKetThuc = "Vui lòng chọn ngay kết thúc";
+        if (!editedEvent.gioKetThuc) newErrors.gioKetThuc = "Vui lòng chọn giờ kết thúc";
+        setErrors(newErrors);
+        if (Object.keys(newErrors).length > 0) {
+            Alert.alert("Lỗi", "Vui lòng nhập đầy đủ thông tin bắt buộc");
             return;
         }
 
@@ -513,6 +525,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
             trangThai: "duyet",
             quanTrong: 0,
         });
+        setErrors({});
         setAttachedFiles([]);
         onClose();
     }
@@ -572,6 +585,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                                 value={editedEvent.chuDe}
                                 onChangeText={(text) => setEditedEvent({ ...editedEvent, chuDe: text })}
                                 readOnly={editedEvent.trangThai === "dangKy"}
+                                error={errors.chuDe}
                             />
                         </View>
 
@@ -604,6 +618,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                                 value={editedEvent.noiDung}
                                 onChangeText={(text) => setEditedEvent({ ...editedEvent, noiDung: text })}
                                 readOnly={editedEvent.trangThai === "dangKy"}
+                                error={errors.noiDung}
                             />
                         </View>
 
