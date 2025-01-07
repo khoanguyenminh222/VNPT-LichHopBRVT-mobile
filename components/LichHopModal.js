@@ -11,7 +11,7 @@ import unidecode from 'unidecode';
 import BouncyCheckbox from "react-native-bouncy-checkbox";
 import { Dropdown } from 'react-native-element-dropdown';
 import TreeSelectModal from "./TreeSelectModal";
-
+import { accountDuyetLichRoute } from "../api/baseURL";
 const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDelete, onAccept, user }) => {
     const [editedEvent, setEditedEvent] = useState({
         noiDungCuocHop: "",
@@ -43,13 +43,51 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
     const [pickerMode, setPickerMode] = useState("date"); // 'date' hoặc 'time'
     const [pickerField, setPickerField] = useState("");
     const [valueDateTime, setValueDateTime] = useState(new Date());
-
+   
     // Ref cho input chủ trì, thành phần
     const chuTriRef = useRef(null);
     const thanhPhanRef = useRef(null);
 
     const [errors, setErrors] = useState({});
+    // Kiểm tra tài khoản có trong danh sách duyệt lịch không
+    const [isAccountDuyetLich, setIsAccountDuyetLich] = useState(false);
+    useEffect(() => {
+        const checkAccountDuyetLich = async () => {
+            try {
+                const response = await axiosInstance.get(accountDuyetLichRoute.findAll);
 
+                // Lấy ngày hiện tại (chỉ lấy phần ngày)
+                const currentDate = new Date();
+                const currentDateOnly = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+                // Kiểm tra user có username trong danh sách và ngày nằm giữa ngayBatDau và ngayKetThuc
+                const isAccountDuyetLich = response.data.some(account => {
+                    if (account.username === user?.username) {
+                        const ngayBatDau = new Date(account.ngayBatDau);
+                        const ngayKetThuc = new Date(account.ngayKetThuc);
+
+                        // Chỉ lấy phần ngày của ngayBatDau và ngayKetThuc
+                        const ngayBatDauOnly = new Date(ngayBatDau.getFullYear(), ngayBatDau.getMonth(), ngayBatDau.getDate());
+                        const ngayKetThucOnly = new Date(ngayKetThuc.getFullYear(), ngayKetThuc.getMonth(), ngayKetThuc.getDate());
+
+                        return currentDateOnly >= ngayBatDauOnly && currentDateOnly <= ngayKetThucOnly;
+                    }
+                    return false;
+                });
+                setIsAccountDuyetLich(isAccountDuyetLich);
+            }
+            catch (error) {
+                console.log('Failed to fetch account duyet lich:', error);
+                const errorMessage = error.response ? error.response.data.message : error.message;
+                Toast.show({
+                    type: 'error',
+                    text1: errorMessage,
+                    position: 'top',
+                    visibilityTime: 3000,
+                });
+            }
+        }
+        checkAccountDuyetLich();
+    }, []);
     // Hàm gọi api địa điểm họp
     const fetchDiaDiemHops = async () => {
         try {
@@ -649,7 +687,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
 
                             <TreeSelectModal
                                 visible={chuTriSelectModalVisible}
-                                onClose={() => {setChuTriSelectModalVisible(false), chuTriRef.current.blur()}}
+                                onClose={() => { setChuTriSelectModalVisible(false), chuTriRef.current.blur() }}
                                 onSelect={handleSelection}
                                 data={thanhPhanThamDus}
                                 childKey="children"
@@ -700,7 +738,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
 
                             <TreeSelectModal
                                 visible={thanhPhanSelectModalVisible}
-                                onClose={() => {setThanhPhanSelectModalVisible(false), thanhPhanRef.current.blur()}}
+                                onClose={() => { setThanhPhanSelectModalVisible(false), thanhPhanRef.current.blur() }}
                                 onSelect={handleSelection}
                                 data={thanhPhanThamDus}
                                 childKey="children"
@@ -758,7 +796,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                 <View className="flex flex-row justify-start items-center">
                                     <Text className="text-base font-semibold w-1/4">Ngày giờ bắt đầu *</Text>
                                     <DateTimePicker
-                                        style={{width: '33%'}}
+                                        style={{ width: '33%' }}
                                         value={editedEvent.ngayBatDau ? new Date(editedEvent.ngayBatDau) : new Date().toISOString().split('T')[0]}
                                         mode="date"
                                         display="default"
@@ -767,9 +805,10 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                         disabled={editedEvent.trangThai === "dangKy"}
                                     />
                                     <DateTimePicker
-                                        style={{width: '33%'}}
+                                        style={{ width: '33%' }}
                                         value={editedEvent.gioBatDau ? new Date(`2000-01-01T${editedEvent.gioBatDau}:00`) : '08:00'}
                                         mode="time"
+                                        is24Hour={true}
                                         display="default"
                                         onChange={(event, date) => handleDatePickerChange('gioBatDau', event, date)}
                                         locale="vi-VN"
@@ -787,9 +826,10 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                             editable={false}
                                         />
                                     </Pressable>
-                                    <Pressable className="w-4/12" onPress={() => openPicker("time", "gioBatDau", `2000-01-01T${editedEvent.gioBatDau}`)} disabled={editedEvent.trangThai === "dangKy"}>
+                                    <Pressable className="w-4/12" onPress={() => openPicker("time", "gioBatDau", `2000-01-01T${editedEvent.gioBatDau}`,)} disabled={editedEvent.trangThai === "dangKy"}>
                                         <TextInput
                                             label="Giờ bắt đầu *"
+                                            is24Hour={false}
                                             mode="outlined"
                                             value={editedEvent.gioBatDau}
                                             editable={false}
@@ -807,7 +847,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                 <View className="flex flex-row justify-start items-center">
                                     <Text className="text-base font-semibold w-1/4">Ngày giờ kết thúc *</Text>
                                     <DateTimePicker
-                                        style={{width: '33%'}}
+                                        style={{ width: '33%' }}
                                         value={editedEvent.ngayKetThuc ? new Date(editedEvent.ngayKetThuc) : new Date().toISOString().split('T')[0]}
                                         mode="date"
                                         display="default"
@@ -816,7 +856,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                         disabled={editedEvent.trangThai === "dangKy"}
                                     />
                                     <DateTimePicker
-                                        style={{width: '33%'}}
+                                        style={{ width: '33%' }}
                                         value={editedEvent.gioKetThuc ? new Date(`2000-01-01T${editedEvent.gioKetThuc}:00`) : new Date().toTimeString().split(' ')[0].substring(0, 5)}
                                         mode="time"
                                         display="default"
@@ -877,12 +917,13 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                             <Button onPress={handleCloseModal} mode="text" textColor="black">
                                 Đóng
                             </Button>
-                            {selectedEvent && (selectedEvent.trangThai === "duyet" || selectedEvent.trangThai === "dangKy" || selectedEvent.trangThai === "quanTrong") && (
+
+                            {selectedEvent && (isAccountDuyetLich || user?.vaiTro == 'admin') && (selectedEvent.trangThai === "duyet" || selectedEvent.trangThai === "dangKy" || selectedEvent.trangThai === "quanTrong") && (
                                 <Button onPress={handleCancleEvent} mode="text" textColor="red">
                                     Huỷ
                                 </Button>
                             )}
-                            {selectedEvent && (selectedEvent.trangThai === "huy" || selectedEvent.trangThai === "dangKy" || selectedEvent.trangThai === "quanTrong") && (
+                            {selectedEvent && (isAccountDuyetLich || user?.vaiTro == 'admin') && (selectedEvent.trangThai === "huy" || selectedEvent.trangThai === "dangKy" || selectedEvent.trangThai === "quanTrong") && (
                                 <Button onPress={handleAcceptEvent} mode="text">
                                     Duyệt
                                 </Button>
