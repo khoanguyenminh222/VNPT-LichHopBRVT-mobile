@@ -22,6 +22,7 @@ import { use } from 'react';
 import { useViewModeStore } from '../../stores/StoreViewMode';
 import { Divider } from 'react-native-paper';
 import { formatDate, getStartAndEndOfWeek } from '../../utils/dateTimeUtils';
+import sendSms from '../../utils/sendSms';
 
 
 Notifications.setNotificationHandler({
@@ -197,7 +198,9 @@ const LichHopScreen = () => {
         fetchEvents();
     }, [isAccountDuyetLich]);
 
-
+    const handleCloseModal = () => {
+        setModelEdit(false);
+    }
     const handleDeleteEvent = async () => {
         try {
             const response = await axiosInstance.delete(eventRoute.delete + "/" + selectedEvent.id);
@@ -207,7 +210,16 @@ const LichHopScreen = () => {
                     text1: response.data.message,
                 });
                 handleCloseModal();
-                onDelete();
+                setVisibleDialog(false);
+                const smsText = 'Lich hop BRVT: [Trang thai: Xoa] ' + removeAccents(selectedEvent.title) + ' dien ra luc ' + new Date(selectedEvent.start).toLocaleString().replace('T', ' ').split('.')[0]
+                await Promise.all(
+                    await sendSms({
+                        noiDungSms: smsText,
+                        smsType: 4, //type 4: Xoá lịch
+                        accountId: selectedEvent?.accountId,
+                        storedUser: user,
+                    })
+                );
             } else {
                 Toast.show({
                     type: 'error',
@@ -509,33 +521,7 @@ const LichHopScreen = () => {
         fetchEvents();
     };
 
-    // Xóa sự kiện
-    const handleDelete = async (item) => {
-        const selectedEvent = item;
-        try {
-            const response = await axiosInstance.delete(eventRoute.delete + "/" + selectedEvent.id);
-            if (response.status >= 200 && response.status < 300) {
-                Toast.show({
-                    type: 'success',
-                    text1: response.data.message,
-                });
-            } else {
-                Toast.show({
-                    type: 'error',
-                    text1: response.data.message,
-                });
-            }
-        } catch (error) {
-            console.log(error);
-            const errorMessage = error.response ? error.response.data.message : error.message;
-            Toast.show({
-                type: 'error',
-                text1: errorMessage,
-            });
-        }
-        setVisibleDialog(false); // Close the dialog after handling
-        fetchEvents(); // Refresh the event list
-    };
+ 
 
 
 
@@ -599,13 +585,14 @@ const LichHopScreen = () => {
     });
     const renderEvent = ({ item }) => {
         const events = SortEventByDate(item);
+        const date = new Date().getDate();
         return (
             <View className="flex flex-row my-4">
                 <View className="basis-1/5 items-center">
-                    <Text className="text-lg uppercase font-bold text-center">
+                    <Text className={`text-lg uppercase text-center ${date === item.getDate() ? 'text-blue-800 font-bold ' : 'text-black font-semibold '}`}>
                         {item.toLocaleDateString('vi-VN', { weekday: 'short' })}
                     </Text>
-                    <Text className="text-sm font-semibold text-center">
+                    <Text className={` text-sm font-semibold text-center ${date === item.getDate() ? 'text-blue-800 font-bold ' : 'text-black font-semibold'}`}>
                         {(item.getDate() < 10 ? "0" + item.getDate() : item.getDate()) + "/" + ((item.getMonth() + 1) < 10 ? "0" + (item.getMonth() + 1) : (item.getMonth() + 1))}
                     </Text>
                 </View>
@@ -624,7 +611,7 @@ const LichHopScreen = () => {
                                         <Text className="text-lg">Địa điểm: {event?.diaDiem}</Text>
                                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                             <FontAwesomeIcon icon={faClock} size={12} />
-                                            <Text className="text-lg font-semibold pl-2">8:00 - 9:00</Text>
+                                            <Text className="text-lg font-semibold pl-2">{applyHighlight(event.gioBatDau)} - {applyHighlight(event.gioKetThuc)}</Text>
                                         </View>
                                     </View>
                                 </Pressable>
@@ -637,6 +624,8 @@ const LichHopScreen = () => {
         );
     }
     const LichTheoTuan = ({ weekDates }) => {
+        const today = new Date();
+        const todayIndex = weekDates.findIndex(date => date.getDate() === today.getDate() && date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear());
         return (
             <View className="flex-1 bg-gray-50">
                 <View className="m-5 flex flex-row justify-between items-center w-full">
@@ -646,6 +635,7 @@ const LichHopScreen = () => {
                     </Text>
 
                     <View className="flex-row gap-2 items-center mb-6 max-w-[460px] m-auto rounded-lg px-2">
+                        {/* Nút đổi tuần hiện tại */}
                         <Pressable
                             onPress={handlePreviousWeek}
                             className={` rounded-full p-3 ${!isCurrentWeek ? 'bg-white border-gray-400' : 'bg-black'}`}
@@ -660,6 +650,7 @@ const LichHopScreen = () => {
                             <FontAwesomeIcon icon={faArrowLeftLong} size={20} color={`${!isCurrentWeek ? 'black' : 'white'}`} />
                         </Pressable>
 
+                        {/* Nút đổi tuần sau */}
                         <Pressable
                             onPress={handleNextWeek}
                             className={` rounded-full p-3 ${!isCurrentWeek ? ' bg-black ' : 'border-gray-400 bg-white'}`}
@@ -676,7 +667,6 @@ const LichHopScreen = () => {
 
                     </View>
                 </View>
-                {/* Nút đổi tuần sau */}
                 <FlatList
                     data={weekDates}
                     renderItem={renderEvent}
@@ -861,9 +851,9 @@ const LichHopScreen = () => {
                                                         >
                                                             <FontAwesomeIcon color='white' icon={faClockFour} size={Number(fontSize) + 4} />
                                                             {event.nhacNho && (
-                                                        <Text style={{ fontSize: Number(fontSize) }} className="text-white ml-2">Đã nhắc nhở</Text>
-                                                    )}
-                                                </Pressable>
+                                                                <Text style={{ fontSize: Number(fontSize) }} className="text-white ml-2">Đã nhắc nhở</Text>
+                                                            )}
+                                                        </Pressable>
                                                         {/* Chỉnh sửa */}
                                                         {(hasAccess(screenUrls.ChinhSuaLichHop, userAllowedUrls) || user?.vaiTro == 'admin') && event.trangThai !== 'dangKy' &&
                                                             <Pressable
@@ -891,7 +881,7 @@ const LichHopScreen = () => {
                                                         <DialogComponent
                                                             open={visibleDialog}
                                                             title={'Xoá lịch họp'}
-                                                            action={() => handleDelete(selectedEvent)}
+                                                            action={handleDeleteEvent}
                                                             onClose={handleCancel}
                                                             actionLabel={'Xoá'}
                                                         />
@@ -902,15 +892,7 @@ const LichHopScreen = () => {
                                         </ScrollView>
                                     </View>
                                 )}
-                                {/* Button thêm mới */}
-                                {(hasAccess(screenUrls.ThemLichHop, userAllowedUrls) || user?.vaiTro == 'admin') &&
-                                    <Pressable
-                                        onPress={() => { setModelEdit(true); setSelectedEvent(null); }}
-                                        className="absolute right-4 bottom-4 p-6 bg-blue-500 rounded-full shadow-lg"
-                                    >
-                                        <Text><FontAwesomeIcon icon={faAdd} color='white' size={Number(fontSize) - 2} /></Text>
-                                    </Pressable>
-                                }
+
                             </View>
                         </PanGestureHandler>
 
@@ -929,7 +911,15 @@ const LichHopScreen = () => {
                 onSelectReminder={handleReminderSelect}
                 event={selectedEvent}
             />
-
+            {/* Button thêm mới */}
+            {(hasAccess(screenUrls.ThemLichHop, userAllowedUrls) || user?.vaiTro == 'admin') &&
+                <Pressable
+                    onPress={() => { setModelEdit(true); setSelectedEvent(null); }}
+                    className="absolute right-4 bottom-4 p-6 bg-blue-500 rounded-full shadow-lg"
+                >
+                    <Text><FontAwesomeIcon icon={faAdd} color='white' size={Number(fontSize) - 2} /></Text>
+                </Pressable>
+            }
             <LichHopModal
                 visible={modelEdit}
                 selectedEvent={selectedEvent}

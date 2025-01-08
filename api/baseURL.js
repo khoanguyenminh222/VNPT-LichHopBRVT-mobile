@@ -70,6 +70,7 @@ const phanQuyenRoute = {
     getNhomChucNangByAccountId: `${domain}/api/admin/phanQuyen/nhomChucNang`, // truyền query accountId ?accountId=
     getChucNangByAccountId: `${domain}/api/admin/phanQuyen/chucNang`, // truyền query accountId ?accountId=
     savePhanQuyenForAccount: `${domain}/api/admin/phanQuyen`,
+    getChucNangForAllAccounts: `${domain}/api/admin/phanQuyen/chucNangForAllAccounts`,
 };
 
 const uploadFileRoute = {
@@ -123,7 +124,9 @@ const accountDuyetLichRoute = {
     update: `${domain}/api/admin/accountDuyetLich`, // /:username body là accountDuyetLich
     delete: `${domain}/api/admin/accountDuyetLich`, // /:id
 }
-
+const sendSMSRoute = {
+    sendSMS: `${domain}/api/admin/sendsms`
+}
 export {
     domain,
     publicfolder,
@@ -144,4 +147,5 @@ export {
     diaDiemHopRoute,
     thanhPhanThamDuRoute,
     accountDuyetLichRoute,
+    sendSMSRoute
 };

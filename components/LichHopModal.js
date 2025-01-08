@@ -6,12 +6,15 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import * as DocumentPicker from 'expo-document-picker';
 import Toast from 'react-native-toast-message';
 import axiosInstance from "../utils/axiosInstance";
-import { accountRoute, diaDiemHopRoute, eventRoute, lichCaNhanRoute, thanhPhanThamDuRoute, uploadFileRoute } from "../api/baseURL";
+import { accountDuyetLichRoute, phanQuyenRoute, accountRoute, diaDiemHopRoute, eventRoute, lichCaNhanRoute, thanhPhanThamDuRoute, uploadFileRoute } from "../api/baseURL";
 import unidecode from 'unidecode';
 import BouncyCheckbox from "react-native-bouncy-checkbox";
 import { Dropdown } from 'react-native-element-dropdown';
 import TreeSelectModal from "./TreeSelectModal";
-import { accountDuyetLichRoute } from "../api/baseURL";
+import sendSms from "../utils/sendSms";
+import removeAccents from "remove-accents";
+
+
 const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDelete, onAccept, user }) => {
     const [editedEvent, setEditedEvent] = useState({
         noiDungCuocHop: "",
@@ -43,7 +46,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
     const [pickerMode, setPickerMode] = useState("date"); // 'date' hoặc 'time'
     const [pickerField, setPickerField] = useState("");
     const [valueDateTime, setValueDateTime] = useState(new Date());
-   
+
     // Ref cho input chủ trì, thành phần
     const chuTriRef = useRef(null);
     const thanhPhanRef = useRef(null);
@@ -51,6 +54,70 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
     const [errors, setErrors] = useState({});
     // Kiểm tra tài khoản có trong danh sách duyệt lịch không
     const [isAccountDuyetLich, setIsAccountDuyetLich] = useState(false);
+    const [accountDuyetLich, setAccountDuyetLich] = useState([]);
+
+    useEffect(() => {
+        const processAccountDuyetLich = async () => {
+            try {
+                const response = await axiosInstance.get(accountDuyetLichRoute.findAll);
+
+                // Lấy ngày hiện tại (chỉ lấy phần ngày)
+                const currentDate = new Date();
+                const currentDateOnly = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+
+                // Lọc tất cả các tài khoản thỏa mãn điều kiện
+                const validAccounts = response.data.filter(account => {
+                    const ngayBatDau = new Date(account.ngayBatDau);
+                    const ngayKetThuc = new Date(account.ngayKetThuc);
+
+                    // Chỉ lấy phần ngày của ngayBatDau và ngayKetThuc
+                    const ngayBatDauOnly = new Date(ngayBatDau.getFullYear(), ngayBatDau.getMonth(), ngayBatDau.getDate());
+                    const ngayKetThucOnly = new Date(ngayKetThuc.getFullYear(), ngayKetThuc.getMonth(), ngayKetThuc.getDate());
+
+                    // Kiểm tra nếu ngày hiện tại nằm trong khoảng ngày bắt đầu và ngày kết thúc
+                    return currentDateOnly >= ngayBatDauOnly && currentDateOnly <= ngayKetThucOnly;
+                });
+
+                // Gọi API để lấy danh sách accountId có URL '/lich-hop/duyet'
+                const fetchChucNangForAllAccount = await axiosInstance.get(phanQuyenRoute.getChucNangForAllAccounts);
+                const accountsWithSpecificUrl = fetchChucNangForAllAccount.data
+                    .filter(item => item.url === '/lich-hop/duyet')
+                    .map(item => item.accountId); // Lấy ra accountId
+
+                // Fetch các accountId từ username trong validAccounts
+                const accountIdsFromValidAccounts = await Promise.all(validAccounts.map(async account => {
+                    const accountResponse = await axiosInstance.get(accountRoute.findByUsername + "/" + account.username); // Giả sử API trả về accountId
+                    return accountResponse.data.id; // Lấy accountId từ response
+                }));
+
+                // Fetch ra các tài khoản có vaiTro là admin
+                const fetchAdminAccounts = await axiosInstance.get(accountRoute.findAll);
+                const adminAccounts = fetchAdminAccounts.data.filter(account => account.vaiTro === "admin").map(account => account.id);
+
+                // Gộp hai danh sách
+                const accountDuyetLich = [
+                    ...accountIdsFromValidAccounts, // Lấy username từ validAccounts
+                    ...accountsWithSpecificUrl, // Lấy accountId từ accountsWithSpecificUrl
+                    ...adminAccounts, // Lấy accountId từ adminAccounts
+                ];
+
+                // Loại bỏ các phần tử trùng lặp
+                const uniqueAccountDuyetLich = [...new Set(accountDuyetLich)];
+
+                // Lưu danh sách tài khoản hợp lệ vào state
+                setAccountDuyetLich(uniqueAccountDuyetLich);
+                console.log('Danh sách tài khoản hợp lệ:', uniqueAccountDuyetLich);
+                console.log('Người dùng có quyền duyệt lịch:', isAccountDuyetLich);
+
+            } catch (error) {
+                console.error('Failed to fetch accounts for duyet lich:', error);
+                const errorMessage = error.response ? error.response.data.message : error.message;
+                //toast.error(errorMessage);
+            }
+        };
+        processAccountDuyetLich();
+    }, []);
+
     useEffect(() => {
         const checkAccountDuyetLich = async () => {
             try {
@@ -176,6 +243,9 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
     }, [selectedEvent, user?.id]);
 
     // Lưu sự kiện
+
+
+
     const handleSave = async () => {
         const newErrors = {};
         if (!editedEvent.noiDungCuocHop) newErrors.noiDungCuocHop = "Vui lòng nhập nội dung cuộc họp.";
@@ -264,8 +334,21 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                     type: 'success',
                     text1: response.data.message,
                 });
+
                 onSave();
                 handleCloseModal();
+                const smsText = 'Lich hop BRVT: [Trang thai: Dang ky] ' + removeAccents(editedEvent.noiDungCuocHop) + ' dien ra luc ' + new Date(`${editedEvent.ngayBatDau}T${editedEvent.gioBatDau}:00`).toLocaleString().replace('T', ' ').split('.')[0]
+                if (accountDuyetLich?.length) {
+                    await Promise.all(
+                        await sendSms({
+                            accountDuyetLich: accountDuyetLich,
+                            noiDungSms: smsText,
+                            smsType: 1,
+                            accountId: user.id,
+                            storedUser: user,
+                        })
+                    );
+                }
             } else {
                 Toast.show({
                     type: 'error',
