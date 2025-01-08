@@ -96,6 +96,8 @@ const TabNavigator = ({ navigation }) => {
                             <Button onPress={() => alert('This is a button!')}>Info</Button>
                         )
                         // headerRight: () => (
+                        //     <Button onPress={() => alert('This is a button!')}>Info</Button>
+                        // )
                     }}
                 />
             }
