@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, Pressable, Linking, Alert } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import axiosInstance from '../../utils/axiosInstance';
-import { accountDuyetLichRoute, eventRoute, lichCaNhanRoute, publicfolder } from '../../api/baseURL';
+import { accountDuyetLichRoute, accountRoute, eventRoute, lichCaNhanRoute, publicfolder, sendSMSRoute } from '../../api/baseURL';
 import Toast from 'react-native-toast-message';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faDownload } from '@fortawesome/free-solid-svg-icons/faDownload';
@@ -23,7 +23,7 @@ import { useViewModeStore } from '../../stores/StoreViewMode';
 import { Divider } from 'react-native-paper';
 import { formatDate, getStartAndEndOfWeek } from '../../utils/dateTimeUtils';
 import sendSms from '../../utils/sendSms';
-
+import removeAccents from "remove-accents";
 
 Notifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -211,15 +211,14 @@ const LichHopScreen = () => {
                 });
                 handleCloseModal();
                 setVisibleDialog(false);
-                const smsText = 'Lich hop BRVT: [Trang thai: Xoa] ' + removeAccents(selectedEvent.title) + ' dien ra luc ' + new Date(selectedEvent.start).toLocaleString().replace('T', ' ').split('.')[0]
-                await Promise.all(
-                    await sendSms({
-                        noiDungSms: smsText,
-                        smsType: 4, //type 4: Xoá lịch
-                        accountId: selectedEvent?.accountId,
-                        storedUser: user,
-                    })
-                );
+                if (selectedEvent.accountId != user.id) {
+                    console.log("gửi sms");
+                    const responseAccount = await axiosInstance.get(accountRoute.findById + "/" + selectedEvent.accountId);
+                    await axiosInstance.post(sendSMSRoute.sendSMS, {
+                        phonenumber: responseAccount.data.phone,
+                        content: 'Lich hop BRVT: [Trang thai: Xoa] ' + removeAccents(selectedEvent.noiDungCuocHop) + ' dien ra luc ' + new Date(`${selectedEvent.ngayBatDau}T${selectedEvent.gioBatDau}:00`).toLocaleString().replace('T', ' ').split('.')[0]
+                    });
+                }
             } else {
                 Toast.show({
                     type: 'error',
@@ -521,7 +520,7 @@ const LichHopScreen = () => {
         fetchEvents();
     };
 
- 
+
 
 
 
@@ -603,18 +602,72 @@ const LichHopScreen = () => {
                     ) : (
                         events.map((event, index) => (
                             <View key={index} className="mb-4">
-                                <Pressable
+                                <View
                                     className={`flex-row items-center justify-between rounded-lg shadow-lg ${event.trangThai === 'huy' ? 'bg-gray-100 border-gray-500' : event.trangThai === 'dangKy' ? 'bg-purple-100 border-purple-500' : event.quanTrong === 1 ? 'bg-red-100 border-red-500' : 'bg-blue-100 border-blue-500'}`}
                                     onPress={() => { setModelEdit(true); setSelectedEvent(event); }}>
                                     <View className="p-4">
-                                        <Text className="text-2xl font-semibold truncate line-clamp-1">{event?.noiDungCuocHop}</Text>
-                                        <Text className="text-lg">Địa điểm: {event?.diaDiem}</Text>
+                                        <Text className={`text-2xl font-semibold truncate line-clamp-1 ${event.trangThai === 'huy' ? 'line-through' : ''}`}>{event?.noiDungCuocHop}</Text>
+                                        <Text className={`text-lg ${event.trangThai === 'huy' ? 'line-through' : ''}`}>Địa điểm: {event?.diaDiem}</Text>
                                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                             <FontAwesomeIcon icon={faClock} size={12} />
-                                            <Text className="text-lg font-semibold pl-2">{applyHighlight(event.gioBatDau)} - {applyHighlight(event.gioKetThuc)}</Text>
+                                            <Text className={`text-lg font-semibold pl-2 ${event.trangThai === 'huy' ? 'line-through' : ''}`}>{applyHighlight(event.gioBatDau)} - {applyHighlight(event.gioKetThuc)}</Text>
+                                        </View>
+                                        <View className="rounded-lg flex flex-row gap-2">
+                                            {/* Gán lịch họp sang lịch cá nhân */}
+                                            <Pressable
+                                                onPress={() => handleToLichCaNhan(event)}
+                                                className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}
+                                            >
+                                                <FontAwesomeIcon color='white' icon={faShuffle} size={14} />
+                                            </Pressable>
+                                            {/* Copy lịch */}
+                                            <Pressable
+                                                onPress={() => handleCopyText(event)}
+                                                className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}
+                                            >
+                                                <FontAwesomeIcon color='white' icon={faClipboard} size={14} />
+                                            </Pressable>
+                                            {/* Nhắc nhở */}
+                                            <Pressable
+                                                onPress={() => { setModalVisible(true); setSelectedEvent(event); }}
+                                                className={`flex flex-row items-center p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}
+                                            >
+                                                <FontAwesomeIcon color='white' icon={faClockFour} size={14} />
+                                                {event.nhacNho && (
+                                                    <Text style={{ fontSize: 10 }} className="text-white ml-2">Đã nhắc nhở</Text>
+                                                )}
+                                            </Pressable>
+                                            {/* Chỉnh sửa */}
+                                            {(hasAccess(screenUrls.ChinhSuaLichHop, userAllowedUrls) || user?.vaiTro == 'admin') && event.trangThai !== 'dangKy' &&
+                                                <Pressable
+                                                    onPress={() => { setModelEdit(true); setSelectedEvent(event); }}
+                                                    className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}>
+                                                    <FontAwesomeIcon color='white' icon={faEdit} size={14} />
+                                                </Pressable>
+                                            }
+                                            {/* Có duyền duyệt hoặc là account được uỷ quyền */}
+                                            {(hasAccess(screenUrls.DuyetLichHop, userAllowedUrls) || isAccountDuyetLich || user?.vaiTro == 'admin') && event.trangThai === 'dangKy' &&
+                                                <Pressable
+                                                    onPress={() => { setModelEdit(true); setSelectedEvent(event); }}
+                                                    className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}>
+                                                    <FontAwesomeIcon color='white' icon={faEdit} size={14} />
+                                                </Pressable>
+                                            }
+
+                                            {/* Xóa */}
+                                            {(event && event.trangThai === "dangKy") && !(hasAccess(screenUrls.DuyetLichHop, userAllowedUrls) || isAccountDuyetLich) && (
+                                                <Pressable onPress={() => { setVisibleDialog(true); setSelectedEvent(event); }} className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai ==
+                                                    'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}>
+                                                    <FontAwesomeIcon color='white' icon={faTrash} size={14} />
+
+                                                </Pressable>
+                                            )}
+
+                                            
                                         </View>
                                     </View>
-                                </Pressable>
+                                </View>
+
                             </View>
                         ))
                     )}
@@ -675,7 +728,13 @@ const LichHopScreen = () => {
                     }
                     keyExtractor={(item, index) => index.toString()}
                 />
-
+                <DialogComponent
+                    open={visibleDialog}
+                    title={'Xoá lịch họp'}
+                    action={handleDeleteEvent}
+                    onClose={handleCancel}
+                    actionLabel={'Xoá'}
+                />
 
 
             </View>
@@ -872,12 +931,14 @@ const LichHopScreen = () => {
                                                         }
 
                                                         {/* Xóa */}
+                                                        {(event && event.trangThai === "dangKy") && !(hasAccess(screenUrls.DuyetLichHop, userAllowedUrls) || isAccountDuyetLich) && (
+                                                            <Pressable onPress={() => { setVisibleDialog(true); setSelectedEvent(event); }} className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai ==
+                                                                'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}>
+                                                                <FontAwesomeIcon color='white' icon={faTrash} size={Number(fontSize) + 4} />
 
-                                                        <Pressable onPress={() => { setVisibleDialog(true); setSelectedEvent(event); }} className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai ==
-                                                            'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}>
-                                                            <FontAwesomeIcon color='white' icon={faTrash} size={Number(fontSize) + 4} />
+                                                            </Pressable>
+                                                        )}
 
-                                                        </Pressable>
                                                         <DialogComponent
                                                             open={visibleDialog}
                                                             title={'Xoá lịch họp'}
@@ -926,9 +987,10 @@ const LichHopScreen = () => {
                 onClose={() => { setModelEdit(false) }}
                 onCancle={handleCancleEvent}
                 onSave={handleSaveEdit}
-                onDelete={handleDeleteEvent}
+                onDelete={handleAcceptEvent}
                 onAccept={handleAcceptEvent}
                 user={user}
+                userAllowedUrls={userAllowedUrls}
             />
         </View >
 

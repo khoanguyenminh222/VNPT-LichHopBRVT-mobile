@@ -6,7 +6,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import * as DocumentPicker from 'expo-document-picker';
 import Toast from 'react-native-toast-message';
 import axiosInstance from "../utils/axiosInstance";
-import { diaDiemHopRoute, eventRoute, lichCaNhanRoute, uploadFileRoute } from "../api/baseURL";
+import { accountDuyetLichRoute, accountRoute, diaDiemHopRoute, eventRoute, lichCaNhanRoute, phanQuyenRoute, sendSMSRoute, uploadFileRoute } from "../api/baseURL";
 import unidecode from 'unidecode';
 import BouncyCheckbox from "react-native-bouncy-checkbox";
 import { Dropdown } from 'react-native-element-dropdown';
@@ -35,7 +35,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
     const [pickerMode, setPickerMode] = useState("date"); // 'date' hoặc 'time'
     const [pickerField, setPickerField] = useState("");
     const [valueDateTime, setValueDateTime] = useState(new Date());
-
+    const [accountDuyetLich, setAccountDuyetLich] = useState([]);
     const [errors, setErrors] = useState({});
 
     // Hàm gọi api địa điểm họp
@@ -78,6 +78,72 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
         setErrors({});
         fetchDiaDiemHops();
     }, [selectedEvent, user?.id]);
+
+    // Kiểm tra tài khoản có quyền duyệt lịch không
+    useEffect(() => {
+        const processAccountDuyetLich = async () => {
+            try {
+                const response = await axiosInstance.get(accountDuyetLichRoute.findAll);
+
+                // Lấy ngày hiện tại (chỉ lấy phần ngày)
+                const currentDate = new Date();
+                const currentDateOnly = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+
+                // Lọc tất cả các tài khoản thỏa mãn điều kiện
+                const validAccounts = response.data.filter(account => {
+                    const ngayBatDau = new Date(account.ngayBatDau);
+                    const ngayKetThuc = new Date(account.ngayKetThuc);
+
+                    // Chỉ lấy phần ngày của ngayBatDau và ngayKetThuc
+                    const ngayBatDauOnly = new Date(ngayBatDau.getFullYear(), ngayBatDau.getMonth(), ngayBatDau.getDate());
+                    const ngayKetThucOnly = new Date(ngayKetThuc.getFullYear(), ngayKetThuc.getMonth(), ngayKetThuc.getDate());
+
+                    // Kiểm tra nếu ngày hiện tại nằm trong khoảng ngày bắt đầu và ngày kết thúc
+                    return currentDateOnly >= ngayBatDauOnly && currentDateOnly <= ngayKetThucOnly;
+                });
+
+                // Gọi API để lấy danh sách accountId có URL '/lich-hop/duyet'
+                const fetchChucNangForAllAccount = await axiosInstance.get(phanQuyenRoute.getChucNangForAllAccounts);
+                const accountsWithSpecificUrl = fetchChucNangForAllAccount.data
+                    .filter(item => item.url === '/lich-hop/duyet')
+                    .map(item => item.accountId); // Lấy ra accountId
+
+                // Fetch các accountId từ username trong validAccounts
+                const accountIdsFromValidAccounts = await Promise.all(validAccounts.map(async account => {
+                    const accountResponse = await axiosInstance.get(accountRoute.findByUsername + "/" + account.username); // Giả sử API trả về accountId
+                    return accountResponse.data.id; // Lấy accountId từ response
+                }));
+
+                // Fetch ra các tài khoản có vaiTro là admin
+                const fetchAdminAccounts = await axiosInstance.get(accountRoute.findAll);
+                const adminAccounts = fetchAdminAccounts.data.filter(account => account.vaiTro === "admin").map(account => account.id);
+
+                // Gộp hai danh sách
+                const accountDuyetLich = [
+                    ...accountIdsFromValidAccounts, // Lấy username từ validAccounts
+                    ...accountsWithSpecificUrl, // Lấy accountId từ accountsWithSpecificUrl
+                    ...adminAccounts, // Lấy accountId từ adminAccounts
+                ];
+
+                // Loại bỏ các phần tử trùng lặp
+                const uniqueAccountDuyetLich = [...new Set(accountDuyetLich)];
+
+                // Lưu danh sách tài khoản hợp lệ vào state
+                setAccountDuyetLich(uniqueAccountDuyetLich);
+
+                console.log('Danh sách tài khoản hợp lệ:', uniqueAccountDuyetLich);
+
+            } catch (error) {
+                console.error('Failed to fetch accounts for duyet lich:', error);
+                const errorMessage = error.response ? error.response.data.message : error.message;
+                Toast.show({
+                    type: 'error',
+                    text1: errorMessage,
+                });
+            }
+        };
+        processAccountDuyetLich();
+    }, []);
 
     // Lưu sự kiện
     const handleSave = async () => {
@@ -304,6 +370,33 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                 text1: "Đăng ký lịch VTT thành công",
             });
             onAccept();
+            const smsPromises = accountDuyetLich.map(async (accountId) => {
+                // Lấy thông tin tài khoản từ API theo accountId
+                const responseAccount = await axiosInstance.get(accountRoute.findById + "/" + accountId);
+                const account = responseAccount.data;
+
+                // Nếu account.phone null thì bỏ qua
+                if (!account.phone) {
+                    return;
+                }
+                //console.log(removeAccents(data.noiDungCuocHop))
+                // Gửi SMS cho tài khoản này
+                try {
+                    await axiosInstance.post(sendSMSRoute.sendSMS, {
+                        phonenumber: account.phone,
+                        content: 'Lich hop BRVT: [Trang thai: Dang ky] ' + removeAccents(data.noiDungCuocHop) + ' dien ra luc ' + new Date(`${data.ngayBatDau}T${data.gioBatDau}:00`).toLocaleString().replace('T', ' ').split('.')[0]
+                    });
+                } catch (error) {
+                    // Nếu có lỗi trong quá trình gửi SMS
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Gửi SMS thất bại cho ' + account.phone,
+                    });
+                }
+            });
+    
+            // Chờ tất cả các Promise hoàn thành
+            await Promise.all(smsPromises);
             handleCloseModal(); // Đóng modal
         } catch (error) {
             console.log(error);
