@@ -447,6 +447,15 @@ const LichHopScreen = () => {
             [event.id]: notificationId,
         }));
 
+        await Notifications.scheduleNotificationAsync({
+            content: {
+                title: "Đã đặt nhắc nhở",
+                body: `Nhắc nhở sự kiện "${event.noiDungCuocHop}" sẽ được gửi trước ${minutes} phút.`,
+                sound: true,
+            },
+            trigger: null,
+        });
+
         Toast.show({
             type: 'success',
             text1: 'Đã đặt nhắc nhở',
@@ -633,9 +642,9 @@ const LichHopScreen = () => {
                                                 className={`flex flex-row items-center p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}
                                             >
                                                 <FontAwesomeIcon color='white' icon={faClockFour} size={14} />
-                                                {event.nhacNho && (
+                                                {/* {event.nhacNho && (
                                                     <Text style={{ fontSize: 10 }} className="text-white ml-2">Đã nhắc nhở</Text>
-                                                )}
+                                                )} */}
                                             </Pressable>
                                             {/* Chỉnh sửa */}
                                             {(hasAccess(screenUrls.ChinhSuaLichHop, userAllowedUrls) || user?.vaiTro == 'admin') && event.trangThai !== 'dangKy' &&
@@ -909,9 +918,9 @@ const LichHopScreen = () => {
                                                             className={`flex flex-row items-center p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}
                                                         >
                                                             <FontAwesomeIcon color='white' icon={faClockFour} size={Number(fontSize) + 4} />
-                                                            {event.nhacNho && (
+                                                            {/* {event.nhacNho && (
                                                                 <Text style={{ fontSize: Number(fontSize) }} className="text-white ml-2">Đã nhắc nhở</Text>
-                                                            )}
+                                                            )} */}
                                                         </Pressable>
                                                         {/* Chỉnh sửa */}
                                                         {(hasAccess(screenUrls.ChinhSuaLichHop, userAllowedUrls) || user?.vaiTro == 'admin') && event.trangThai !== 'dangKy' &&

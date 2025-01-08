@@ -6,13 +6,13 @@ const ReminderModal = ({ visible, onClose, onSelectReminder, event }) => {
     const [timeLeft, setTimeLeft] = useState(null); // Thời gian đếm ngược
 
     // Khi modal mở, thiết lập selectedReminder từ event nếu có
-    useEffect(() => {
-        if (event && event.nhacNho) {
-            setSelectedReminder(event.nhacNho);
-        } else {
-            setSelectedReminder(null);
-        }
-    }, [event, visible]);
+    // useEffect(() => {
+    //     if (event && event.nhacNho) {
+    //         setSelectedReminder(event.nhacNho);
+    //     } else {
+    //         setSelectedReminder(null);
+    //     }
+    // }, [event, visible]);
 
     // Hàm tính toán thời gian còn lại
     const calculateTimeLeft = () => {
@@ -34,17 +34,17 @@ const ReminderModal = ({ visible, onClose, onSelectReminder, event }) => {
         return 0;
     };
 
-    useEffect(() => {
-        if (!visible) return; // Nếu modal không mở, không thực hiện gì
+    // useEffect(() => {
+    //     if (!visible) return; // Nếu modal không mở, không thực hiện gì
 
-        // Cập nhật thời gian còn lại mỗi giây
-        const interval = setInterval(() => {
-            setTimeLeft(calculateTimeLeft());
-        }, 1000);
+    //     // Cập nhật thời gian còn lại mỗi giây
+    //     const interval = setInterval(() => {
+    //         setTimeLeft(calculateTimeLeft());
+    //     }, 1000);
 
-        // Dừng interval khi component bị unmount hoặc khi modal đóng
-        return () => clearInterval(interval);
-    }, [visible, event]); // Chạy lại mỗi khi modal mở hoặc sự kiện thay đổi
+    //     // Dừng interval khi component bị unmount hoặc khi modal đóng
+    //     return () => clearInterval(interval);
+    // }, [visible, event]); // Chạy lại mỗi khi modal mở hoặc sự kiện thay đổi
 
     // Hiển thị giờ, phút, giây còn lại
     const formatTimeLeft = (timeInMilliseconds) => {
@@ -62,6 +62,7 @@ const ReminderModal = ({ visible, onClose, onSelectReminder, event }) => {
     const handleSaveReminder = () => {
         if (selectedReminder !== null) {
             onSelectReminder(event, selectedReminder);
+            setSelectedReminder(null);
             onClose(); // Close the modal after saving the reminder
         }
     };
@@ -82,13 +83,13 @@ const ReminderModal = ({ visible, onClose, onSelectReminder, event }) => {
             transparent={true}
             onRequestClose={onClose}
         >
-            <TouchableWithoutFeedback onPress={onClose}>
+            <TouchableWithoutFeedback onPress={() => {onClose(); setSelectedReminder(null);}}>
                 <View className="flex-1 justify-center items-center" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
                     <TouchableWithoutFeedback onPress={() => { }}>
                         <View className="bg-white p-6 rounded-lg w-80 shadow-xl">
                             <Text className="text-xl font-semibold text-center mb-6 text-blue-600">Chọn phút nhắc nhở</Text>
                             <View className="space-y-3">
-                                {event?.nhacNho && (
+                                {/* {event?.nhacNho && (
                                     timeLeft > 0 ? (
                                         <Text className="text-red-500 px-3">
                                             Còn lại: {formatTimeLeft(timeLeft)}
@@ -98,7 +99,7 @@ const ReminderModal = ({ visible, onClose, onSelectReminder, event }) => {
                                             Đã quá thời gian nhắc nhở
                                         </Text>
                                     )
-                                )}
+                                )} */}
                                 {reminderOptions.map((option) => (
                                     <Pressable
                                         key={option.value}
@@ -115,7 +116,7 @@ const ReminderModal = ({ visible, onClose, onSelectReminder, event }) => {
                                 ))}
                             </View>
                             <Pressable
-                                onPress={onClose}
+                                onPress={() => {onClose(); setSelectedReminder(null);}}
                                 className="mt-6 p-3 bg-red-500 rounded-lg"
                             >
                                 <Text className="text-white text-center text-lg">Đóng</Text>

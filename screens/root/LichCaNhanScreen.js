@@ -536,9 +536,9 @@ const LichCaNhanScreen = () => {
                                                     onPress={() => { setModalVisible(true); setSelectedEvent(event); }}
                                                     className={`flex flex-row items-center p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}>
                                                     <FontAwesomeIcon color='white' icon={faClockFour} size={Number(fontSize) + 4} />
-                                                    {event.nhacNho && (
+                                                    {/* {event.nhacNho && (
                                                         <Text style={{ fontSize: Number(fontSize) }} className="text-white ml-2">Đã nhắc nhở</Text>
-                                                    )}
+                                                    )} */}
                                                 </Pressable>
                                                 <Pressable
                                                     onPress={() => { setModelEdit(true); setSelectedEvent(event); }}
