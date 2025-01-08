@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, Pressable, Linking, Alert } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import axiosInstance from '../../utils/axiosInstance';
-import { accountDuyetLichRoute, accountRoute, eventRoute, lichCaNhanRoute, publicfolder, sendSMSRoute } from '../../api/baseURL';
+import { accountDuyetLichRoute, accountRoute, eventRoute, lichCaNhanRoute, publicfolder, sendSMSRoute, thongBaoNhacNhoRoute } from '../../api/baseURL';
 import Toast from 'react-native-toast-message';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faDownload } from '@fortawesome/free-solid-svg-icons/faDownload';
@@ -33,6 +33,21 @@ Notifications.setNotificationHandler({
     }),
 });
 
+const fetchThongBaoNhacNho = async (eventId, userId) => {
+    try {
+        const response = await axiosInstance.get(thongBaoNhacNhoRoute.findByEventIdAndAccountId, {
+            params: {
+                eventId: eventId, // Truyền eventId vào API
+                accountId: userId, // Truyền accountId vào API
+            },
+        });
+        return response.data; // Trả về dữ liệu nhắc nhở
+    } catch (error) {
+        console.error('Error fetching thongBaoNhacNho:', error);
+        return null; // Trả về null nếu có lỗi
+    }
+};
+
 const LichHopScreen = () => {
     const { highlightText } = useHighlightText();
     const { freshing, setFreshing } = useState(false);
@@ -51,6 +66,46 @@ const LichHopScreen = () => {
     const scrollViewRef = useRef(null);
     const [visibleDialog, setVisibleDialog] = useState(false);
     const viewMode = useViewModeStore(state => state.viewMode);
+    const [nhacNhoData, setNhacNhoData] = useState({});
+
+    const handleFetchNhacNho = async (event) => {
+        try {
+            const data = await fetchThongBaoNhacNho(event.id, user.id); // Fetch dữ liệu
+            return { eventId: event.id, data: data.eventId || null }; // Đảm bảo trả về đối tượng đúng cấu trúc
+        } catch (error) {
+            console.error('Lỗi khi fetch nhắc nhở:', error);
+            return { eventId: event.id, data: null }; // Trả về null nếu có lỗi
+        }
+    };
+
+    // Dùng useEffect để gọi handleFetchNhacNho cho mỗi event khi events thay đổi
+    useEffect(() => {
+        const fetchData = async () => {
+            setIsLoading(true); // Bắt đầu trạng thái loading
+            try {
+                // Gọi tất cả API cùng lúc bằng Promise.all
+                const results = await Promise.all(events.map(event => handleFetchNhacNho(event)));
+    
+                // Cập nhật dữ liệu nhắc nhở cho từng event
+                const newData = results.reduce((acc, result) => {
+                    if (result && result.eventId) { // Kiểm tra xem có eventId không
+                        acc[result.eventId] = result.data; // Cập nhật data cho eventId
+                    }
+                    return acc;
+                }, {});
+                console.log(newData)
+                
+                setNhacNhoData(newData); // Cập nhật state
+            } catch (error) {
+                console.error('Lỗi khi fetch dữ liệu:', error);
+            } finally {
+                setIsLoading(false); // Xong thì set lại trạng thái loading
+            }
+        };
+    
+        fetchData(); // Gọi fetchData khi events thay đổi
+    }, [events]);
+
     const showDialog = () => {
         setVisibleDialog(true);
     };
@@ -642,9 +697,17 @@ const LichHopScreen = () => {
                                                 className={`flex flex-row items-center p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}
                                             >
                                                 <FontAwesomeIcon color='white' icon={faClockFour} size={14} />
+                                                {/* Gọi api */}
+
+                                                
                                                 {/* {event.nhacNho && (
                                                     <Text style={{ fontSize: 10 }} className="text-white ml-2">Đã nhắc nhở</Text>
                                                 )} */}
+                                                {nhacNhoData[event.id] && (
+                                                    <Text style={{ fontSize: 10 }} className="text-white ml-2">
+                                                        {nhacNhoData[event.id] && 'Đã nhắc nhở' }
+                                                    </Text>
+                                                )}
                                             </Pressable>
                                             {/* Chỉnh sửa */}
                                             {(hasAccess(screenUrls.ChinhSuaLichHop, userAllowedUrls) || user?.vaiTro == 'admin') && event.trangThai !== 'dangKy' &&
@@ -921,6 +984,11 @@ const LichHopScreen = () => {
                                                             {/* {event.nhacNho && (
                                                                 <Text style={{ fontSize: Number(fontSize) }} className="text-white ml-2">Đã nhắc nhở</Text>
                                                             )} */}
+                                                            {nhacNhoData[event.id] && (
+                                                                <Text style={{ fontSize: 10 }} className="text-white ml-2">
+                                                                    {nhacNhoData[event.id] ? 'Đã nhắc nhở' : ''}
+                                                                </Text>
+                                                            )}
                                                         </Pressable>
                                                         {/* Chỉnh sửa */}
                                                         {(hasAccess(screenUrls.ChinhSuaLichHop, userAllowedUrls) || user?.vaiTro == 'admin') && event.trangThai !== 'dangKy' &&
@@ -980,6 +1048,7 @@ const LichHopScreen = () => {
                 onClose={handleModalClose}
                 onSelectReminder={handleReminderSelect}
                 event={selectedEvent}
+                user={user}
             />
             {/* Button thêm mới */}
             {(hasAccess(screenUrls.ThemLichHop, userAllowedUrls) || user?.vaiTro == 'admin') &&

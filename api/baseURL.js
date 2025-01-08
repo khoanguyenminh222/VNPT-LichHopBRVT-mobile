@@ -127,6 +127,21 @@ const accountDuyetLichRoute = {
 const sendSMSRoute = {
     sendSMS: `${domain}/api/admin/sendsms`
 }
+
+const thongBaoNhacNhoRoute = {
+    findByEventIdAndAccountId: `${domain}/api/admin/thongBaoNhacNho`,
+    create: `${domain}/api/admin/thongBaoNhacNho`,
+    update: `${domain}/api/admin/thongBaoNhacNho`, // /:id body là thongBaoNhacNho
+    delete: `${domain}/api/admin/thongBaoNhacNho`, // /:id
+}
+
+const thongBaoNhacNhoLichCaNhanRoute = {
+    findByEventIdAndAccountId: `${domain}/api/admin/thongBaoNhacNhoLichCaNhan`,
+    create: `${domain}/api/admin/thongBaoNhacNhoLichCaNhan`,
+    update: `${domain}/api/admin/thongBaoNhacNhoLichCaNhan`, // /:id body là thongBaoNhacNho
+    delete: `${domain}/api/admin/thongBaoNhacNhoLichCaNhan`, // /:id
+}
+
 export {
     domain,
     publicfolder,
@@ -147,5 +162,7 @@ export {
     diaDiemHopRoute,
     thanhPhanThamDuRoute,
     accountDuyetLichRoute,
-    sendSMSRoute
+    sendSMSRoute,
+    thongBaoNhacNhoRoute,
+    thongBaoNhacNhoLichCaNhanRoute
 };

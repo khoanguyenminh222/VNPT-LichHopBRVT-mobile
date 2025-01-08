@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, Pressable, Linking, Alert } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import axiosInstance from '../../utils/axiosInstance';
-import { lichCaNhanRoute, publicfolder } from '../../api/baseURL';
+import { lichCaNhanRoute, publicfolder, thongBaoNhacNhoLichCaNhanRoute } from '../../api/baseURL';
 import Toast from 'react-native-toast-message';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faDownload } from '@fortawesome/free-solid-svg-icons/faDownload';
@@ -24,6 +24,21 @@ Notifications.setNotificationHandler({
     }),
 });
 
+const fetchThongBaoNhacNho = async (eventId, userId) => {
+    try {
+        const response = await axiosInstance.get(thongBaoNhacNhoLichCaNhanRoute.findByEventIdAndAccountId, {
+            params: {
+                eventId: eventId, // Truyền eventId vào API
+                accountId: userId, // Truyền accountId vào API
+            },
+        });
+        return response.data; // Trả về dữ liệu nhắc nhở
+    } catch (error) {
+        console.error('Error fetching thongBaoNhacNho:', error);
+        return null; // Trả về null nếu có lỗi
+    }
+};
+
 const LichCaNhanScreen = () => {
     const { highlightText } = useHighlightText();
     const { fontSize } = useFontSize();
@@ -40,6 +55,46 @@ const LichCaNhanScreen = () => {
     const scrollViewRef = useRef(null);
 
     const [eventNotifications, setEventNotifications] = useState({}); // State lưu id thông báo của sự kiện
+
+    const [nhacNhoData, setNhacNhoData] = useState({});
+
+    const handleFetchNhacNho = async (event) => {
+        try {
+            const data = await fetchThongBaoNhacNho(event.id, user.id); // Fetch dữ liệu
+            return { eventId: event.id, data: data.eventId || null }; // Đảm bảo trả về đối tượng đúng cấu trúc
+        } catch (error) {
+            console.error('Lỗi khi fetch nhắc nhở:', error);
+            return { eventId: event.id, data: null }; // Trả về null nếu có lỗi
+        }
+    };
+
+    // Dùng useEffect để gọi handleFetchNhacNho cho mỗi event khi events thay đổi
+    useEffect(() => {
+        const fetchData = async () => {
+            setIsLoading(true); // Bắt đầu trạng thái loading
+            try {
+                // Gọi tất cả API cùng lúc bằng Promise.all
+                const results = await Promise.all(events.map(event => handleFetchNhacNho(event)));
+    
+                // Cập nhật dữ liệu nhắc nhở cho từng event
+                const newData = results.reduce((acc, result) => {
+                    if (result && result.eventId) { // Kiểm tra xem có eventId không
+                        acc[result.eventId] = result.data; // Cập nhật data cho eventId
+                    }
+                    return acc;
+                }, {});
+                console.log(newData)
+                
+                setNhacNhoData(newData); // Cập nhật state
+            } catch (error) {
+                console.error('Lỗi khi fetch dữ liệu:', error);
+            } finally {
+                setIsLoading(false); // Xong thì set lại trạng thái loading
+            }
+        };
+    
+        fetchData(); // Gọi fetchData khi events thay đổi
+    }, [events]);
 
     // Hàm hỗ trợ để lấy ngày bắt đầu và ngày kết thúc của tuần hiện tại
     const getWeekDates = (date) => {
@@ -325,7 +380,7 @@ const LichCaNhanScreen = () => {
         const notificationId = await Notifications.scheduleNotificationAsync({
             content: {
                 title: "Nhắc nhở họp",
-                body: `Cuộc họp "${event.noiDungCuocHop}" sẽ diễn ra lúc ${event.ngayBatDau} ${event.gioBatDau}.`,
+                body: `Cuộc họp "${event.chuDe}" sẽ diễn ra lúc ${event.ngayBatDau} ${event.gioBatDau}.`,
                 sound: true,
             },
             trigger: { date: reminderTime },
@@ -336,11 +391,18 @@ const LichCaNhanScreen = () => {
             ...prev,
             [event.id]: notificationId,
         }));
-
+        await Notifications.scheduleNotificationAsync({
+            content: {
+                title: "Đã đặt nhắc nhở",
+                body: `Nhắc nhở sự kiện "${event.chuDe}" sẽ được gửi trước ${minutes} phút.`,
+                sound: true,
+            },
+            trigger: null,
+        });
         Toast.show({
             type: 'success',
             text1: 'Đã đặt nhắc nhở',
-            text2: `Nhắc nhở sự kiện "${event.noiDungCuocHop}" sẽ được gửi trước ${minutes} phút.`,
+            text2: `Nhắc nhở sự kiện "${event.chuDe}" sẽ được gửi trước ${minutes} phút.`,
             position: 'top',
             visibilityTime: 3000,
         });
@@ -539,6 +601,11 @@ const LichCaNhanScreen = () => {
                                                     {/* {event.nhacNho && (
                                                         <Text style={{ fontSize: Number(fontSize) }} className="text-white ml-2">Đã nhắc nhở</Text>
                                                     )} */}
+                                                    {nhacNhoData[event.id] && (
+                                                        <Text style={{ fontSize: 10 }} className="text-white ml-2">
+                                                            {nhacNhoData[event.id] && 'Đã nhắc nhở'}
+                                                        </Text>
+                                                    )}
                                                 </Pressable>
                                                 <Pressable
                                                     onPress={() => { setModelEdit(true); setSelectedEvent(event); }}
@@ -566,6 +633,8 @@ const LichCaNhanScreen = () => {
                     onClose={handleModalClose}
                     onSelectReminder={handleReminderSelect}
                     event={selectedEvent}
+                    user={user}
+                    isLichCaNhan={true}
                 />
                 <LichCaNhanModal
                     visible={modelEdit}
