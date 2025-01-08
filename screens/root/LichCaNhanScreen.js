@@ -39,6 +39,8 @@ const LichCaNhanScreen = () => {
     const [modelEdit, setModelEdit] = useState(false);
     const scrollViewRef = useRef(null);
 
+    const [eventNotifications, setEventNotifications] = useState({}); // State lưu id thông báo của sự kiện
+
     // Hàm hỗ trợ để lấy ngày bắt đầu và ngày kết thúc của tuần hiện tại
     const getWeekDates = (date) => {
         const startDate = new Date(date);
@@ -280,6 +282,12 @@ const LichCaNhanScreen = () => {
 
     // // Xử lý khi chọn nhắc nhở
     const handleReminderSelect = async (event, minutes) => {
+        // Kiểm tra event đã qua hay chưa
+        const eventDateTime = new Date(`${event.ngayBatDau}T${event.gioBatDau}`);
+        if (eventDateTime < new Date()) {
+            Alert.alert('Không thể đặt nhắc nhở', 'Sự kiện đã qua, không thể đặt nhắc nhở cho sự kiện đã qua.');
+            return;
+        }
         // Kiểm tra quyền
         const { status } = await Notifications.getPermissionsAsync();
         if (status !== 'granted') {
@@ -287,42 +295,79 @@ const LichCaNhanScreen = () => {
             return;
         }
 
-        const eventDateTime = new Date(`${event.ngayBatDau}T${event.gioBatDau}`);
         const reminderTime = new Date(eventDateTime.getTime() - minutes * 60 * 1000);
+        if (reminderTime < new Date()) {
+            Alert.alert('Không thể đặt nhắc nhở', 'Thời gian nhắc nhở đã qua, không thể đặt nhắc nhở cho sự kiện đã qua.');
+            return;
+        }
 
-        await Notifications.scheduleNotificationAsync({
+        try {
+            const response = await axiosInstance.put(`${lichCaNhanRoute.update}/${event.id}`, { nhacNho: minutes });
+            if (response.status < 200 || response.status >= 300) {
+                throw new Error("Error updating reminder");
+            }
+            fetchEvents();
+        } catch (error) {
+            console.error("Error updating reminder:", error);
+            Toast.show({
+                type: 'error',
+                text1: 'Lỗi',
+                text2: 'Có lỗi xảy ra khi lưu nhắc nhở'
+            });
+            return;
+        }
+
+        // Nếu đã có thông báo cho sự kiện này, xóa thông báo cũ
+        if (eventNotifications[event.id]) {
+            await Notifications.cancelScheduledNotificationAsync(eventNotifications[event.id]);
+        }
+
+        const notificationId = await Notifications.scheduleNotificationAsync({
             content: {
                 title: "Nhắc nhở họp",
-                body: `Cuộc họp "${event.chuDe}" sẽ diễn ra trong ${minutes} phút.`,
+                body: `Cuộc họp "${event.noiDungCuocHop}" sẽ diễn ra lúc ${event.ngayBatDau} ${event.gioBatDau}.`,
                 sound: true,
             },
             trigger: { date: reminderTime },
         });
 
+        // Lưu notificationId mới nhất vào state
+        setEventNotifications((prev) => ({
+            ...prev,
+            [event.id]: notificationId,
+        }));
+
         Toast.show({
             type: 'success',
             text1: 'Đã đặt nhắc nhở',
-            text2: `Nhắc nhở sự kiện "${event.chuDe}" sẽ được gửi trước ${minutes} phút.`,
+            text2: `Nhắc nhở sự kiện "${event.noiDungCuocHop}" sẽ được gửi trước ${minutes} phút.`,
             position: 'top',
             visibilityTime: 3000,
         });
-        setModalVisible(false);
+        handleModalClose();
     };
-
-    // Gọi hàm kiểm tra và yêu cầu quyền khi ứng dụng mở
-    useEffect(() => {
-        const requestPermissions = async () => {
-            const { status } = await Notifications.requestPermissionsAsync();
-            if (status !== 'granted') {
-                alert('Cần cấp quyền thông báo để nhận nhắc nhở sự kiện.');
-            }
-        };
-        requestPermissions();
-    }, []);
 
     // Đóng modal nhắc nhở
     const handleModalClose = () => {
         setModalVisible(false);
+        setSelectedEvent({
+            noiDungCuocHop: "",
+            chuTri: "",
+            chuanBi: "",
+            thanhPhan: "",
+            ghiChuThanhPhan: "",
+            moi: "",
+            diaDiem: "Ngoài cơ quan",
+            ghiChu: "",
+            ngayBatDau: new Date().toISOString().split('T')[0],
+            gioBatDau: "08:00",
+            ngayKetThuc: new Date().toISOString().split('T')[0],
+            gioKetThuc: "09:00",
+            fileDinhKem: "",
+            trangThai: "",
+            accountId: user?.id,
+            quanTrong: 0,
+        });
     };
 
     // Hàm kiểm tra JSON và trả về mảng file hoặc mảng rỗng
@@ -489,8 +534,11 @@ const LichCaNhanScreen = () => {
                                                 </Pressable>
                                                 <Pressable
                                                     onPress={() => { setModalVisible(true); setSelectedEvent(event); }}
-                                                    className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}>
+                                                    className={`flex flex-row items-center p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}>
                                                     <FontAwesomeIcon color='white' icon={faClockFour} size={Number(fontSize) + 4} />
+                                                    {event.nhacNho && (
+                                                        <Text style={{ fontSize: Number(fontSize) }} className="text-white ml-2">Đã nhắc nhở</Text>
+                                                    )}
                                                 </Pressable>
                                                 <Pressable
                                                     onPress={() => { setModelEdit(true); setSelectedEvent(event); }}
@@ -522,7 +570,7 @@ const LichCaNhanScreen = () => {
                 <LichCaNhanModal
                     visible={modelEdit}
                     selectedEvent={selectedEvent}
-                    onClose={() => { setModelEdit(false); setSelectedEvent(null) }}
+                    onClose={() => { setModelEdit(false); }}
                     onCancle={handleCancleEvent}
                     onSave={handleSaveEdit}
                     onDelete={handleDeleteEvent}

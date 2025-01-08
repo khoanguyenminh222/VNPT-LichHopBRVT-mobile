@@ -63,6 +63,8 @@ const LichHopScreen = () => {
         setRefreshing(true);
         fetchEvents().then(() => setRefreshing(false));
     }
+    const [eventNotifications, setEventNotifications] = useState({}); // State lưu id thông báo của sự kiện
+
     const [isAccountDuyetLich, setIsAccountDuyetLich] = useState(false);
     useEffect(() => {
         const checkAccountDuyetLich = async () => {
@@ -377,6 +379,12 @@ const LichHopScreen = () => {
 
     // // Xử lý khi chọn nhắc nhở
     const handleReminderSelect = async (event, minutes) => {
+        // Kiểm tra event đã qua hay chưa
+        const eventDateTime = new Date(`${event.ngayBatDau}T${event.gioBatDau}`);
+        if (eventDateTime < new Date()) {
+            Alert.alert('Không thể đặt nhắc nhở', 'Sự kiện đã qua, không thể đặt nhắc nhở cho sự kiện đã qua.');
+            return;
+        }
         // Kiểm tra quyền
         const { status } = await Notifications.getPermissionsAsync();
         if (status !== 'granted') {
@@ -384,17 +392,47 @@ const LichHopScreen = () => {
             return;
         }
 
-        const eventDateTime = new Date(`${event.ngayBatDau}T${event.gioBatDau}`);
         const reminderTime = new Date(eventDateTime.getTime() - minutes * 60 * 1000);
+        if (reminderTime < new Date()) {
+            Alert.alert('Không thể đặt nhắc nhở', 'Thời gian nhắc nhở đã qua, không thể đặt nhắc nhở cho sự kiện đã qua.');
+            return;
+        }
 
-        await Notifications.scheduleNotificationAsync({
+        try {
+            const response = await axiosInstance.put(`${eventRoute.update}/${event.id}`, { nhacNho: minutes });
+            if (response.status < 200 || response.status >= 300) {
+                throw new Error("Error updating reminder");
+            }
+            fetchEvents();
+        } catch (error) {
+            console.error("Error updating reminder:", error);
+            Toast.show({
+                type: 'error',
+                text1: 'Lỗi',
+                text2: 'Có lỗi xảy ra khi lưu nhắc nhở'
+            });
+            return;
+        }
+
+        // Nếu đã có thông báo cho sự kiện này, xóa thông báo cũ
+        if (eventNotifications[event.id]) {
+            await Notifications.cancelScheduledNotificationAsync(eventNotifications[event.id]);
+        }
+
+        const notificationId = await Notifications.scheduleNotificationAsync({
             content: {
                 title: "Nhắc nhở họp",
-                body: `Cuộc họp "${event.noiDungCuocHop}" sẽ diễn ra trong ${minutes} phút.`,
+                body: `Cuộc họp "${event.noiDungCuocHop}" sẽ diễn ra lúc ${event.ngayBatDau} ${event.gioBatDau}.`,
                 sound: true,
             },
             trigger: { date: reminderTime },
         });
+
+        // Lưu notificationId mới nhất vào state
+        setEventNotifications((prev) => ({
+            ...prev,
+            [event.id]: notificationId,
+        }));
 
         Toast.show({
             type: 'success',
@@ -403,7 +441,7 @@ const LichHopScreen = () => {
             position: 'top',
             visibilityTime: 3000,
         });
-        setModalVisible(false);
+        handleModalClose();
     };
 
     // Gọi hàm kiểm tra và yêu cầu quyền khi ứng dụng mở
@@ -420,6 +458,24 @@ const LichHopScreen = () => {
     // Đóng modal nhắc nhở
     const handleModalClose = () => {
         setModalVisible(false);
+        setSelectedEvent({
+            noiDungCuocHop: "",
+            chuTri: "",
+            chuanBi: "",
+            thanhPhan: "",
+            ghiChuThanhPhan: "",
+            moi: "",
+            diaDiem: "Ngoài cơ quan",
+            ghiChu: "",
+            ngayBatDau: new Date().toISOString().split('T')[0],
+            gioBatDau: "08:00",
+            ngayKetThuc: new Date().toISOString().split('T')[0],
+            gioKetThuc: "09:00",
+            fileDinhKem: "",
+            trangThai: "",
+            accountId: user?.id,
+            quanTrong: 0,
+        });
     };
 
     // Hàm kiểm tra JSON và trả về mảng file hoặc mảng rỗng
@@ -793,10 +849,13 @@ const LichHopScreen = () => {
                                                         {/* Nhắc nhở */}
                                                         <Pressable
                                                             onPress={() => { setModalVisible(true); setSelectedEvent(event); }}
-                                                            className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}
+                                                            className={`flex flex-row items-center p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}
                                                         >
                                                             <FontAwesomeIcon color='white' icon={faClockFour} size={Number(fontSize) + 4} />
-                                                        </Pressable>
+                                                            {event.nhacNho && (
+                                                        <Text style={{ fontSize: Number(fontSize) }} className="text-white ml-2">Đã nhắc nhở</Text>
+                                                    )}
+                                                </Pressable>
                                                         {/* Chỉnh sửa */}
                                                         {(hasAccess(screenUrls.ChinhSuaLichHop, userAllowedUrls) || user?.vaiTro == 'admin') && event.trangThai !== 'dangKy' &&
                                                             <Pressable
@@ -850,7 +909,7 @@ const LichHopScreen = () => {
             <LichHopModal
                 visible={modelEdit}
                 selectedEvent={selectedEvent}
-                onClose={() => { setModelEdit(false); setSelectedEvent(null); }}
+                onClose={() => { setModelEdit(false) }}
                 onCancle={handleCancleEvent}
                 onSave={handleSaveEdit}
                 onDelete={handleDeleteEvent}
