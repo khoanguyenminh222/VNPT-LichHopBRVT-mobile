@@ -92,9 +92,9 @@ const TabNavigator = ({ navigation }) => {
                         tabBarIcon: ({ focused }) => (
                             <IconButton icon="calendar-account" iconColor={focused ? colors.primary : colors.disabled} size={24} />
                         ),
-                        headerRight: () => (
-                            <Button onPress={() => alert('This is a button!')}>Info</Button>
-                        )
+                        // headerRight: () => (
+                        //     <Button onPress={() => alert('This is a button!')}>Info</Button>
+                        // )
                         // headerRight: () => (
                         //     <Button onPress={() => alert('This is a button!')}>Info</Button>
                         // )
