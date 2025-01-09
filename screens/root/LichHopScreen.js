@@ -943,7 +943,7 @@ const LichHopScreen = () => {
                                                     )}
 
                                                     {/* File đính kèm */}
-                                                    {event.fileDinhKem && (
+                                                    {event.fileDinhKem && event.trangThai !== 'huy' && (
                                                         <View className="mt-4">
                                                             <Text style={{ fontSize: Number(fontSize) }} className={`${event.trangThai === 'huy' ? 'text-gray-800' : event.trangThai == 'dangKy' ? 'text-purple-800' : event.quanTrong === 1 ? 'text-red-800' : 'text-blue-800'} font-semibold`}>File đính kèm</Text>
                                                             {parseFileAttachments(event.fileDinhKem).map((fileName, index) => (
