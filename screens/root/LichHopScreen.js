@@ -1062,7 +1062,7 @@ const LichHopScreen = () => {
             <LichHopModal
                 visible={modelEdit}
                 selectedEvent={selectedEvent}
-                onClose={() => { setModelEdit(false) }}
+                onClose={() => { setModelEdit(false), setSelectedEvent(null) }}
                 onCancle={handleCancleEvent}
                 onSave={handleSaveEdit}
                 onDelete={handleAcceptEvent}
