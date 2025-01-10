@@ -274,6 +274,7 @@ const LichHopScreen = () => {
                         content: 'Lich hop BRVT: [Trang thai: Xoa] ' + removeAccents(selectedEvent.noiDungCuocHop) + ' dien ra luc ' + new Date(`${selectedEvent.ngayBatDau}T${selectedEvent.gioBatDau}:00`).toLocaleString().replace('T', ' ').split('.')[0]
                     });
                 }
+                fetchEvents();
             } else {
                 Toast.show({
                     type: 'error',
