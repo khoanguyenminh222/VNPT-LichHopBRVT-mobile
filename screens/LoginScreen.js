@@ -477,7 +477,7 @@ const LoginScreen = ({ navigation }) => {
                                 {loading ? <ActivityIndicator color="#fff" /> : 'Đăng nhập'}
                             </Button>
                             <Button mode="text" onPress={handleLoginCAS} style={{ marginBottom: 10, width: '100%', maxWidth: 460 }}>
-                                Đăng nhập bằng CAS
+                                Đăng nhập bằng Mail Tập đoàn
                             </Button>
                         </View>
 

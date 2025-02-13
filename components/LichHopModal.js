@@ -6,7 +6,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import * as DocumentPicker from 'expo-document-picker';
 import Toast from 'react-native-toast-message';
 import axiosInstance from "../utils/axiosInstance";
-import { accountDuyetLichRoute, phanQuyenRoute, accountRoute, diaDiemHopRoute, eventRoute, lichCaNhanRoute, thanhPhanThamDuRoute, uploadFileRoute, sendSMSRoute } from "../api/baseURL";
+import { accountDuyetLichRoute, phanQuyenRoute, accountRoute, diaDiemHopRoute, eventRoute, lichCaNhanRoute, thanhPhanThamDuRoute, uploadFileRoute, sendSMSRoute, accountNhanSMSRoute } from "../api/baseURL";
 import unidecode from 'unidecode';
 import BouncyCheckbox from "react-native-bouncy-checkbox";
 import { Dropdown } from 'react-native-element-dropdown';
@@ -58,6 +58,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
     const [isAccountDuyetLich, setIsAccountDuyetLich] = useState(false);
     const [accountDuyetLich, setAccountDuyetLich] = useState([]);
     const [accountChinhSuaLich, setAccountChinhSuaLich] = useState([]);
+    const [accountNhanSMS, setAccountNhanSMS] = useState([]);
 
     useEffect(() => {
         const processAccountDuyetLich = async () => {
@@ -128,8 +129,11 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                 // Fetch ra các tài khoản có vaiTro là admin
                 const fetchAdminAccounts = await axiosInstance.get(accountRoute.findAll);
                 const adminAccounts = fetchAdminAccounts.data.filter(account => account.vaiTro === "admin").map(account => account.id);
+                // fetch ra tài khoản được cấu hình nhận sms
+                const fetchAccountNhanSMS = await axiosInstance.get(accountNhanSMSRoute.findAll);
+                const accountNhanSMS = fetchAccountNhanSMS.data.map(account => account.accountId);
                 // Gộp hai danh sách
-                const accountChinhSuaLich = [...new Set([...accountsWithSpecificUrl, ...adminAccounts])];
+                const accountChinhSuaLich = [...new Set([...accountsWithSpecificUrl, ...adminAccounts, ...accountNhanSMS])];
                 console.log("account chỉnh sửa lịch:", accountChinhSuaLich)
                 setAccountChinhSuaLich(accountChinhSuaLich);
             } catch (error) {
@@ -237,6 +241,26 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
             });
         }
     };
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                // fetch ra tài khoản accountNhanSMS
+                const fetchAccountNhanSMS = await axiosInstance.get(accountNhanSMSRoute.findAll);
+                const accountNhanSMS = fetchAccountNhanSMS.data.map(account => account.accountId);
+                console.log(accountNhanSMS)
+                setAccountNhanSMS(accountNhanSMS);
+            } catch (error) {
+                console.error('Failed to fetch accounts for duyet lich:', error);
+                const errorMessage = error.response ? error.response.data.message : error.message;
+                Toast.show({
+                    type: 'error',
+                    text1: errorMessage,
+                });
+            }
+        };
+        fetchData();
+    }, []);
 
     useEffect(() => {
         // Cập nhật editedEvent khi selectedEvent thay đổi
@@ -426,7 +450,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                         //console.log(removeAccents(data.noiDungCuocHop))
                         // Gửi SMS cho tài khoản này
                         try {
-                            if (selectedEvent.accountId != user.id) {
+                            if (accountId != user.id) {
                                 await axiosInstance.post(sendSMSRoute.sendSMS, {
                                     phonenumber: account.phone,
                                     content: 'Lich hop BRVT: [Trang thai: Chinh Sua] ' + removeAccents(editedEvent.noiDungCuocHop) + ' dien ra luc ' + new Date(`${editedEvent.ngayBatDau}T${editedEvent.gioBatDau}:00`).toLocaleString().replace('T', ' ').split('.')[0]
@@ -470,14 +494,44 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                     type: 'success',
                     text1: response.data.message,
                 });
+                const responseAccount = await axiosInstance.get(accountRoute.findById + "/" + selectedEvent.accountId);
+                const accountExisted = responseAccount.data.id
                 if (selectedEvent.accountId != user.id) {
                     console.log("gửi sms");
-                    const responseAccount = await axiosInstance.get(accountRoute.findById + "/" + selectedEvent.accountId);
                     await axiosInstance.post(sendSMSRoute.sendSMS, {
                         phonenumber: responseAccount.data.phone,
                         content: 'Lich hop BRVT: [Trang thai: Xoa] ' + removeAccents(selectedEvent.noiDungCuocHop) + ' dien ra luc ' + new Date(`${selectedEvent.ngayBatDau}T${selectedEvent.gioBatDau}:00`).toLocaleString().replace('T', ' ').split('.')[0]
                     });
                 }
+                const smsPromises = accountNhanSMS.map(async (accountId) => {
+                    // Lấy thông tin tài khoản từ API theo accountId
+                    const responseAccount = await axiosInstance.get(accountRoute.findById + "/" + accountId);
+                    const account = responseAccount.data;
+
+                    // Kiểm tra nếu tài khoản đã tồn tại trong danh sách tài khoản đã gửi SMS
+                    if (accountExisted == accountId) {
+                        return;
+                    }
+                    // Nếu account.phone null thì bỏ qua
+                    if (!account.phone) {
+                        return;
+                    }
+                    //console.log(removeAccents(data.noiDungCuocHop))
+                    // Gửi SMS cho tài khoản này
+                    try {
+                        await axiosInstance.post(sendSMSRoute.sendSMS, {
+                            phonenumber: account.phone,
+                            content: 'Lich hop BRVT: [Trang thai: Xoa] ' + removeAccents(selectedEvent.noiDungCuocHop) + ' dien ra luc ' + new Date(`${selectedEvent.ngayBatDau}T${selectedEvent.gioBatDau}:00`).toLocaleString().replace('T', ' ').split('.')[0]
+                        });
+                    } catch (error) {
+                        // Nếu có lỗi trong quá trình gửi SMS
+                        Toast.show({
+                            type: 'error',
+                            text1: 'Gửi SMS thất bại cho ' + account.phone,
+                        });
+                    }
+                });
+                await Promise.all(smsPromises);
                 handleCloseModal();
                 onDelete();
             } else {
@@ -539,6 +593,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                 });
                 // Gửi SMS
                 const responseAccount = await axiosInstance.get(accountRoute.findById + "/" + selectedEvent.accountId);
+                const accountExisted = responseAccount.data.id;
                 if (selectedEvent.accountId != user.id) {
                     console.log("gửi sms");
                     await axiosInstance.post(sendSMSRoute.sendSMS, {
@@ -546,6 +601,35 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                         content: 'Lich hop BRVT: [Trang thai: Duyet] ' + removeAccents(selectedEvent.noiDungCuocHop) + ' dien ra luc ' + new Date(`${selectedEvent.ngayBatDau}T${selectedEvent.gioBatDau}:00`).toLocaleString().replace('T', ' ').split('.')[0]
                     });
                 }
+                const smsPromises = accountNhanSMS.map(async (accountId) => {
+                    // Lấy thông tin tài khoản từ API theo accountId
+                    const responseAccount = await axiosInstance.get(accountRoute.findById + "/" + accountId);
+                    const account = responseAccount.data;
+
+                    // Kiểm tra nếu tài khoản đã tồn tại trong danh sách tài khoản đã gửi SMS
+                    if (accountExisted == accountId) {
+                        return;
+                    }
+                    // Nếu account.phone null thì bỏ qua
+                    if (!account.phone) {
+                        return;
+                    }
+                    //console.log(removeAccents(data.noiDungCuocHop))
+                    // Gửi SMS cho tài khoản này
+                    try {
+                        await axiosInstance.post(sendSMSRoute.sendSMS, {
+                            phonenumber: account.phone,
+                            content: 'Lich hop BRVT: [Trang thai: Duyet] ' + removeAccents(selectedEvent.noiDungCuocHop) + ' dien ra luc ' + new Date(`${selectedEvent.ngayBatDau}T${selectedEvent.gioBatDau}:00`).toLocaleString().replace('T', ' ').split('.')[0]
+                        });
+                    } catch (error) {
+                        // Nếu có lỗi trong quá trình gửi SMS
+                        Toast.show({
+                            type: 'error',
+                            text1: 'Gửi SMS thất bại cho ' + account.phone,
+                        });
+                    }
+                });
+                await Promise.all(smsPromises);
                 handleCloseModal();
                 onAccept();
             } else {
@@ -596,6 +680,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                     text1: response.data.message,
                 });
                 const responseAccount = await axiosInstance.get(accountRoute.findById + "/" + selectedEvent.accountId);
+                const accountExisted = responseAccount.data.id;
                 if (selectedEvent.accountId != user.id) {
                     console.log("gửi sms");
                     await axiosInstance.post(sendSMSRoute.sendSMS, {
@@ -603,6 +688,35 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                         content: 'Lich hop BRVT: [Trang thai: Huy] ' + removeAccents(selectedEvent.noiDungCuocHop) + ' dien ra luc ' + new Date(`${selectedEvent.ngayBatDau}T${selectedEvent.gioBatDau}:00`).toLocaleString().replace('T', ' ').split('.')[0]
                     });
                 }
+                const smsPromises = accountNhanSMS.map(async (accountId) => {
+                    // Lấy thông tin tài khoản từ API theo accountId
+                    const responseAccount = await axiosInstance.get(accountRoute.findById + "/" + accountId);
+                    const account = responseAccount.data;
+
+                    // Kiểm tra nếu tài khoản đã tồn tại trong danh sách tài khoản đã gửi SMS
+                    if (accountExisted == accountId) {
+                        return;
+                    }
+                    // Nếu account.phone null thì bỏ qua
+                    if (!account.phone) {
+                        return;
+                    }
+                    //console.log(removeAccents(data.noiDungCuocHop))
+                    // Gửi SMS cho tài khoản này
+                    try {
+                        await axiosInstance.post(sendSMSRoute.sendSMS, {
+                            phonenumber: account.phone,
+                            content: 'Lich hop BRVT: [Trang thai: Huy] ' + removeAccents(selectedEvent.noiDungCuocHop) + ' dien ra luc ' + new Date(`${selectedEvent.ngayBatDau}T${selectedEvent.gioBatDau}:00`).toLocaleString().replace('T', ' ').split('.')[0]
+                        });
+                    } catch (error) {
+                        // Nếu có lỗi trong quá trình gửi SMS
+                        Toast.show({
+                            type: 'error',
+                            text1: 'Gửi SMS thất bại cho ' + account.phone,
+                        });
+                    }
+                });
+                await Promise.all(smsPromises);
                 handleCloseModal();
                 onCancle();
             } else {

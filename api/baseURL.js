@@ -142,6 +142,13 @@ const thongBaoNhacNhoLichCaNhanRoute = {
     delete: `${domain}/api/admin/thongBaoNhacNhoLichCaNhan`, // /:id
 }
 
+const accountNhanSMSRoute = {
+    findAll: `${domain}/api/admin/accountNhanSMS`,
+    create: `${domain}/api/admin/accountNhanSMS`,
+    update: `${domain}/api/admin/accountNhanSMS`, // /:id body là accountNhanSMS
+    delete: `${domain}/api/admin/accountNhanSMS`, // /:id
+}
+
 export {
     domain,
     publicfolder,
@@ -164,5 +171,6 @@ export {
     accountDuyetLichRoute,
     sendSMSRoute,
     thongBaoNhacNhoRoute,
-    thongBaoNhacNhoLichCaNhanRoute
+    thongBaoNhacNhoLichCaNhanRoute,
+    accountNhanSMSRoute
 };
