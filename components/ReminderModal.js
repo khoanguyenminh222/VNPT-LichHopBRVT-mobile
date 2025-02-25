@@ -106,7 +106,7 @@ const ReminderModal = ({ visible, onClose, onSelectReminder, event, user, isLich
                             }
                         }
                     );
-                    console.log("data:", response.data)
+                    //console.log("data:", response.data)
                     if (response.data) {
                         await axiosInstance.put(thongBaoNhacNhoLichCaNhanRoute.update + "/" + response.data.id, {
                             nhacNho: selectedReminder,
@@ -131,7 +131,7 @@ const ReminderModal = ({ visible, onClose, onSelectReminder, event, user, isLich
                             }
                         }
                     );
-                    console.log("data:", response.data)
+                    //console.log("data:", response.data)
                     if (response.data) {
                         await axiosInstance.put(thongBaoNhacNhoRoute.update + "/" + response.data.id, {
                             nhacNho: selectedReminder,

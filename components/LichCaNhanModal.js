@@ -16,7 +16,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
     const [editedEvent, setEditedEvent] = useState({
         loaiSuKien: "Sự kiện công việc",
         chuDe: "",
-        diaDiem: "Ngoài cơ quan",
+        diaDiem: "",
         noiDung: "",
         ngayBatDau: new Date().toISOString().split('T')[0],
         gioBatDau: "08:00",
@@ -28,7 +28,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
         quanTrong: 0,
     });
     const [attachedFiles, setAttachedFiles] = useState([]);
-
+    const [isGioKetThucVisible, setIsGioKetThucVisible] = useState(false);
     const [diaDiemHops, setDiaDiemHops] = useState([]);
 
     // Hàm mở DateTimePicker
@@ -64,17 +64,18 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
             setEditedEvent({
                 loaiSuKien: selectedEvent.loaiSuKien || "Sự kiện công việc",
                 chuDe: selectedEvent.chuDe || "",
-                diaDiem: selectedEvent.diaDiem || "Ngoài cơ quan",
+                diaDiem: selectedEvent.diaDiem || "",
                 noiDung: selectedEvent.noiDung || "",
                 ngayBatDau: selectedEvent.ngayBatDau || "",
                 gioBatDau: selectedEvent.gioBatDau || "",
                 ngayKetThuc: selectedEvent.ngayKetThuc || "",
-                gioKetThuc: selectedEvent.gioKetThuc || "",
+                gioKetThuc: selectedEvent.gioKetThuc != 'Inval' && selectedEvent.gioKetThuc !=null ? selectedEvent.gioKetThuc : null,
                 accountId: user?.id,
                 fileDinhKem: selectedEvent.fileDinhKem || "",
                 trangThai: selectedEvent.trangThai || "duyet",
                 quanTrong: selectedEvent.quanTrong || 0,
             });
+            setIsGioKetThucVisible(selectedEvent.gioKetThuc ? true : false);
         }
         setErrors({});
         fetchDiaDiemHops();
@@ -395,7 +396,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                     });
                 }
             });
-    
+
             // Chờ tất cả các Promise hoàn thành
             await Promise.all(smsPromises);
             handleCloseModal(); // Đóng modal
@@ -458,7 +459,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
             formattedValue = selectedDate.toISOString().split('T')[0]; // YYYY-MM-DD
         } else if (field?.includes('gio') || (pickerMode === "time" && Platform.OS !== 'ios')) {
             // Nếu trường là Giờ
-            formattedValue = selectedDate.toTimeString().split(' ')[0].substring(0, 5); // HH:mm
+            formattedValue = selectedDate ? selectedDate.toTimeString().split(' ')[0].substring(0, 5) : ""; // HH:mm
         }
 
         if (field) {
@@ -608,7 +609,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
         setEditedEvent({
             loaiSuKien: "Sự kiện công việc",
             chuDe: "",
-            diaDiem: "Ngoài cơ quan",
+            diaDiem: "",
             noiDung: "",
             ngayBatDau: new Date().toISOString().split('T')[0],
             gioBatDau: "08:00",
@@ -687,7 +688,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                         {/* Địa điểm */}
                         <View className="mb-2">
                             <View className="border rounded-md w-full relative">
-                                <Text className="absolute left-3 -top-3 bg-white text-sm px-1">Địa điểm *</Text>
+                                <Text className="absolute left-3 -top-3 bg-white text-sm px-1">Địa điểm, phương tiện *</Text>
                                 <Dropdown
                                     data={diaDiemHops}
                                     labelField="label"
@@ -700,6 +701,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                                     style={{ padding: 10 }}
                                     disable={editedEvent.trangThai === "dangKy"}
                                 />
+                                {errors.diaDiem && <Text className="text-red-500 text-sm ml-2">{errors.diaDiem}</Text>}
                             </View>
                         </View>
                         {/* Nội dung */}
@@ -724,6 +726,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                                 <View className="flex flex-row justify-start items-center">
                                     <Text className="text-base font-semibold w-1/4">Ngày giờ bắt đầu *</Text>
                                     <DateTimePicker
+                                        style={{ width: '33%' }}
                                         value={editedEvent.ngayBatDau ? new Date(editedEvent.ngayBatDau) : new Date().toISOString().split('T')[0]}
                                         mode="date"
                                         display="default"
@@ -732,6 +735,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                                         disabled={editedEvent.trangThai === "dangKy"}
                                     />
                                     <DateTimePicker
+                                        style={{ width: '33%' }}
                                         value={editedEvent.gioBatDau ? new Date(`2000-01-01T${editedEvent.gioBatDau}:00`) : '08:00'}
                                         mode="time"
                                         display="default"
@@ -766,25 +770,41 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                         <View className="mb-4">
                             {/* Nếu platform là ios thì hiện datetime picker */}
                             {Platform.OS === 'ios' ? (
-                                <View className="flex flex-row justify-start items-center">
-                                    <Text className="text-base font-semibold w-1/4">Ngày giờ kết thúc *</Text>
-                                    <DateTimePicker
-                                        value={editedEvent.ngayKetThuc ? new Date(editedEvent.ngayKetThuc) : new Date().toISOString().split('T')[0]}
-                                        mode="date"
-                                        display="default"
-                                        onChange={(event, date) => handleDatePickerChange('ngayKetThuc', event, date)}
-                                        locale="vi-VN"
-                                        disabled={editedEvent.trangThai === "dangKy"}
-                                    />
-                                    <DateTimePicker
-                                        value={editedEvent.gioKetThuc ? new Date(`2000-01-01T${editedEvent.gioKetThuc}:00`) : new Date().toTimeString().split(' ')[0].substring(0, 5)}
-                                        mode="time"
-                                        display="default"
-                                        onChange={(event, date) => handleDatePickerChange('gioKetThuc', event, date)}
-                                        locale="vi-VN"
-                                        disabled={editedEvent.trangThai === "dangKy"}
-                                    />
-                                </View>
+                                <>
+                                    <View className="flex flex-row justify-start items-center">
+                                        <Text className="text-base font-semibold w-1/4">Ngày giờ kết thúc *</Text>
+                                        <DateTimePicker
+                                            style={{ width: '33%' }}
+                                            value={editedEvent.ngayKetThuc ? new Date(editedEvent.ngayKetThuc) : new Date().toISOString().split('T')[0]}
+                                            mode="date"
+                                            display="default"
+                                            onChange={(event, date) => handleDatePickerChange('ngayKetThuc', event, date)}
+                                            locale="vi-VN"
+                                            disabled={editedEvent.trangThai === "dangKy"}
+                                        />
+                                        {isGioKetThucVisible && (
+                                            <DateTimePicker
+                                                style={{ width: '33%' }}
+                                                value={editedEvent.gioKetThuc ? new Date(`2000-01-01T${editedEvent.gioKetThuc}:00`) : new Date()}
+                                                mode="time"
+                                                display="default"
+                                                onChange={(event, date) => handleDatePickerChange('gioKetThuc', event, date)}
+                                                locale="vi-VN"
+                                                disabled={editedEvent.trangThai === "dangKy"}
+                                            />
+                                        )}
+                                    </View>
+                                    {isGioKetThucVisible && (
+                                        <Pressable onPress={() => { setIsGioKetThucVisible(false); editedEvent.gioKetThuc = null }}>
+                                            <Text className="text-blue-500">Xoá thời gian kết thúc</Text>
+                                        </Pressable>
+                                    )}
+                                    {!isGioKetThucVisible && (
+                                        <Pressable onPress={() => { setIsGioKetThucVisible(true); editedEvent.gioKetThuc = new Date().toTimeString().slice(0, 5) }}>
+                                            <Text className="text-blue-500">Chọn thời gian kết thúc</Text>
+                                        </Pressable>
+                                    )}
+                                </>
                             ) : (
                                 <View className="flex flex-row justify-between items-center">
                                     <Pressable className="w-7/12" onPress={() => openPicker('date', 'ngayKetThuc', editedEvent.ngayKetThuc)} disabled={editedEvent.trangThai === "dangKy"}>

@@ -52,6 +52,8 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
     });
     const [attachedFiles, setAttachedFiles] = useState([]);
 
+    const [isGioKetThucVisible, setIsGioKetThucVisible] = useState(false);
+
     const [chuTris, setChuTris] = useState([]);
     const [diaDiemHops, setDiaDiemHops] = useState([]);
     const [thanhPhanThamDus, setThanhPhanThamDus] = useState([]);
@@ -131,8 +133,8 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                 // Lưu trạng thái của người dùng
                 setIsAccountDuyetLich(isAccountDuyetLich);
 
-                console.log('Danh sách tài khoản hợp lệ:', uniqueAccountDuyetLich);
-                console.log('Người dùng có quyền duyệt lịch:', isAccountDuyetLich);
+                //console.log('Danh sách tài khoản hợp lệ:', uniqueAccountDuyetLich);
+                //console.log('Người dùng có quyền duyệt lịch:', isAccountDuyetLich);
 
             } catch (error) {
                 console.error('Failed to fetch accounts for duyet lich:', error);
@@ -155,7 +157,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                 const accountNhanSMS = fetchAccountNhanSMS.data.map(account => account.accountId);
                 // Gộp hai danh sách
                 const accountChinhSuaLich = [...new Set([...accountsWithSpecificUrl, ...adminAccounts, ...accountNhanSMS])];
-                console.log("account chỉnh sửa lịch:", accountChinhSuaLich)
+                //console.log("account chỉnh sửa lịch:", accountChinhSuaLich)
                 setAccountChinhSuaLich(accountChinhSuaLich);
             } catch (error) {
                 console.error('Failed to fetch accounts for duyet lich:', error);
@@ -270,7 +272,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                 // fetch ra tài khoản accountNhanSMS
                 const fetchAccountNhanSMS = await axiosInstance.get(accountNhanSMSRoute.findAll);
                 const accountNhanSMS = fetchAccountNhanSMS.data.map(account => account.accountId);
-                console.log(accountNhanSMS)
+                //console.log(accountNhanSMS)
                 setAccountNhanSMS(accountNhanSMS);
             } catch (error) {
                 console.error('Failed to fetch accounts for duyet lich:', error);
@@ -299,12 +301,13 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                 ngayBatDau: selectedEvent.ngayBatDau,
                 gioBatDau: selectedEvent.gioBatDau,
                 ngayKetThuc: selectedEvent.ngayKetThuc,
-                gioKetThuc: selectedEvent.gioKetThuc!='Inval' ? selectedEvent.gioKetThuc : null,
+                gioKetThuc: selectedEvent.gioKetThuc != 'Inval' && selectedEvent.gioKetThuc !=null ? selectedEvent.gioKetThuc : null,
                 fileDinhKem: selectedEvent.fileDinhKem,
                 trangThai: selectedEvent.trangThai,
                 accountId: selectedEvent.accountId,
                 quanTrong: selectedEvent.quanTrong,
             });
+            setIsGioKetThucVisible(selectedEvent.gioKetThuc ? true : false);
         }
         setErrors({});
         fetchDiaDiemHops();
@@ -424,7 +427,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                         // Lấy thông tin tài khoản từ API theo accountId
                         const responseAccount = await axiosInstance.get(accountRoute.findById + "/" + accountId);
                         const account = responseAccount.data;
-    
+
                         // Nếu account.phone null thì bỏ qua
                         if (!account.phone) {
                             return;
@@ -444,7 +447,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                             });
                         }
                     });
-            
+
                     // Chờ tất cả các Promise hoàn thành
                     await Promise.all(smsPromises);
                 } else {
@@ -452,7 +455,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                         if (accountId == selectedEvent.accountId) {
                             const responseAccount = await axiosInstance.get(accountRoute.findById + "/" + selectedEvent.accountId);
                             if (selectedEvent.accountId != user.id) {
-                                console.log("gửi sms");
+                                //console.log("gửi sms");
                                 await axiosInstance.post(sendSMSRoute.sendSMS, {
                                     phonenumber: responseAccount.data.phone,
                                     content: 'Lich hop BRVT: [Trang thai: Chinh sua] ' + removeDiacritics(editedEvent.noiDungCuocHop) + ' dien ra luc ' + formatDateForSMS(new Date(`${editedEvent.ngayBatDau}T${editedEvent.gioBatDau}:00`))
@@ -490,7 +493,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                     // Chờ tất cả các Promise hoàn thành
                     await Promise.all(smsPromises);
                 }
-                
+
             } else {
                 Toast.show({
                     type: 'error',
@@ -498,7 +501,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                 });
             }
         } catch (error) {
-            console.log("1",error);
+            console.log("1", error);
             const errorMessage = error.response ? error.response.data.message : error.message;
             Toast.show({
                 type: 'error',
@@ -519,7 +522,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                 const responseAccount = await axiosInstance.get(accountRoute.findById + "/" + selectedEvent.accountId);
                 const accountExisted = responseAccount.data.id
                 if (selectedEvent.accountId != user.id) {
-                    console.log("gửi sms");
+                    //console.log("gửi sms");
                     if (responseAccount.data.phone) {
                         await axiosInstance.post(sendSMSRoute.sendSMS, {
                             phonenumber: responseAccount.data.phone,
@@ -620,14 +623,14 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                 const responseAccount = await axiosInstance.get(accountRoute.findById + "/" + selectedEvent.accountId);
                 const accountExisted = responseAccount.data.id;
                 if (selectedEvent.accountId != user.id) {
-                    console.log("gửi sms");
+                    //console.log("gửi sms");
                     if (responseAccount.data.phone) {
                         await axiosInstance.post(sendSMSRoute.sendSMS, {
                             phonenumber: responseAccount.data.phone,
                             content: 'Lich hop BRVT: [Trang thai: Duyet] ' + removeDiacritics(selectedEvent.noiDungCuocHop) + ' dien ra luc ' + formatDateForSMS(new Date(`${selectedEvent.ngayBatDau}T${selectedEvent.gioBatDau}:00`))
                         });
                     }
-                    
+
                 }
                 const smsPromises = accountNhanSMS.map(async (accountId) => {
                     // Lấy thông tin tài khoản từ API theo accountId
@@ -711,7 +714,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                 const responseAccount = await axiosInstance.get(accountRoute.findById + "/" + selectedEvent.accountId);
                 const accountExisted = responseAccount.data.id;
                 if (selectedEvent.accountId != user.id) {
-                    console.log("gửi sms");
+                    //console.log("gửi sms");
                     if (responseAccount.data.phone) {
                         await axiosInstance.post(sendSMSRoute.sendSMS, {
                             phonenumber: responseAccount.data.phone,
@@ -780,7 +783,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
             formattedValue = selectedDate.toISOString().split('T')[0]; // YYYY-MM-DD
         } else if (field?.includes('gio') || (pickerMode === "time" && Platform.OS !== 'ios')) {
             // Nếu trường là Giờ
-            formattedValue = selectedDate.toTimeString().split(' ')[0].substring(0, 5); // HH:mm
+            formattedValue = selectedDate ? selectedDate.toTimeString().split(' ')[0].substring(0, 5) : ""; // HH:mm
         }
 
         if (field) {
@@ -1093,7 +1096,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                 onChangeText={(text) => setEditedEvent({ ...editedEvent, ghiChuThanhPhan: text })}
                                 textAlignVertical="top"
                                 readOnly={editedEvent.trangThai === "dangKy"}
-                                style={{marginTop: 5}}
+                                style={{ marginTop: 5 }}
                             />
 
                             <TreeSelectModal
@@ -1134,7 +1137,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                     search={true}
                                     style={{ padding: 10 }}
                                     disable={editedEvent.trangThai === "dangKy"}
-                                    
+
                                 />
                                 {errors.diaDiem && <Text className="text-red-500 text-sm ml-2">{errors.diaDiem}</Text>}
                             </View>
@@ -1207,28 +1210,41 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                         <View className="mb-4">
                             {/* Nếu platform là ios thì hiện datetime picker */}
                             {Platform.OS === 'ios' ? (
-                                <View className="flex flex-row justify-start items-center">
-                                    <Text className="text-base font-semibold w-1/4">Ngày giờ kết thúc *</Text>
-                                    <DateTimePicker
-                                        style={{ width: '33%' }}
-                                        value={editedEvent.ngayKetThuc ? new Date(editedEvent.ngayKetThuc) : new Date().toISOString().split('T')[0]}
-                                        mode="date"
-                                        display="default"
-                                        onChange={(event, date) => handleDatePickerChange('ngayKetThuc', event, date)}
-                                        locale="vi-VN"
-                                        disabled={editedEvent.trangThai === "dangKy"}
-                                    />
-                                    <DateTimePicker
-                                        style={{ width: '33%' }}
-                                        value={editedEvent.gioKetThuc ? new Date(`2000-01-01T${editedEvent.gioKetThuc}:00`) : new Date().toTimeString().split(' ')[0].substring(0, 5)}
-                                        mode="time"
-                                        display="default"
-                                        onChange={(event, date) => handleDatePickerChange('gioKetThuc', event, date)}
-                                        locale="vi-VN"
-                                        disabled={editedEvent.trangThai === "dangKy"}
-                                    />
-                                </View>
-
+                                <>
+                                    <View className="flex flex-row justify-start items-center">
+                                        <Text className="text-base font-semibold w-1/4">Ngày giờ kết thúc *</Text>
+                                        <DateTimePicker
+                                            style={{ width: '33%' }}
+                                            value={editedEvent.ngayKetThuc ? new Date(editedEvent.ngayKetThuc) : new Date().toISOString().split('T')[0]}
+                                            mode="date"
+                                            display="default"
+                                            onChange={(event, date) => handleDatePickerChange('ngayKetThuc', event, date)}
+                                            locale="vi-VN"
+                                            disabled={editedEvent.trangThai === "dangKy"}
+                                        />
+                                        {isGioKetThucVisible && (
+                                            <DateTimePicker
+                                                style={{ width: '33%' }}
+                                                value={editedEvent.gioKetThuc ? new Date(`2000-01-01T${editedEvent.gioKetThuc}:00`) : new Date()}
+                                                mode="time"
+                                                display="default"
+                                                onChange={(event, date) => handleDatePickerChange('gioKetThuc', event, date)}
+                                                locale="vi-VN"
+                                                disabled={editedEvent.trangThai === "dangKy"}
+                                            />
+                                        )}
+                                    </View>
+                                    {isGioKetThucVisible && (
+                                        <Pressable onPress={() => { setIsGioKetThucVisible(false); editedEvent.gioKetThuc = null }}>
+                                            <Text className="text-blue-500">Xoá thời gian kết thúc</Text>
+                                        </Pressable>
+                                    )}
+                                    {!isGioKetThucVisible && (
+                                        <Pressable onPress={() => { setIsGioKetThucVisible(true); editedEvent.gioKetThuc = new Date().toTimeString().slice(0, 5) }}>
+                                            <Text className="text-blue-500">Chọn thời gian kết thúc</Text>
+                                        </Pressable>
+                                    )}
+                                </>
                             ) : (
                                 <View className="flex flex-row justify-between items-center">
                                     <Pressable className="w-7/12" onPress={() => openPicker('date', 'ngayKetThuc', editedEvent.ngayKetThuc)} disabled={editedEvent.trangThai === "dangKy"}>
