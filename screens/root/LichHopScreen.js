@@ -24,6 +24,7 @@ import { Divider } from 'react-native-paper';
 import { formatDate, getStartAndEndOfWeek } from '../../utils/dateTimeUtils';
 import sendSms from '../../utils/sendSms';
 import removeAccents from "remove-accents";
+import { getWeek, parse } from "date-fns";
 
 Notifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -32,6 +33,27 @@ Notifications.setNotificationHandler({
         shouldSetBadge: true,
     }),
 });
+
+const getWeekNumber = (date) => {
+    const today = date; // Lấy ngày hiện tại
+    const weekNumber = getWeek(today, { weekStartsOn: 1 }); // Tuần bắt đầu từ Thứ Hai
+    const formattedWeek = String(weekNumber).padStart(2, "0"); // Định dạng thành 2 chữ số
+    return formattedWeek + "/" + new Date().getFullYear();
+}
+
+export const formatDateForSMS = (date) => {
+    const d = date.getDate().toString().padStart(2, "0");
+    const m = (date.getMonth() + 1).toString().padStart(2, "0");
+    const y = date.getFullYear();
+    const h = date.getHours().toString().padStart(2, "0");
+    const min = date.getMinutes().toString().padStart(2, "0");
+    const s = date.getSeconds().toString().padStart(2, "0");
+    return `${h}:${min}:${s} ${d}/${m}/${y}`;
+};
+
+export const removeDiacritics = (str) => {
+    return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+};
 
 const fetchThongBaoNhacNho = async (eventId, userId) => {
     try {
@@ -271,7 +293,7 @@ const LichHopScreen = () => {
                     const responseAccount = await axiosInstance.get(accountRoute.findById + "/" + selectedEvent.accountId);
                     await axiosInstance.post(sendSMSRoute.sendSMS, {
                         phonenumber: responseAccount.data.phone,
-                        content: 'Lich hop BRVT: [Trang thai: Xoa] ' + removeAccents(selectedEvent.noiDungCuocHop) + ' dien ra luc ' + new Date(`${selectedEvent.ngayBatDau}T${selectedEvent.gioBatDau}:00`).toLocaleString().replace('T', ' ').split('.')[0]
+                        content: 'Lich hop BRVT: [Trang thai: Xoa] ' + removeDiacritics(selectedEvent.noiDungCuocHop) + ' dien ra luc ' + formatDateForSMS(new Date(`${selectedEvent.ngayBatDau}T${selectedEvent.gioBatDau}:00`))
                     });
                 }
                 fetchEvents();
@@ -756,8 +778,8 @@ const LichHopScreen = () => {
             <View className="flex-1 bg-gray-50">
                 <View className="m-5 flex flex-row justify-between items-center w-full">
                     {/* <Text style={{ fontSize: Number(fontSize) + 6 }} className="text-2xl text-center text-blue-800 font-semibold mb-4">Lịch họp tuần</Text> */}
-                    <Text style={{ fontSize: Number(fontSize) + 6 }} className="text-2xl text-center text-blue-800 font-semibold ">
-                        Lịch công tác tuần {formatDate(weekRange.start) + "-" + formatDate(weekRange.end)}
+                    <Text style={{ fontSize: Number(fontSize) + 4 }} className="text-2xl text-center text-blue-800 font-semibold ">
+                        Lịch công tác tuần {getWeekNumber(weekRange.start)} {formatDate(weekRange.start) + "-" + formatDate(weekRange.end)}
                     </Text>
 
                     <View className="flex-row gap-2 items-center mb-6 max-w-[460px] m-auto rounded-lg px-2">

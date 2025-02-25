@@ -16,6 +16,20 @@ import removeAccents from "remove-accents";
 import hasAccess from "../utils/permissionsAllowedURL";
 import { screenUrls } from "../api/routes";
 
+const formatDateForSMS = (date) => {
+    const d = date.getDate().toString().padStart(2, "0");
+    const m = (date.getMonth() + 1).toString().padStart(2, "0");
+    const y = date.getFullYear();
+    const h = date.getHours().toString().padStart(2, "0");
+    const min = date.getMinutes().toString().padStart(2, "0");
+    const s = date.getSeconds().toString().padStart(2, "0");
+    return `${h}:${min}:${s} ${d}/${m}/${y}`;
+};
+
+const removeDiacritics = (str) => {
+    return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+};
+
 
 const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDelete, onAccept, user, userAllowedUrls }) => {
     const [editedEvent, setEditedEvent] = useState({
@@ -420,7 +434,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                         try {
                             await axiosInstance.post(sendSMSRoute.sendSMS, {
                                 phonenumber: account.phone,
-                                content: 'Lich hop BRVT: [Trang thai: Dang ky] ' + removeAccents(editedEvent.noiDungCuocHop) + ' dien ra luc ' + new Date(`${editedEvent.ngayBatDau}T${editedEvent.gioBatDau}:00`).toLocaleString().replace('T', ' ').split('.')[0]
+                                content: 'Lich hop BRVT: [Trang thai: Dang ky] ' + removeDiacritics(editedEvent.noiDungCuocHop) + ' dien ra luc ' + formatDateForSMS(new Date(`${editedEvent.ngayBatDau}T${editedEvent.gioBatDau}:00`))
                             });
                         } catch (error) {
                             // Nếu có lỗi trong quá trình gửi SMS
@@ -441,7 +455,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                 console.log("gửi sms");
                                 await axiosInstance.post(sendSMSRoute.sendSMS, {
                                     phonenumber: responseAccount.data.phone,
-                                    content: 'Lich hop BRVT: [Trang thai: Chinh sua] ' + removeAccents(editedEvent.noiDungCuocHop) + ' dien ra luc ' + new Date(`${editedEvent.ngayBatDau}T${editedEvent.gioBatDau}:00`).toLocaleString().replace('T', ' ').split('.')[0]
+                                    content: 'Lich hop BRVT: [Trang thai: Chinh sua] ' + removeDiacritics(editedEvent.noiDungCuocHop) + ' dien ra luc ' + formatDateForSMS(new Date(`${editedEvent.ngayBatDau}T${editedEvent.gioBatDau}:00`))
                                 });
                                 return;
                             }
@@ -461,7 +475,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                             if (accountId != user.id) {
                                 await axiosInstance.post(sendSMSRoute.sendSMS, {
                                     phonenumber: account.phone,
-                                    content: 'Lich hop BRVT: [Trang thai: Chinh Sua] ' + removeAccents(editedEvent.noiDungCuocHop) + ' dien ra luc ' + new Date(`${editedEvent.ngayBatDau}T${editedEvent.gioBatDau}:00`).toLocaleString().replace('T', ' ').split('.')[0]
+                                    content: 'Lich hop BRVT: [Trang thai: Chinh Sua] ' + removeDiacritics(editedEvent.noiDungCuocHop) + ' dien ra luc ' + formatDateForSMS(new Date(`${editedEvent.ngayBatDau}T${editedEvent.gioBatDau}:00`))
                                 });
                             }
                         } catch (error) {
@@ -509,7 +523,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                     if (responseAccount.data.phone) {
                         await axiosInstance.post(sendSMSRoute.sendSMS, {
                             phonenumber: responseAccount.data.phone,
-                            content: 'Lich hop BRVT: [Trang thai: Xoa] ' + removeAccents(selectedEvent.noiDungCuocHop) + ' dien ra luc ' + new Date(`${selectedEvent.ngayBatDau}T${selectedEvent.gioBatDau}:00`).toLocaleString().replace('T', ' ').split('.')[0]
+                            content: 'Lich hop BRVT: [Trang thai: Xoa] ' + removeDiacritics(selectedEvent.noiDungCuocHop) + ' dien ra luc ' + formatDateForSMS(new Date(`${selectedEvent.ngayBatDau}T${selectedEvent.gioBatDau}:00`))
                         });
                     }
                 }
@@ -531,7 +545,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                     try {
                         await axiosInstance.post(sendSMSRoute.sendSMS, {
                             phonenumber: account.phone,
-                            content: 'Lich hop BRVT: [Trang thai: Xoa] ' + removeAccents(selectedEvent.noiDungCuocHop) + ' dien ra luc ' + new Date(`${selectedEvent.ngayBatDau}T${selectedEvent.gioBatDau}:00`).toLocaleString().replace('T', ' ').split('.')[0]
+                            content: 'Lich hop BRVT: [Trang thai: Xoa] ' + removeDiacritics(selectedEvent.noiDungCuocHop) + ' dien ra luc ' + formatDateForSMS(new Date(`${selectedEvent.ngayBatDau}T${selectedEvent.gioBatDau}:00`))
                         });
                     } catch (error) {
                         // Nếu có lỗi trong quá trình gửi SMS
@@ -610,7 +624,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                     if (responseAccount.data.phone) {
                         await axiosInstance.post(sendSMSRoute.sendSMS, {
                             phonenumber: responseAccount.data.phone,
-                            content: 'Lich hop BRVT: [Trang thai: Duyet] ' + removeAccents(selectedEvent.noiDungCuocHop) + ' dien ra luc ' + new Date(`${selectedEvent.ngayBatDau}T${selectedEvent.gioBatDau}:00`).toLocaleString().replace('T', ' ').split('.')[0]
+                            content: 'Lich hop BRVT: [Trang thai: Duyet] ' + removeDiacritics(selectedEvent.noiDungCuocHop) + ' dien ra luc ' + formatDateForSMS(new Date(`${selectedEvent.ngayBatDau}T${selectedEvent.gioBatDau}:00`))
                         });
                     }
                     
@@ -633,7 +647,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                     try {
                         await axiosInstance.post(sendSMSRoute.sendSMS, {
                             phonenumber: account.phone,
-                            content: 'Lich hop BRVT: [Trang thai: Duyet] ' + removeAccents(selectedEvent.noiDungCuocHop) + ' dien ra luc ' + new Date(`${selectedEvent.ngayBatDau}T${selectedEvent.gioBatDau}:00`).toLocaleString().replace('T', ' ').split('.')[0]
+                            content: 'Lich hop BRVT: [Trang thai: Duyet] ' + removeDiacritics(selectedEvent.noiDungCuocHop) + ' dien ra luc ' + formatDateForSMS(new Date(`${selectedEvent.ngayBatDau}T${selectedEvent.gioBatDau}:00`))
                         });
                     } catch (error) {
                         // Nếu có lỗi trong quá trình gửi SMS
@@ -701,7 +715,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                     if (responseAccount.data.phone) {
                         await axiosInstance.post(sendSMSRoute.sendSMS, {
                             phonenumber: responseAccount.data.phone,
-                            content: 'Lich hop BRVT: [Trang thai: Huy] ' + removeAccents(selectedEvent.noiDungCuocHop) + ' dien ra luc ' + new Date(`${selectedEvent.ngayBatDau}T${selectedEvent.gioBatDau}:00`).toLocaleString().replace('T', ' ').split('.')[0]
+                            content: 'Lich hop BRVT: [Trang thai: Huy] ' + removeDiacritics(selectedEvent.noiDungCuocHop) + ' dien ra luc ' + formatDateForSMS(new Date(`${selectedEvent.ngayBatDau}T${selectedEvent.gioBatDau}:00`))
                         });
                     }
                 }
@@ -723,7 +737,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                     try {
                         await axiosInstance.post(sendSMSRoute.sendSMS, {
                             phonenumber: account.phone,
-                            content: 'Lich hop BRVT: [Trang thai: Huy] ' + removeAccents(selectedEvent.noiDungCuocHop) + ' dien ra luc ' + new Date(`${selectedEvent.ngayBatDau}T${selectedEvent.gioBatDau}:00`).toLocaleString().replace('T', ' ').split('.')[0]
+                            content: 'Lich hop BRVT: [Trang thai: Huy] ' + removeDiacritics(selectedEvent.noiDungCuocHop) + ' dien ra luc ' + formatDateForSMS(new Date(`${selectedEvent.ngayBatDau}T${selectedEvent.gioBatDau}:00`))
                         });
                     } catch (error) {
                         // Nếu có lỗi trong quá trình gửi SMS

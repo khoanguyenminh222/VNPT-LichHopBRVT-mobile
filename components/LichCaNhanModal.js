@@ -10,6 +10,7 @@ import { accountDuyetLichRoute, accountRoute, diaDiemHopRoute, eventRoute, lichC
 import unidecode from 'unidecode';
 import BouncyCheckbox from "react-native-bouncy-checkbox";
 import { Dropdown } from 'react-native-element-dropdown';
+import { formatDateForSMS, removeDiacritics } from "../screens/root/LichHopScreen";
 
 const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDelete, onAccept, user }) => {
     const [editedEvent, setEditedEvent] = useState({
@@ -384,7 +385,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                 try {
                     await axiosInstance.post(sendSMSRoute.sendSMS, {
                         phonenumber: account.phone,
-                        content: 'Lich hop BRVT: [Trang thai: Dang ky] ' + removeAccents(data.noiDungCuocHop) + ' dien ra luc ' + new Date(`${data.ngayBatDau}T${data.gioBatDau}:00`).toLocaleString().replace('T', ' ').split('.')[0]
+                        content: 'Lich hop BRVT: [Trang thai: Dang ky] ' + removeDiacritics(data.noiDungCuocHop) + ' dien ra luc ' + formatDateForSMS(new Date(`${data.ngayBatDau}T${data.gioBatDau}:00`))
                     });
                 } catch (error) {
                     // Nếu có lỗi trong quá trình gửi SMS
