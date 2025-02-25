@@ -428,7 +428,7 @@ const LichHopScreen = () => {
         const textToCopy = `
             ${event.noiDungCuocHop}
             Địa điểm: ${event.diaDiem}
-            Thời gian: ${event.gioBatDau} - ${event.gioKetThuc}
+            Thời gian: ${event.gioBatDau} ${event.gioKetThuc ? '- ' + event.gioKetThuc : ''}
             Chủ trì: ${event.chuTri}
             Chuẩn bị: ${event.chuanBi || 'Không có'}
             Thành phần: ${event.thanhPhan}
@@ -543,12 +543,12 @@ const LichHopScreen = () => {
             thanhPhan: "",
             ghiChuThanhPhan: "",
             moi: "",
-            diaDiem: "Ngoài cơ quan",
+            diaDiem: "",
             ghiChu: "",
             ngayBatDau: new Date().toISOString().split('T')[0],
             gioBatDau: "08:00",
             ngayKetThuc: new Date().toISOString().split('T')[0],
-            gioKetThuc: "09:00",
+            gioKetThuc: null,
             fileDinhKem: "",
             trangThai: "",
             accountId: user?.id,
@@ -599,7 +599,7 @@ const LichHopScreen = () => {
             ngayBatDau: event.ngayBatDau,
             gioBatDau: event.gioBatDau,
             ngayKetThuc: event.ngayKetThuc,
-            gioKetThuc: event.gioKetThuc,
+            gioKetThuc: event.gioKetThuc ? event.gioKetThuc : null,
             accountId: user?.id,
             fileDinhKem: event.fileDinhKem,
             trangThai: event.trangThai,
@@ -672,10 +672,10 @@ const LichHopScreen = () => {
                                     onPress={() => { setModelEdit(true); setSelectedEvent(event); }}>
                                     <View className="p-4">
                                         <Text className={`text-2xl font-semibold truncate line-clamp-1 ${event.trangThai === 'huy' ? 'line-through' : ''}`}>{event?.noiDungCuocHop}</Text>
-                                        <Text className={`text-lg ${event.trangThai === 'huy' ? 'line-through' : ''}`}>Địa điểm: {event?.diaDiem}</Text>
+                                        <Text className={`text-lg ${event.trangThai === 'huy' ? 'line-through' : ''}`}>Địa điểm: {event.diaDiem != 'Khác' ? applyHighlight(event.diaDiem) : applyHighlight(event.ghiChu)}</Text>
                                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                             <FontAwesomeIcon icon={faClock} size={12} />
-                                            <Text className={`text-lg font-semibold pl-2 ${event.trangThai === 'huy' ? 'line-through' : ''}`}>{applyHighlight(event.gioBatDau)} - {applyHighlight(event.gioKetThuc)}</Text>
+                                            <Text className={`text-lg font-semibold pl-2 ${event.trangThai === 'huy' ? 'line-through' : ''}`}>{applyHighlight(event.gioBatDau)} {event.gioKetThuc!=null && event.gioKetThuc!='Inval' && '- ' + applyHighlight(event.gioKetThuc)}</Text>
                                         </View>
                                         <View className="rounded-lg flex flex-row gap-2">
                                             {/* Gán lịch họp sang lịch cá nhân */}
@@ -902,12 +902,12 @@ const LichHopScreen = () => {
 
                                                     {/* Địa điểm */}
                                                     <Text style={{ fontSize: Number(fontSize) + 4 }} className={`${event.trangThai === 'huy' ? 'text-gray-700 line-through' : event.trangThai == 'dangKy' ? 'text-purple-700' : event.quanTrong == 1 ? 'text-red-700' : 'text-blue-700'} text-xl mb-2 font-extrabold`}>
-                                                        {applyHighlight(event.diaDiem)}
+                                                        {event.diaDiem != 'Khác' ? applyHighlight(event.diaDiem) : applyHighlight(event.ghiChu)}
                                                     </Text>
 
                                                     {/* Thời gian */}
                                                     <Text style={{ fontSize: Number(fontSize) }} className={`${event.trangThai === 'huy' ? 'text-gray-500 line-through' : event.trangThai == 'dangKy' ? 'text-purple-500' : event.quanTrong == 1 ? 'text-red-500' : 'text-blue-500'} mb-2`}>
-                                                        Thời gian: <Text style={{ fontSize: Number(fontSize) + 4 }} className="font-semibold text-xl">{applyHighlight(event.gioBatDau)} - {applyHighlight(event.gioKetThuc)}</Text>
+                                                        Thời gian: <Text style={{ fontSize: Number(fontSize) + 4 }} className="font-semibold text-xl">{applyHighlight(event.gioBatDau)} {event.gioKetThuc!=null && event.gioKetThuc!='Inval' && '- ' + applyHighlight(event.gioKetThuc)}</Text>
                                                     </Text>
 
                                                     {/* Chủ trì */}

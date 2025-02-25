@@ -20,7 +20,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
         ngayBatDau: new Date().toISOString().split('T')[0],
         gioBatDau: "08:00",
         ngayKetThuc: new Date().toISOString().split('T')[0],
-        gioKetThuc: "09:00",
+        gioKetThuc: null,
         accountId: user?.id,
         fileDinhKem: "",
         trangThai: "duyet",
@@ -155,7 +155,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
         if (!editedEvent.ngayBatDau) newErrors.ngayBatDau = "Vui lòng chọn ngày bắt đầu";
         if (!editedEvent.gioBatDau) newErrors.gioBatDau = "Vui lòng chọn giờ bắt đầu";
         if (!editedEvent.ngayKetThuc) newErrors.ngayKetThuc = "Vui lòng chọn ngay kết thúc";
-        if (!editedEvent.gioKetThuc) newErrors.gioKetThuc = "Vui lòng chọn giờ kết thúc";
+        //if (!editedEvent.gioKetThuc) newErrors.gioKetThuc = "Vui lòng chọn giờ kết thúc";
         setErrors(newErrors);
         if (Object.keys(newErrors).length > 0) {
             Alert.alert("Lỗi", "Vui lòng nhập đầy đủ thông tin bắt buộc");
@@ -163,13 +163,13 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
         }
 
         // kiểm tra giờ bắt đầu không được bằng với giờ kết thúc
-        if (editedEvent.gioBatDau === editedEvent.gioKetThuc) {
+        if (editedEvent.gioKetThuc && editedEvent.gioBatDau === editedEvent.gioKetThuc) {
             Alert.alert("Lỗi", "Giờ bắt đầu không được bằng với giờ kết thúc");
             return;
         }
 
         const ngayBatDau = new Date(editedEvent.ngayBatDau + ' ' + editedEvent.gioBatDau);
-        const ngayKetThuc = new Date(editedEvent.ngayKetThuc + ' ' + editedEvent.gioKetThuc);
+        const ngayKetThuc = editedEvent.gioKetThuc ? new Date(editedEvent.ngayKetThuc + ' ' + editedEvent.gioKetThuc) : new Date(editedEvent.ngayBatDau + ' ' + editedEvent.gioBatDau);
 
         // Kiểm tra ngày bắt đầu nhỏ hơn ngày kết thúc
         if (ngayBatDau.toISOString().split('T')[0] > ngayKetThuc.toISOString().split('T')[0]) {
@@ -178,7 +178,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
         }
 
         // Kiểm tra nếu ngày bắt đầu bằng ngày kết thúc thì giờ kết thúc phải luôn lớn hơn giờ bắt đầu
-        if (ngayBatDau.toLocaleDateString() === ngayKetThuc.toLocaleDateString()) {
+        if (editedEvent.gioKetThuc && ngayBatDau.toLocaleDateString() === ngayKetThuc.toLocaleDateString()) {
             if (ngayBatDau >= ngayKetThuc) {
                 Alert.alert("Lỗi", "Giờ kết thúc phải lớn hơn giờ bắt đầu");
                 return;
@@ -345,7 +345,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                 ngayBatDau: editedEvent.ngayBatDau,
                 gioBatDau: editedEvent.gioBatDau,
                 ngayKetThuc: editedEvent.ngayKetThuc,
-                gioKetThuc: editedEvent.gioKetThuc,
+                gioKetThuc: editedEvent.gioKetThuc ? editedEvent.gioKetThuc : null,
                 noiDungCuocHop: editedEvent.chuDe,
                 chuTri: user?.name,
                 chuanBi: "",
@@ -423,7 +423,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
             // Sắp xếp lại danh sách lịch họp theo id
             responseLichHop.data.sort((a, b) => b.id - a.id).forEach(async (item) => {
                 // Nếu chủ trì là tên của bạn và trạng thái là đăng ký thì xóa sau đó dừng vòng lặp, đảm bảo chỉ xoá 1 sự kiện
-                if (item.chuTri === user?.name && item.trangThai === "dangKy" && item.ngayBatDau == editedEvent.ngayBatDau && item.gioBatDau == editedEvent.gioBatDau && item.ngayKetThuc == editedEvent.ngayKetThuc && item.gioKetThuc == editedEvent.gioKetThuc) {
+                if (item.chuTri === user?.name && item.trangThai === "dangKy" && item.ngayBatDau == editedEvent.ngayBatDau && item.gioBatDau == editedEvent.gioBatDau && item.ngayKetThuc == editedEvent.ngayKetThuc) {
                     await axiosInstance.delete(eventRoute.delete + "/" + item.id);
                     return;
                 }
@@ -477,7 +477,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                     const endTime = new Date(startTime);
                     endTime.setMinutes(startTime.getMinutes() + 60);
 
-                    updatedEvent.gioKetThuc = endTime.toTimeString().split(" ")[0].substring(0, 5); // HH:mm
+                    //updatedEvent.gioKetThuc = endTime.toTimeString().split(" ")[0].substring(0, 5); // HH:mm
                 }
                 // Kiểm tra nếu ngày bắt đầu thay đổi, cập nhật ngày kết thúc bằng ngày bắt đầu
                 if (field === "ngayBatDau") {
@@ -501,7 +501,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                     const endTime = new Date(startTime);
                     endTime.setMinutes(startTime.getMinutes() + 60);
 
-                    updatedEvent.gioKetThuc = endTime.toTimeString().split(" ")[0].substring(0, 5); // HH:mm
+                    //updatedEvent.gioKetThuc = endTime.toTimeString().split(" ")[0].substring(0, 5); // HH:mm
                 }
                 // Kiểm tra nếu ngày bắt đầu thay đổi, cập nhật ngày kết thúc bằng ngày bắt đầu
                 if (pickerField === "ngayBatDau") {
@@ -612,7 +612,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
             ngayBatDau: new Date().toISOString().split('T')[0],
             gioBatDau: "08:00",
             ngayKetThuc: new Date().toISOString().split('T')[0],
-            gioKetThuc: "09:00",
+            gioKetThuc: null,
             accountId: user?.id,
             fileDinhKem: "",
             trangThai: "duyet",
@@ -704,7 +704,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                         {/* Nội dung */}
                         <View className="mb-4">
                             <TextInput
-                                label="Nội dung *"
+                                label="Ghi chú *"
                                 mode="outlined"
                                 multiline
                                 numberOfLines={2}

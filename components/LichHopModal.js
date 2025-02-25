@@ -25,12 +25,12 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
         thanhPhan: "",
         ghiChuThanhPhan: "",
         moi: "",
-        diaDiem: "Ngoài cơ quan",
+        diaDiem: "",
         ghiChu: "",
         ngayBatDau: new Date().toISOString().split('T')[0],
         gioBatDau: "08:00",
         ngayKetThuc: new Date().toISOString().split('T')[0],
-        gioKetThuc: "09:00",
+        gioKetThuc: null,
         fileDinhKem: "",
         trangThai: "",
         accountId: user?.id,
@@ -110,6 +110,13 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
 
                 // Lưu danh sách tài khoản hợp lệ vào state
                 setAccountDuyetLich(uniqueAccountDuyetLich);
+
+                // Kiểm tra xem người dùng hiện tại có nằm trong danh sách hợp lệ không
+                const isAccountDuyetLich = uniqueAccountDuyetLich.includes(user?.id);
+
+                // Lưu trạng thái của người dùng
+                setIsAccountDuyetLich(isAccountDuyetLich);
+
                 console.log('Danh sách tài khoản hợp lệ:', uniqueAccountDuyetLich);
                 console.log('Người dùng có quyền duyệt lịch:', isAccountDuyetLich);
 
@@ -146,43 +153,44 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
         processAccountDuyetLich();
     }, []);
 
-    useEffect(() => {
-        const checkAccountDuyetLich = async () => {
-            try {
-                const response = await axiosInstance.get(accountDuyetLichRoute.findAll);
+    // useEffect(() => {
+    //     const checkAccountDuyetLich = async () => {
+    //         try {
+    //             const response = await axiosInstance.get(accountDuyetLichRoute.findAll);
 
-                // Lấy ngày hiện tại (chỉ lấy phần ngày)
-                const currentDate = new Date();
-                const currentDateOnly = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
-                // Kiểm tra user có username trong danh sách và ngày nằm giữa ngayBatDau và ngayKetThuc
-                const isAccountDuyetLich = response.data.some(account => {
-                    if (account.username === user?.username) {
-                        const ngayBatDau = new Date(account.ngayBatDau);
-                        const ngayKetThuc = new Date(account.ngayKetThuc);
+    //             // Lấy ngày hiện tại (chỉ lấy phần ngày)
+    //             const currentDate = new Date();
+    //             const currentDateOnly = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+    //             // Kiểm tra user có username trong danh sách và ngày nằm giữa ngayBatDau và ngayKetThuc
+    //             const isAccountDuyetLich = response.data.some(account => {
+    //                 if (account.username === user?.username) {
+    //                     const ngayBatDau = new Date(account.ngayBatDau);
+    //                     const ngayKetThuc = new Date(account.ngayKetThuc);
 
-                        // Chỉ lấy phần ngày của ngayBatDau và ngayKetThuc
-                        const ngayBatDauOnly = new Date(ngayBatDau.getFullYear(), ngayBatDau.getMonth(), ngayBatDau.getDate());
-                        const ngayKetThucOnly = new Date(ngayKetThuc.getFullYear(), ngayKetThuc.getMonth(), ngayKetThuc.getDate());
+    //                     // Chỉ lấy phần ngày của ngayBatDau và ngayKetThuc
+    //                     const ngayBatDauOnly = new Date(ngayBatDau.getFullYear(), ngayBatDau.getMonth(), ngayBatDau.getDate());
+    //                     const ngayKetThucOnly = new Date(ngayKetThuc.getFullYear(), ngayKetThuc.getMonth(), ngayKetThuc.getDate());
 
-                        return currentDateOnly >= ngayBatDauOnly && currentDateOnly <= ngayKetThucOnly;
-                    }
-                    return false;
-                });
-                setIsAccountDuyetLich(isAccountDuyetLich);
-            }
-            catch (error) {
-                console.log('Failed to fetch account duyet lich:', error);
-                const errorMessage = error.response ? error.response.data.message : error.message;
-                Toast.show({
-                    type: 'error',
-                    text1: errorMessage,
-                    position: 'top',
-                    visibilityTime: 3000,
-                });
-            }
-        }
-        checkAccountDuyetLich();
-    }, []);
+    //                     return currentDateOnly >= ngayBatDauOnly && currentDateOnly <= ngayKetThucOnly;
+    //                 }
+    //                 return false;
+    //             });
+    //             console.log("ádsad",isAccountDuyetLich)
+    //             setIsAccountDuyetLich(isAccountDuyetLich);
+    //         }
+    //         catch (error) {
+    //             console.log('Failed to fetch account duyet lich:', error);
+    //             const errorMessage = error.response ? error.response.data.message : error.message;
+    //             Toast.show({
+    //                 type: 'error',
+    //                 text1: errorMessage,
+    //                 position: 'top',
+    //                 visibilityTime: 3000,
+    //             });
+    //         }
+    //     }
+    //     checkAccountDuyetLich();
+    // }, []);
     // Hàm gọi api địa điểm họp
     const fetchDiaDiemHops = async () => {
         try {
@@ -277,7 +285,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                 ngayBatDau: selectedEvent.ngayBatDau,
                 gioBatDau: selectedEvent.gioBatDau,
                 ngayKetThuc: selectedEvent.ngayKetThuc,
-                gioKetThuc: selectedEvent.gioKetThuc,
+                gioKetThuc: selectedEvent.gioKetThuc!='Inval' ? selectedEvent.gioKetThuc : null,
                 fileDinhKem: selectedEvent.fileDinhKem,
                 trangThai: selectedEvent.trangThai,
                 accountId: selectedEvent.accountId,
@@ -303,7 +311,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
         if (!editedEvent.ngayBatDau) newErrors.ngayBatDau = "Vui lòng chọn ngày bắt đầu.";
         if (!editedEvent.gioBatDau) newErrors.gioBatDau = "Vui lòng chọn giờ bắt đầu.";
         if (!editedEvent.ngayKetThuc) newErrors.ngayKetThuc = "Vui lòng chọn ngày kết thúc.";
-        if (!editedEvent.gioKetThuc) newErrors.gioKetThuc = "Vui lòng chọn giờ kết thúc.";
+        //if (!editedEvent.gioKetThuc) newErrors.gioKetThuc = "Vui lòng chọn giờ kết thúc.";
 
         setErrors(newErrors);
 
@@ -313,13 +321,13 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
         }
 
         // kiểm tra giờ bắt đầu không được bằng với giờ kết thúc
-        if (editedEvent.gioBatDau === editedEvent.gioKetThuc) {
+        if (editedEvent.gioKetThuc && editedEvent.gioBatDau === editedEvent.gioKetThuc) {
             Alert.alert("Lỗi", "Giờ bắt đầu không được bằng với giờ kết thúc");
             return;
         }
 
         const ngayBatDau = new Date(editedEvent.ngayBatDau + ' ' + editedEvent.gioBatDau);
-        const ngayKetThuc = new Date(editedEvent.ngayKetThuc + ' ' + editedEvent.gioKetThuc);
+        const ngayKetThuc = editedEvent.gioKetThuc ? new Date(editedEvent.ngayKetThuc + ' ' + editedEvent.gioKetThuc) : new Date(editedEvent.ngayBatDau + ' ' + editedEvent.gioBatDau);
 
         // Kiểm tra ngày bắt đầu nhỏ hơn ngày kết thúc
         if (ngayBatDau.toISOString().split('T')[0] > ngayKetThuc.toISOString().split('T')[0]) {
@@ -328,7 +336,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
         }
 
         // Kiểm tra nếu ngày bắt đầu bằng ngày kết thúc thì giờ kết thúc phải luôn lớn hơn giờ bắt đầu
-        if (ngayBatDau.toLocaleDateString() === ngayKetThuc.toLocaleDateString()) {
+        if (editedEvent.gioKetThuc && ngayBatDau.toLocaleDateString() === ngayKetThuc.toLocaleDateString()) {
             if (ngayBatDau >= ngayKetThuc) {
                 Alert.alert("Lỗi", "Giờ kết thúc phải lớn hơn giờ bắt đầu");
                 return;
@@ -498,10 +506,12 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                 const accountExisted = responseAccount.data.id
                 if (selectedEvent.accountId != user.id) {
                     console.log("gửi sms");
-                    await axiosInstance.post(sendSMSRoute.sendSMS, {
-                        phonenumber: responseAccount.data.phone,
-                        content: 'Lich hop BRVT: [Trang thai: Xoa] ' + removeAccents(selectedEvent.noiDungCuocHop) + ' dien ra luc ' + new Date(`${selectedEvent.ngayBatDau}T${selectedEvent.gioBatDau}:00`).toLocaleString().replace('T', ' ').split('.')[0]
-                    });
+                    if (responseAccount.data.phone) {
+                        await axiosInstance.post(sendSMSRoute.sendSMS, {
+                            phonenumber: responseAccount.data.phone,
+                            content: 'Lich hop BRVT: [Trang thai: Xoa] ' + removeAccents(selectedEvent.noiDungCuocHop) + ' dien ra luc ' + new Date(`${selectedEvent.ngayBatDau}T${selectedEvent.gioBatDau}:00`).toLocaleString().replace('T', ' ').split('.')[0]
+                        });
+                    }
                 }
                 const smsPromises = accountNhanSMS.map(async (accountId) => {
                     // Lấy thông tin tài khoản từ API theo accountId
@@ -570,15 +580,16 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
             // Kiểm tra và cập nhật trạng thái cho các sự kiện trùng lặp
             for (const item of lichCaNhan) {
                 const account = accountsMap.get(item.accountId);
+
                 if (
                     account &&
                     item.accountId == account.id &&
                     item.chuDe == editedEvent.noiDungCuocHop &&
                     item.trangThai == "dangKy" &&
                     item.ngayBatDau == editedEvent.ngayBatDau &&
-                    item.gioBatDau == new Date(editedEvent.gioBatDau).toTimeString().slice(0, 5) &&
-                    item.ngayKetThuc == editedEvent.ngayKetThuc &&
-                    item.gioKetThuc == new Date(editedEvent.gioKetThuc).toTimeString().slice(0, 5)
+                    item.gioBatDau == editedEvent.gioBatDau &&
+                    item.ngayKetThuc == editedEvent.ngayKetThuc
+                    //item.gioKetThuc == new Date(editedEvent.gioKetThuc).toTimeString().slice(0, 5)
                 ) {
                     // Cập nhật trạng thái sự kiện thành "đã duyệt"
                     await axiosInstance.put(`${lichCaNhanRoute.update}/${item.id}`, { trangThai: "duyet" });
@@ -596,10 +607,13 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                 const accountExisted = responseAccount.data.id;
                 if (selectedEvent.accountId != user.id) {
                     console.log("gửi sms");
-                    await axiosInstance.post(sendSMSRoute.sendSMS, {
-                        phonenumber: responseAccount.data.phone,
-                        content: 'Lich hop BRVT: [Trang thai: Duyet] ' + removeAccents(selectedEvent.noiDungCuocHop) + ' dien ra luc ' + new Date(`${selectedEvent.ngayBatDau}T${selectedEvent.gioBatDau}:00`).toLocaleString().replace('T', ' ').split('.')[0]
-                    });
+                    if (responseAccount.data.phone) {
+                        await axiosInstance.post(sendSMSRoute.sendSMS, {
+                            phonenumber: responseAccount.data.phone,
+                            content: 'Lich hop BRVT: [Trang thai: Duyet] ' + removeAccents(selectedEvent.noiDungCuocHop) + ' dien ra luc ' + new Date(`${selectedEvent.ngayBatDau}T${selectedEvent.gioBatDau}:00`).toLocaleString().replace('T', ' ').split('.')[0]
+                        });
+                    }
+                    
                 }
                 const smsPromises = accountNhanSMS.map(async (accountId) => {
                     // Lấy thông tin tài khoản từ API theo accountId
@@ -664,8 +678,9 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                         item.trangThai == "dangKy" &&
                         item.ngayBatDau == editedEvent.ngayBatDau &&
                         item.gioBatDau == editedEvent.gioBatDau &&
-                        item.ngayKetThuc == editedEvent.ngayKetThuc &&
-                        item.gioKetThuc == editedEvent.gioKetThuc) {
+                        item.ngayKetThuc == editedEvent.ngayKetThuc
+                        //item.gioKetThuc == editedEvent.gioKetThuc
+                    ) {
                         // Cập nhật trạng thái sự kiện thành đã duyệt
                         await axiosInstance.put(lichCaNhanRoute.update + "/" + item.id, { trangThai: "duyet" });
                         return;
@@ -683,10 +698,12 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                 const accountExisted = responseAccount.data.id;
                 if (selectedEvent.accountId != user.id) {
                     console.log("gửi sms");
-                    await axiosInstance.post(sendSMSRoute.sendSMS, {
-                        phonenumber: responseAccount.data.phone,
-                        content: 'Lich hop BRVT: [Trang thai: Huy] ' + removeAccents(selectedEvent.noiDungCuocHop) + ' dien ra luc ' + new Date(`${selectedEvent.ngayBatDau}T${selectedEvent.gioBatDau}:00`).toLocaleString().replace('T', ' ').split('.')[0]
-                    });
+                    if (responseAccount.data.phone) {
+                        await axiosInstance.post(sendSMSRoute.sendSMS, {
+                            phonenumber: responseAccount.data.phone,
+                            content: 'Lich hop BRVT: [Trang thai: Huy] ' + removeAccents(selectedEvent.noiDungCuocHop) + ' dien ra luc ' + new Date(`${selectedEvent.ngayBatDau}T${selectedEvent.gioBatDau}:00`).toLocaleString().replace('T', ' ').split('.')[0]
+                        });
+                    }
                 }
                 const smsPromises = accountNhanSMS.map(async (accountId) => {
                     // Lấy thông tin tài khoản từ API theo accountId
@@ -737,6 +754,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
 
     // Hàm chọn ngày giờ
     const handleDatePickerChange = (field, event, selectedDate) => {
+        console.log("test")
         if (event.type === "dismissed") {
             setShowPicker(false);
             return;
@@ -768,7 +786,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                     const endTime = new Date(startTime);
                     endTime.setMinutes(startTime.getMinutes() + 60);
 
-                    updatedEvent.gioKetThuc = endTime.toTimeString().split(" ")[0].substring(0, 5); // HH:mm
+                    //updatedEvent.gioKetThuc = endTime.toTimeString().split(" ")[0].substring(0, 5); // HH:mm
                 }
                 // Kiểm tra nếu ngày bắt đầu thay đổi, cập nhật ngày kết thúc bằng ngày bắt đầu
                 if (field === "ngayBatDau") {
@@ -792,7 +810,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                     const endTime = new Date(startTime);
                     endTime.setMinutes(startTime.getMinutes() + 60);
 
-                    updatedEvent.gioKetThuc = endTime.toTimeString().split(" ")[0].substring(0, 5); // HH:mm
+                    //updatedEvent.gioKetThuc = endTime.toTimeString().split(" ")[0].substring(0, 5); // HH:mm
                 }
                 // Kiểm tra nếu ngày bắt đầu thay đổi, cập nhật ngày kết thúc bằng ngày bắt đầu
                 if (pickerField === "ngayBatDau") {
@@ -807,10 +825,12 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
     };
 
     const openPicker = (mode, field, value) => {
+        // Kiểm tra nếu value không hợp lệ, đặt mặc định là ngày hiện tại
+        let parsedValue = value && !value.includes("null") ? new Date(value) : new Date();
         setPickerMode(mode);
         setPickerField(field);
         setShowPicker(true);
-        setValueDateTime(new Date(value))
+        setValueDateTime(parsedValue);
     };
 
     // Hàm chọn file
@@ -902,12 +922,12 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
             thanhPhan: "",
             ghiChuThanhPhan: "",
             moi: "",
-            diaDiem: "Ngoài cơ quan",
+            diaDiem: "",
             ghiChu: "",
             ngayBatDau: new Date().toISOString().split('T')[0],
             gioBatDau: "08:00",
             ngayKetThuc: new Date().toISOString().split('T')[0],
-            gioKetThuc: "09:00",
+            gioKetThuc: null,
             fileDinhKem: "",
             trangThai: "",
             accountId: user?.id,
@@ -1005,16 +1025,18 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                         {/* Chủ trì */}
                         <View className="mb-2">
                             <TextInput
-                                ref={chuTriRef}
+                                //ref={chuTriRef}
                                 value={editedEvent.chuTri}
-                                onFocus={() => handleOpenSelect('chuTri')}
+                                onChangeText={(text) => setEditedEvent({ ...editedEvent, chuTri: text })}
+                                multiline
+                                //onFocus={() => handleOpenSelect('chuTri')}
                                 readOnly={editedEvent.trangThai === "dangKy"}
                                 label="Chủ trì *"
                                 mode="outlined"
                                 error={errors.chuTri}
                             />
 
-                            <TreeSelectModal
+                            {/* <TreeSelectModal
                                 visible={chuTriSelectModalVisible}
                                 onClose={() => { setChuTriSelectModalVisible(false), chuTriRef.current.blur() }}
                                 onSelect={handleSelection}
@@ -1022,7 +1044,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                 childKey="children"
                                 titleKey="tenThanhPhan"
                                 field="chuTri"
-                            />
+                            /> */}
                         </View>
 
                         {/* Chuẩn bị */}
@@ -1039,31 +1061,26 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                         {/* Thành phần */}
                         <View className="mb-2">
                             <Text className="text-base font-semibold">Thành phần *</Text>
-                            <View className="flex flex-row justify-between items-center">
-                                <View className="w-7/12">
-                                    <TextInput
-                                        ref={thanhPhanRef}
-                                        mode="outlined"
-                                        value={editedEvent.thanhPhan}
-                                        // onFocus={() => setThanhPhanSelectModalVisible(true)}
-                                        onFocus={() => handleOpenSelect('thanhPhan')}
-                                        readOnly={editedEvent.trangThai === "dangKy"}
-                                        label="Thành phần"
-                                        error={errors.thanhPhan || errors.ghiChuThanhPhan}
-                                    />
-                                </View>
-                                <View className="w-4/12">
-                                    <TextInput
-                                        label="Ghi chú thành phần tham dự, phối hợp"
-                                        mode="outlined"
-                                        value={editedEvent.ghiChuThanhPhan}
-                                        onChangeText={(text) => setEditedEvent({ ...editedEvent, ghiChuThanhPhan: text })}
-                                        textAlignVertical="top"
-                                        readOnly={editedEvent.trangThai === "dangKy"}
-                                    />
-                                </View>
-
-                            </View>
+                            <TextInput
+                                ref={thanhPhanRef}
+                                mode="outlined"
+                                value={editedEvent.thanhPhan}
+                                // onFocus={() => setThanhPhanSelectModalVisible(true)}
+                                onFocus={() => handleOpenSelect('thanhPhan')}
+                                readOnly={editedEvent.trangThai === "dangKy"}
+                                label="Thành phần"
+                                error={errors.thanhPhan || errors.ghiChuThanhPhan}
+                            />
+                            <TextInput
+                                label="Ghi chú thành phần tham dự, phối hợp"
+                                mode="outlined"
+                                multiline
+                                value={editedEvent.ghiChuThanhPhan}
+                                onChangeText={(text) => setEditedEvent({ ...editedEvent, ghiChuThanhPhan: text })}
+                                textAlignVertical="top"
+                                readOnly={editedEvent.trangThai === "dangKy"}
+                                style={{marginTop: 5}}
+                            />
 
                             <TreeSelectModal
                                 visible={thanhPhanSelectModalVisible}
@@ -1091,7 +1108,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                         {/* Địa điểm */}
                         <View className="flex flex-row justify-center items-center mb-2">
                             <View className="border rounded-md w-full relative">
-                                <Text className="absolute left-3 -top-3 bg-white text-sm px-1">Địa điểm *</Text>
+                                <Text className="absolute left-3 -top-3 bg-white text-sm px-1">Địa điểm, phương tiện *</Text>
                                 <Dropdown
                                     data={diaDiemHops}
                                     labelField="label"
@@ -1103,7 +1120,9 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                     search={true}
                                     style={{ padding: 10 }}
                                     disable={editedEvent.trangThai === "dangKy"}
+                                    
                                 />
+                                {errors.diaDiem && <Text className="text-red-500 text-sm ml-2">{errors.diaDiem}</Text>}
                             </View>
                         </View>
 
@@ -1112,6 +1131,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                             <TextInput
                                 label="Ghi chú"
                                 mode="outlined"
+                                multiline
                                 value={editedEvent.ghiChu}
                                 onChangeText={(text) => setEditedEvent({ ...editedEvent, ghiChu: text })}
                                 readOnly={editedEvent.trangThai === "dangKy"}

@@ -317,7 +317,7 @@ const LichCaNhanScreen = () => {
         const textToCopy = `
             ${event.noiDungCuocHop}
             Địa điểm: ${event.diaDiem}
-            Thời gian: ${event.gioBatDau} - ${event.gioKetThuc}
+            Thời gian: ${event.gioBatDau} ${event.gioKetThuc ? "- " + event.gioKetThuc : ''}
             Chủ trì: ${event.chuTri}
             Chuẩn bị: ${event.chuanBi || 'Không có'}
             Thành phần: ${event.thanhPhan}
@@ -424,7 +424,7 @@ const LichCaNhanScreen = () => {
             ngayBatDau: new Date().toISOString().split('T')[0],
             gioBatDau: "08:00",
             ngayKetThuc: new Date().toISOString().split('T')[0],
-            gioKetThuc: "09:00",
+            gioKetThuc: null,
             fileDinhKem: "",
             trangThai: "",
             accountId: user?.id,
@@ -556,17 +556,17 @@ const LichCaNhanScreen = () => {
 
                                             {/* Địa điểm */}
                                             <Text style={{ fontSize: Number(fontSize) + 4 }} className={`${event.trangThai === 'huy' ? 'text-gray-500 line-through' : event.trangThai == 'dangKy' ? 'text-purple-500' : event.quanTrong == 1 ? 'text-red-500' : 'text-blue-500'} font-bold text-xl mb-2`}>
-                                                {applyHighlight(event.diaDiem)}
+                                                {event.diaDiem != 'Khác' ? applyHighlight(event.diaDiem) : applyHighlight(event.noiDung)}
                                             </Text>
 
                                             {/* Thời gian */}
                                             <Text style={{ fontSize: Number(fontSize) }} className={`${event.trangThai === 'huy' ? 'text-gray-500 line-through' : event.trangThai == 'dangKy' ? 'text-purple-500' : event.quanTrong == 1 ? 'text-red-500' : 'text-blue-500'} font-bold mb-2`}>
-                                                Thời gian: <Text style={{ fontSize: Number(fontSize) + 4 }} className="font-semibold text-xl">{applyHighlight(event.gioBatDau)} - {applyHighlight(event.gioKetThuc)}</Text>
+                                                Thời gian: <Text style={{ fontSize: Number(fontSize) + 4 }} className="font-semibold text-xl">{applyHighlight(event.gioBatDau)} {event.gioKetThuc!=null && event.gioKetThuc!='Inval' && '- ' + applyHighlight(event.gioKetThuc)}</Text>
                                             </Text>
 
                                             {/* Nội dung */}
                                             <Text style={{ fontSize: Number(fontSize) }} className={`${event.trangThai === 'huy' ? 'text-gray-600 line-through' : event.trangThai == 'dangKy' ? 'text-purple-600' : event.quanTrong == 1 ? 'text-red-600' : 'text-blue-600'} font-bold mb-2`}>
-                                                Nội dung: {applyHighlight(event.noiDung)}
+                                                Ghi chú: {applyHighlight(event.noiDung)}
                                             </Text>
 
                                             {/* File đính kèm */}
