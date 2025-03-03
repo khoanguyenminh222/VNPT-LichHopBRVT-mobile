@@ -149,6 +149,14 @@ const accountNhanSMSRoute = {
     delete: `${domain}/api/admin/accountNhanSMS`, // /:id
 }
 
+const eventHistoryRoute = {
+    findAll: `${domain}/api/admin/eventHistory`,
+    create: `${domain}/api/admin/eventHistory`,
+    update: `${domain}/api/admin/eventHistory`, // /:id body là eventHistory
+    delete: `${domain}/api/admin/eventHistory`, // /:id
+    findByEventId: `${domain}/api/admin/eventHistory/event`, // /:eventId
+}
+
 export {
     domain,
     publicfolder,
@@ -172,5 +180,6 @@ export {
     sendSMSRoute,
     thongBaoNhacNhoRoute,
     thongBaoNhacNhoLichCaNhanRoute,
-    accountNhanSMSRoute
+    accountNhanSMSRoute,
+    eventHistoryRoute,
 };

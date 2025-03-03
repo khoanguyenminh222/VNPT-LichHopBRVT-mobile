@@ -6,7 +6,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import * as DocumentPicker from 'expo-document-picker';
 import Toast from 'react-native-toast-message';
 import axiosInstance from "../utils/axiosInstance";
-import { accountDuyetLichRoute, phanQuyenRoute, accountRoute, diaDiemHopRoute, eventRoute, lichCaNhanRoute, thanhPhanThamDuRoute, uploadFileRoute, sendSMSRoute, accountNhanSMSRoute } from "../api/baseURL";
+import { accountDuyetLichRoute, phanQuyenRoute, accountRoute, diaDiemHopRoute, eventRoute, lichCaNhanRoute, thanhPhanThamDuRoute, uploadFileRoute, sendSMSRoute, accountNhanSMSRoute, eventHistoryRoute } from "../api/baseURL";
 import unidecode from 'unidecode';
 import BouncyCheckbox from "react-native-bouncy-checkbox";
 import { Dropdown } from 'react-native-element-dropdown';
@@ -26,8 +26,11 @@ const formatDateForSMS = (date) => {
     return `${h}:${min}:${s} ${d}/${m}/${y}`;
 };
 
-const removeDiacritics = (str) => {
-    return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+export const removeDiacritics = (str) => {
+    return str.replace(/đ/g, "d")  // Thay thế 'đ' thành 'd'
+        .replace(/Đ/g, "D")  // Thay thế 'Đ' thành 'D'
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
 };
 
 
@@ -397,6 +400,18 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
             if (selectedEvent) {
                 // Gọi API để cập nhật sự kiện
                 response = await axiosInstance.put(`${eventRoute.update}/${selectedEvent.id}`, editedEvent);
+
+                // Lưu vào bảng lịch sử
+                let dataHistory = {
+                    eventId: selectedEvent.id,
+                    updatedBy: user.id,
+                    updatedAt: new Date().toLocaleString("sv-SE").replace("T", " "),
+                    oldValue: JSON.stringify(selectedEvent),
+                    newValue: JSON.stringify(editedEvent),
+                    actionType: "CHINHSUA",
+                }
+                await axiosInstance.post(eventHistoryRoute.create, dataHistory);
+
             } else {
                 // Gọi API để tạo sự kiện mới
                 response = await axiosInstance.post(eventRoute.create, editedEvent);
@@ -615,6 +630,22 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
 
             const response = await axiosInstance.put(eventRoute.update + "/" + selectedEvent.id, { trangThai: "duyet" });
             if (response.status >= 200 && response.status < 300) {
+
+                let data = {
+                    ...selectedEvent,
+                    trangThai: "duyet",
+                }
+                // Lưu vào bảng lịch sử
+                let dataHistory = {
+                    eventId: selectedEvent.id,
+                    updatedBy: user.id,
+                    updatedAt: new Date().toLocaleString("sv-SE").replace("T", " "),
+                    oldValue: JSON.stringify(selectedEvent),
+                    newValue: JSON.stringify(data),
+                    actionType: "DUYET",
+                }
+                await axiosInstance.post(eventHistoryRoute.create, dataHistory);
+
                 Toast.show({
                     type: 'success',
                     text1: response.data.message,
@@ -707,6 +738,22 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
 
             const response = await axiosInstance.put(eventRoute.update + "/" + selectedEvent.id, { trangThai: "huy" });
             if (response.status >= 200 && response.status < 300) {
+
+                let data = {
+                    ...selectedEvent,
+                    trangThai: "huy",
+                }
+                // Lưu vào bảng lịch sử
+                let dataHistory = {
+                    eventId: selectedEvent.id,
+                    updatedBy: user.id,
+                    updatedAt: new Date().toLocaleString("sv-SE").replace("T", " "),
+                    oldValue: JSON.stringify(selectedEvent),
+                    newValue: JSON.stringify(data),
+                    actionType: "HUY",
+                }
+                await axiosInstance.post(eventHistoryRoute.create, dataHistory);
+
                 Toast.show({
                     type: 'success',
                     text1: response.data.message,

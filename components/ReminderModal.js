@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, Pressable, Text, TouchableWithoutFeedback, View } from 'react-native';
+import { Alert, Modal, Pressable, Text, TouchableWithoutFeedback, View } from 'react-native';
 import axiosInstance from '../utils/axiosInstance';
 import { thongBaoNhacNhoLichCaNhanRoute, thongBaoNhacNhoRoute } from '../api/baseURL';
 
@@ -96,6 +96,10 @@ const ReminderModal = ({ visible, onClose, onSelectReminder, event, user, isLich
     const handleSaveReminder = async () => {
         if (selectedReminder !== null) {
             onSelectReminder(event, selectedReminder);
+            const eventDateTime = new Date(`${event.ngayBatDau}T${event.gioBatDau}`);
+            if (eventDateTime < new Date()) {
+                return;
+            }
             if (isLichCaNhan) {
                 try {
                     const response = await axiosInstance.get(thongBaoNhacNhoLichCaNhanRoute.findByEventIdAndAccountId,

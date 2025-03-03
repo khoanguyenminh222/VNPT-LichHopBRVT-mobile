@@ -103,7 +103,7 @@ const LichHopScreen = () => {
     // Dùng useEffect để gọi handleFetchNhacNho cho mỗi event khi events thay đổi
     useEffect(() => {
         const fetchData = async () => {
-            setIsLoading(true); // Bắt đầu trạng thái loading
+            //setIsLoading(true); // Bắt đầu trạng thái loading
             try {
                 // Gọi tất cả API cùng lúc bằng Promise.all
                 const results = await Promise.all(events.map(event => handleFetchNhacNho(event)));
@@ -121,7 +121,7 @@ const LichHopScreen = () => {
             } catch (error) {
                 console.error('Lỗi khi fetch dữ liệu:', error);
             } finally {
-                setIsLoading(false); // Xong thì set lại trạng thái loading
+                //setIsLoading(false); // Xong thì set lại trạng thái loading
             }
         };
     
@@ -273,7 +273,7 @@ const LichHopScreen = () => {
     }
     useEffect(() => {
         fetchEvents();
-    }, [isAccountDuyetLich]);
+    }, [isAccountDuyetLich, selectedDate]);
 
     const handleCloseModal = () => {
         setModelEdit(false);
