@@ -780,10 +780,10 @@ const LichHopScreen = () => {
                     {/* <Text style={{ fontSize: Number(fontSize) + 6 }} className="text-2xl text-center text-blue-800 font-semibold mb-4">Lịch họp tuần</Text> */}
                     <View>
                         <Text style={{ fontSize: Number(fontSize) + 4 }} className="text-2xl text-center text-blue-800 font-semibold ">
-                            Lịch công tác tuần
+                            Lịch công tác tuần {getWeekNumber(weekRange.start)}
                         </Text>
                         <Text style={{ fontSize: Number(fontSize) + 4 }} className="text-2xl text-center text-blue-800 font-semibold ">
-                            {getWeekNumber(weekRange.start)} {formatDate(weekRange.start) + "-" + formatDate(weekRange.end)}
+                            {formatDate(weekRange.start) + "-" + formatDate(weekRange.end)}
                         </Text>
                     </View>
                     
