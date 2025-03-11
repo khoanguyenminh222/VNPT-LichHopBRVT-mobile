@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView } from 'react-native';
 import { useFontSize } from '../../context/FontSizeContext';
-import { Picker } from '@react-native-picker/picker';
+import { Dropdown } from 'react-native-element-dropdown';
 import { useHighlightText } from '../../context/HighlightTextContext';
 import { Button, TextInput } from 'react-native-paper';
 import Toast from 'react-native-toast-message';
@@ -38,42 +38,68 @@ const SettingScreen = () => {
             visibilityTime: 3000,
         });
     };
+
+    const fontSizeOptions = [
+        { label: "11", value: 11 },
+        { label: "12", value: 12 },
+        { label: "13", value: 13 },
+        { label: "14", value: 14 },
+        { label: "15", value: 15 },
+        { label: "16", value: 16 },
+        { label: "17", value: 17 },
+        { label: "18", value: 18 },
+        { label: "19", value: 19 },
+        { label: "20", value: 20 },
+    ];
+
+    useEffect(() => {
+        const loadFontSize = async () => {
+            const storedFontSize = await AsyncStorage.getItem("fontSize");
+            setFontSize(storedFontSize ? parseInt(storedFontSize, 10) : 14); // Mặc định là 14 nếu không có giá trị
+        };
+        loadFontSize();
+    }, []);
+
     return (
-        <ScrollView className="flex-1 p-6 bg-gray-200">
-            <View className="mb-8 p-6 bg-white rounded-lg w-full max-w-[460px] m-auto">
-                <Text className="text-3xl font-bold text-center text-gray-800 mb-4">Cài đặt cỡ chữ</Text>
-                <Text className="text-lg font-medium text-gray-700 mb-2">Chọn cỡ chữ</Text>
-                <Picker
-                    selectedValue={fontSize}
-                    onValueChange={async (itemValue) => { setFontSize(itemValue); await AsyncStorage.setItem('fontSize', itemValue.toString()) }}
-                    style={{ width: '100%' }}
-                >
-                    <Picker.Item label="14" value={14} />
-                    <Picker.Item label="15" value={15} />
-                    <Picker.Item label="16" value={16} />
-                    <Picker.Item label="17" value={17} />
-                    <Picker.Item label="18" value={18} />
-                    <Picker.Item label="19" value={19} />
-                    <Picker.Item label="20" value={20} />
-                </Picker>
-                <Text style={{ fontSize: Number(fontSize) }} className="text-gray-800 font-semibold mt-4">Cỡ chữ hiện tại: <Text className="text-blue-600">{fontSize}</Text></Text>
+        <ScrollView className="flex-1 p-4 bg-gray-100">
+            <View className="bg-white p-6 rounded-lg w-full max-w-lg mx-auto shadow-md">
+                <Text className="text-xl font-bold text-center text-gray-800 mb-4" style={{ fontSize: fontSize + 4 }}>
+                    Cài đặt cỡ chữ
+                </Text>
+                <Text className="text-lg font-medium text-gray-700 mb-2" style={{ fontSize }}>
+                    Chọn cỡ chữ
+                </Text>
+                <Dropdown
+                    data={fontSizeOptions}
+                    labelField="label"
+                    valueField="value"
+                    value={fontSize || 14}
+                    onChange={async (item) => {
+                        setFontSize(item.value);
+                        await AsyncStorage.setItem("fontSize", item.value.toString());
+                    }}
+                    style={{ height: 50, borderWidth: 1, borderColor: "#ccc", borderRadius: 8, paddingHorizontal: 10, backgroundColor: "#fff" }}
+                    placeholder="Chọn cỡ chữ"
+                />
+                <Text className="text-gray-800 font-semibold mt-4" style={{ fontSize }}>
+                    Cỡ chữ hiện tại: <Text className="text-blue-600">{fontSize}</Text>
+                </Text>
             </View>
-            <View className="my-8 p-6 bg-white rounded-lg w-full max-w-[460px] m-auto">
-                <Text className="text-3xl font-bold text-center text-gray-800 mb-4">Cài đặt Highlight</Text>
-                {/* Input để người dùng nhập từ cần highlight */}
+
+            <View className="bg-white p-6 rounded-lg w-full max-w-lg mx-auto mt-6 shadow-md">
+                <Text className="text-xl font-bold text-center text-gray-800 mb-4" style={{ fontSize: fontSize + 4 }}>
+                    Cài đặt Highlight
+                </Text>
                 <TextInput
                     value={inputText}
                     onChangeText={(text) => setInputText(text)}
                     placeholder="Nhập từ cần highlight"
-                    style={{
-                        borderBottomWidth: 1,
-                        marginBottom: 20,
-                        padding: 10,
-                    }}
+                    className="border-b border-gray-300 mb-4 p-2"
+                    style={{ fontSize }}
                 />
-
-                {/* Nút để lưu từ cần highlight */}
-                <Button mode='contained' onPress={handleHighlightChange}>Lưu</Button>
+                <Button mode="contained" onPress={handleHighlightChange} className="mt-2">
+                    <Text className="text-white" style={{ fontSize }}>Lưu</Text>
+                </Button>
             </View>
         </ScrollView>
     );

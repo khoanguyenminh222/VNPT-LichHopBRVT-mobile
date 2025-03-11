@@ -185,7 +185,7 @@ const AppNavigator = () => {
     }
     const initialRoute = Platform.OS === "ios" && !isLogin ? "fakescreen" : "Login";
     return (
-        <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName={initialRoute}>
+        <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Login">
             {Platform.OS === "ios" && (
                 <Stack.Screen name="fakescreen" component={TabHackingAppleNavigator} />
             )}

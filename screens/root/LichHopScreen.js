@@ -693,11 +693,11 @@ const LichHopScreen = () => {
                                     className={`flex-row items-center justify-between rounded-lg shadow-lg ${event.trangThai === 'huy' ? 'bg-gray-100 border-gray-500' : event.trangThai === 'dangKy' ? 'bg-purple-100 border-purple-500' : event.quanTrong === 1 ? 'bg-red-100 border-red-500' : 'bg-blue-100 border-blue-500'}`}
                                     onPress={() => { setModelEdit(true); setSelectedEvent(event); }}>
                                     <View className="p-4">
-                                        <Text className={`text-2xl font-semibold truncate line-clamp-1 ${event.trangThai === 'huy' ? 'line-through' : ''}`}>{event?.noiDungCuocHop}</Text>
-                                        <Text className={`text-lg ${event.trangThai === 'huy' ? 'line-through' : ''}`}>Địa điểm: {event.diaDiem != 'Khác' ? applyHighlight(event.diaDiem) : applyHighlight(event.ghiChu)}</Text>
+                                        <Text style={{fontSize: fontSize*1.5}} className={`font-semibold truncate line-clamp-1 ${event.trangThai === 'huy' ? 'line-through' : ''}`}>{event?.noiDungCuocHop}</Text>
+                                        <Text style={{fontSize: fontSize*1.2}} className={`${event.trangThai === 'huy' ? 'line-through' : ''}`}>Địa điểm: {event.diaDiem != 'Khác' ? applyHighlight(event.diaDiem) : applyHighlight(event.ghiChu)}</Text>
                                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                            <FontAwesomeIcon icon={faClock} size={12} />
-                                            <Text className={`text-lg font-semibold pl-2 ${event.trangThai === 'huy' ? 'line-through' : ''}`}>{applyHighlight(event.gioBatDau)} {event.gioKetThuc!=null && event.gioKetThuc!='Inval' && '- ' + applyHighlight(event.gioKetThuc)}</Text>
+                                            <FontAwesomeIcon icon={faClock} size={fontSize} />
+                                            <Text style={{fontSize: fontSize*1.2}} className={`font-semibold pl-2 ${event.trangThai === 'huy' ? 'line-through' : ''}`}>{applyHighlight(event.gioBatDau)} {event.gioKetThuc!=null && event.gioKetThuc!='Inval' && '- ' + applyHighlight(event.gioKetThuc)}</Text>
                                         </View>
                                         <View className="rounded-lg flex flex-row gap-2">
                                             {/* Gán lịch họp sang lịch cá nhân */}
@@ -705,21 +705,21 @@ const LichHopScreen = () => {
                                                 onPress={() => handleToLichCaNhan(event)}
                                                 className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}
                                             >
-                                                <FontAwesomeIcon color='white' icon={faShuffle} size={14} />
+                                                <FontAwesomeIcon color='white' icon={faShuffle} size={fontSize} />
                                             </Pressable>
                                             {/* Copy lịch */}
                                             <Pressable
                                                 onPress={() => handleCopyText(event)}
                                                 className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}
                                             >
-                                                <FontAwesomeIcon color='white' icon={faClipboard} size={14} />
+                                                <FontAwesomeIcon color='white' icon={faClipboard} size={fontSize} />
                                             </Pressable>
                                             {/* Nhắc nhở */}
                                             <Pressable
                                                 onPress={() => { setModalVisible(true); setSelectedEvent(event); }}
                                                 className={`flex flex-row items-center p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}
                                             >
-                                                <FontAwesomeIcon color='white' icon={faClockFour} size={14} />
+                                                <FontAwesomeIcon color='white' icon={faClockFour} size={fontSize} />
                                                 {/* Gọi api */}
 
                                                 
@@ -727,7 +727,7 @@ const LichHopScreen = () => {
                                                     <Text style={{ fontSize: 10 }} className="text-white ml-2">Đã nhắc nhở</Text>
                                                 )} */}
                                                 {nhacNhoData[event.id] && (
-                                                    <Text style={{ fontSize: 10 }} className="text-white ml-2">
+                                                    <Text style={{ fontSize: fontSize*0.8 }} className="text-white ml-2">
                                                         {nhacNhoData[event.id] && 'Đã nhắc nhở' }
                                                     </Text>
                                                 )}
@@ -778,10 +778,15 @@ const LichHopScreen = () => {
             <View className="flex-1 bg-gray-50">
                 <View className="m-5 flex flex-row justify-between items-center w-full">
                     {/* <Text style={{ fontSize: Number(fontSize) + 6 }} className="text-2xl text-center text-blue-800 font-semibold mb-4">Lịch họp tuần</Text> */}
-                    <Text style={{ fontSize: Number(fontSize) + 4 }} className="text-2xl text-center text-blue-800 font-semibold ">
-                        Lịch công tác tuần {getWeekNumber(weekRange.start)} {formatDate(weekRange.start) + "-" + formatDate(weekRange.end)}
-                    </Text>
-
+                    <View>
+                        <Text style={{ fontSize: Number(fontSize) + 4 }} className="text-2xl text-center text-blue-800 font-semibold ">
+                            Lịch công tác tuần
+                        </Text>
+                        <Text style={{ fontSize: Number(fontSize) + 4 }} className="text-2xl text-center text-blue-800 font-semibold ">
+                            {getWeekNumber(weekRange.start)} {formatDate(weekRange.start) + "-" + formatDate(weekRange.end)}
+                        </Text>
+                    </View>
+                    
                     <View className="flex-row gap-2 items-center mb-6 max-w-[460px] m-auto rounded-lg px-2">
                         {/* Nút đổi tuần hiện tại */}
                         <Pressable
@@ -795,7 +800,7 @@ const LichHopScreen = () => {
                                 elevation: 5,
                             }}
                         >
-                            <FontAwesomeIcon icon={faArrowLeftLong} size={20} color={`${!isCurrentWeek ? 'black' : 'white'}`} />
+                            <FontAwesomeIcon icon={faArrowLeftLong} size={fontSize} color={`${!isCurrentWeek ? 'black' : 'white'}`} />
                         </Pressable>
 
                         {/* Nút đổi tuần sau */}
@@ -810,7 +815,7 @@ const LichHopScreen = () => {
                                 elevation: 5,
                             }}
                         >
-                            <FontAwesomeIcon icon={faArrowRightLong} size={20} color={`${!isCurrentWeek ? 'white' : 'black'}`} />
+                            <FontAwesomeIcon icon={faArrowRightLong} size={fontSize} color={`${!isCurrentWeek ? 'white' : 'black'}`} />
                         </Pressable>
 
                     </View>

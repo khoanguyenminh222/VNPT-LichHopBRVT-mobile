@@ -628,13 +628,13 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                 }
             }
 
-            const response = await axiosInstance.put(eventRoute.update + "/" + selectedEvent.id, { trangThai: "duyet" });
+            let data = {
+                ...editedEvent,
+                trangThai: "duyet",
+            }
+            const response = await axiosInstance.put(eventRoute.update + "/" + selectedEvent.id, data);
             if (response.status >= 200 && response.status < 300) {
 
-                let data = {
-                    ...selectedEvent,
-                    trangThai: "duyet",
-                }
                 // Lưu vào bảng lịch sử
                 let dataHistory = {
                     eventId: selectedEvent.id,
@@ -658,7 +658,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                     if (responseAccount.data.phone) {
                         await axiosInstance.post(sendSMSRoute.sendSMS, {
                             phonenumber: responseAccount.data.phone,
-                            content: 'Lich hop BRVT: [Trang thai: Duyet] ' + removeDiacritics(selectedEvent.noiDungCuocHop) + ' dien ra luc ' + formatDateForSMS(new Date(`${selectedEvent.ngayBatDau}T${selectedEvent.gioBatDau}:00`))
+                            content: 'Lich hop BRVT: [Trang thai: Duyet] ' + removeDiacritics(data.noiDungCuocHop) + ' dien ra luc ' + formatDateForSMS(new Date(`${data.ngayBatDau}T${data.gioBatDau}:00`))
                         });
                     }
 
@@ -681,7 +681,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                     try {
                         await axiosInstance.post(sendSMSRoute.sendSMS, {
                             phonenumber: account.phone,
-                            content: 'Lich hop BRVT: [Trang thai: Duyet] ' + removeDiacritics(selectedEvent.noiDungCuocHop) + ' dien ra luc ' + formatDateForSMS(new Date(`${selectedEvent.ngayBatDau}T${selectedEvent.gioBatDau}:00`))
+                            content: 'Lich hop BRVT: [Trang thai: Duyet] ' + removeDiacritics(data.noiDungCuocHop) + ' dien ra luc ' + formatDateForSMS(new Date(`${data.ngayBatDau}T${data.gioBatDau}:00`))
                         });
                     } catch (error) {
                         // Nếu có lỗi trong quá trình gửi SMS
@@ -736,13 +736,14 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                 });
             }
 
-            const response = await axiosInstance.put(eventRoute.update + "/" + selectedEvent.id, { trangThai: "huy" });
+            let data = {
+                ...editedEvent,
+                trangThai: "huy",
+            }
+            const response = await axiosInstance.put(eventRoute.update + "/" + selectedEvent.id, data);
             if (response.status >= 200 && response.status < 300) {
 
-                let data = {
-                    ...selectedEvent,
-                    trangThai: "huy",
-                }
+                
                 // Lưu vào bảng lịch sử
                 let dataHistory = {
                     eventId: selectedEvent.id,
@@ -765,7 +766,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                     if (responseAccount.data.phone) {
                         await axiosInstance.post(sendSMSRoute.sendSMS, {
                             phonenumber: responseAccount.data.phone,
-                            content: 'Lich hop BRVT: [Trang thai: Huy] ' + removeDiacritics(selectedEvent.noiDungCuocHop) + ' dien ra luc ' + formatDateForSMS(new Date(`${selectedEvent.ngayBatDau}T${selectedEvent.gioBatDau}:00`))
+                            content: 'Lich hop BRVT: [Trang thai: Huy] ' + removeDiacritics(data.noiDungCuocHop) + ' dien ra luc ' + formatDateForSMS(new Date(`${data.ngayBatDau}T${data.gioBatDau}:00`))
                         });
                     }
                 }
@@ -787,7 +788,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                     try {
                         await axiosInstance.post(sendSMSRoute.sendSMS, {
                             phonenumber: account.phone,
-                            content: 'Lich hop BRVT: [Trang thai: Huy] ' + removeDiacritics(selectedEvent.noiDungCuocHop) + ' dien ra luc ' + formatDateForSMS(new Date(`${selectedEvent.ngayBatDau}T${selectedEvent.gioBatDau}:00`))
+                            content: 'Lich hop BRVT: [Trang thai: Huy] ' + removeDiacritics(data.noiDungCuocHop) + ' dien ra luc ' + formatDateForSMS(new Date(`${data.ngayBatDau}T${data.gioBatDau}:00`))
                         });
                     } catch (error) {
                         // Nếu có lỗi trong quá trình gửi SMS
@@ -1051,7 +1052,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
         setThanhPhanThamDus(updatedData); // Cập nhật dữ liệu cho TreeSelect
     };
     return (
-        <Modal visible={visible} animationType="slide" transparent>
+        <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
             <View className="flex-1 justify-center items-center" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
 
                 <View className="bg-white w-96 rounded-lg p-4 my-8">
@@ -1071,7 +1072,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                 textStyle={{
                                     textDecorationLine: "none",
                                 }}
-                                disabled={editedEvent.trangThai === "dangKy"}
+                                disabled={editedEvent.trangThai === "dangKy" && !isAccountDuyetLich}
                             />
                         </View>
 
@@ -1082,7 +1083,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                 mode="outlined"
                                 value={editedEvent.noiDungCuocHop}
                                 onChangeText={(text) => setEditedEvent({ ...editedEvent, noiDungCuocHop: text })}
-                                readOnly={editedEvent.trangThai === "dangKy"}
+                                readOnly={editedEvent.trangThai === "dangKy" && !isAccountDuyetLich}
                                 error={errors.noiDungCuocHop}
                             />
                         </View>
@@ -1094,7 +1095,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                 onChangeText={(text) => setEditedEvent({ ...editedEvent, chuTri: text })}
                                 multiline
                                 //onFocus={() => handleOpenSelect('chuTri')}
-                                readOnly={editedEvent.trangThai === "dangKy"}
+                                readOnly={editedEvent.trangThai === "dangKy" && !isAccountDuyetLich}
                                 label="Chủ trì *"
                                 mode="outlined"
                                 error={errors.chuTri}
@@ -1118,7 +1119,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                 mode="outlined"
                                 value={editedEvent.chuanBi}
                                 onChangeText={(text) => setEditedEvent({ ...editedEvent, chuanBi: text })}
-                                readOnly={editedEvent.trangThai === "dangKy"}
+                                readOnly={editedEvent.trangThai === "dangKy" && !isAccountDuyetLich}
                             />
                         </View>
 
@@ -1131,7 +1132,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                 value={editedEvent.thanhPhan}
                                 // onFocus={() => setThanhPhanSelectModalVisible(true)}
                                 onFocus={() => handleOpenSelect('thanhPhan')}
-                                readOnly={editedEvent.trangThai === "dangKy"}
+                                readOnly={editedEvent.trangThai === "dangKy" && !isAccountDuyetLich}
                                 label="Thành phần"
                                 error={errors.thanhPhan || errors.ghiChuThanhPhan}
                             />
@@ -1142,7 +1143,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                 value={editedEvent.ghiChuThanhPhan}
                                 onChangeText={(text) => setEditedEvent({ ...editedEvent, ghiChuThanhPhan: text })}
                                 textAlignVertical="top"
-                                readOnly={editedEvent.trangThai === "dangKy"}
+                                readOnly={editedEvent.trangThai === "dangKy" && !isAccountDuyetLich}
                                 style={{ marginTop: 5 }}
                             />
 
@@ -1165,7 +1166,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                 mode="outlined"
                                 value={editedEvent.moi}
                                 onChangeText={(text) => setEditedEvent({ ...editedEvent, moi: text })}
-                                readOnly={editedEvent.trangThai === "dangKy"}
+                                readOnly={editedEvent.trangThai === "dangKy" && !isAccountDuyetLich}
                             />
                         </View>
 
@@ -1183,7 +1184,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                     onChange={item => setEditedEvent({ ...editedEvent, diaDiem: item.value })} // Cập nhật giá trị
                                     search={true}
                                     style={{ padding: 10 }}
-                                    disable={editedEvent.trangThai === "dangKy"}
+                                    disable={editedEvent.trangThai === "dangKy" && !isAccountDuyetLich}
 
                                 />
                                 {errors.diaDiem && <Text className="text-red-500 text-sm ml-2">{errors.diaDiem}</Text>}
@@ -1198,7 +1199,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                 multiline
                                 value={editedEvent.ghiChu}
                                 onChangeText={(text) => setEditedEvent({ ...editedEvent, ghiChu: text })}
-                                readOnly={editedEvent.trangThai === "dangKy"}
+                                readOnly={editedEvent.trangThai === "dangKy" && !isAccountDuyetLich}
                             />
                         </View>
 
@@ -1215,7 +1216,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                         display="default"
                                         onChange={(event, date) => handleDatePickerChange('ngayBatDau', event, date)}
                                         locale="vi-VN"
-                                        disabled={editedEvent.trangThai === "dangKy"}
+                                        disabled={editedEvent.trangThai === "dangKy" && !isAccountDuyetLich}
                                     />
                                     <DateTimePicker
                                         style={{ width: '33%' }}
@@ -1225,13 +1226,13 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                         display="default"
                                         onChange={(event, date) => handleDatePickerChange('gioBatDau', event, date)}
                                         locale="vi-VN"
-                                        disabled={editedEvent.trangThai === "dangKy"}
+                                        disabled={editedEvent.trangThai === "dangKy" && !isAccountDuyetLich}
                                     />
                                 </View>
 
                             ) : (
                                 <View className="flex flex-row justify-between items-center">
-                                    <Pressable className="w-7/12" onPress={() => openPicker('date', 'ngayBatDau', editedEvent.ngayBatDau)} disabled={editedEvent.trangThai === "dangKy"}>
+                                    <Pressable className="w-7/12" onPress={() => openPicker('date', 'ngayBatDau', editedEvent.ngayBatDau)} disabled={editedEvent.trangThai === "dangKy" && !isAccountDuyetLich}>
                                         <TextInput
                                             label="Ngày bắt đầu *"
                                             mode="outlined"
@@ -1239,7 +1240,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                             editable={false}
                                         />
                                     </Pressable>
-                                    <Pressable className="w-4/12" onPress={() => openPicker("time", "gioBatDau", `2000-01-01T${editedEvent.gioBatDau}`,)} disabled={editedEvent.trangThai === "dangKy"}>
+                                    <Pressable className="w-4/12" onPress={() => openPicker("time", "gioBatDau", `2000-01-01T${editedEvent.gioBatDau}`,)} disabled={editedEvent.trangThai === "dangKy" && !isAccountDuyetLich}>
                                         <TextInput
                                             label="Giờ bắt đầu *"
                                             is24Hour={false}
@@ -1267,7 +1268,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                             display="default"
                                             onChange={(event, date) => handleDatePickerChange('ngayKetThuc', event, date)}
                                             locale="vi-VN"
-                                            disabled={editedEvent.trangThai === "dangKy"}
+                                            disabled={editedEvent.trangThai === "dangKy" && !isAccountDuyetLich}
                                         />
                                         {isGioKetThucVisible && (
                                             <DateTimePicker
@@ -1277,7 +1278,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                                 display="default"
                                                 onChange={(event, date) => handleDatePickerChange('gioKetThuc', event, date)}
                                                 locale="vi-VN"
-                                                disabled={editedEvent.trangThai === "dangKy"}
+                                                disabled={editedEvent.trangThai === "dangKy" && !isAccountDuyetLich}
                                             />
                                         )}
                                     </View>
@@ -1294,7 +1295,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                 </>
                             ) : (
                                 <View className="flex flex-row justify-between items-center">
-                                    <Pressable className="w-7/12" onPress={() => openPicker('date', 'ngayKetThuc', editedEvent.ngayKetThuc)} disabled={editedEvent.trangThai === "dangKy"}>
+                                    <Pressable className="w-7/12" onPress={() => openPicker('date', 'ngayKetThuc', editedEvent.ngayKetThuc)} disabled={editedEvent.trangThai === "dangKy" && !isAccountDuyetLich}>
                                         <TextInput
                                             label="Ngày kết thúc *"
                                             mode="outlined"
@@ -1302,7 +1303,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                             editable={false}
                                         />
                                     </Pressable>
-                                    <Pressable className="w-4/12" onPress={() => openPicker("time", "gioKetThuc", `2000-01-01T${editedEvent.gioKetThuc}`)} disabled={editedEvent.trangThai === "dangKy"}>
+                                    <Pressable className="w-4/12" onPress={() => openPicker("time", "gioKetThuc", `2000-01-01T${editedEvent.gioKetThuc}`)} disabled={editedEvent.trangThai === "dangKy" && !isAccountDuyetLich}>
                                         <TextInput
                                             label="Giờ kết thúc *"
                                             mode="outlined"
@@ -1316,7 +1317,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                         {/* Tệp đính kèm */}
                         <View className="mb-4">
                             <Text className="text-base font-semibold mb-2">Tệp đính kèm</Text>
-                            <Pressable onPress={handleFileChange} disabled={editedEvent.trangThai === "dangKy"}>
+                            <Pressable onPress={handleFileChange} disabled={editedEvent.trangThai === "dangKy" && !isAccountDuyetLich}>
                                 <Text className="text-blue-500">Chọn tệp</Text>
                             </Pressable>
                             <View className="mt-2">

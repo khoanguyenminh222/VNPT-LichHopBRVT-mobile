@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Modal, View, Text, TouchableOpacity, ScrollView, TouchableWithoutFeedback } from 'react-native';
 import { Button } from 'react-native-paper';
 import { TreeSelect } from 'react-native-tree-selection';
+import { useFontSize } from '../context/FontSizeContext';
 
 const TreeSelectModal = ({ visible, onClose, onSelect, data, childKey, titleKey, field }) => {
-
+    const { fontSize } = useFontSize();
     const [localSelectedItems, setLocalSelectedItems] = useState(data);
 
     const handleConfirm = () => {
@@ -47,7 +48,7 @@ const TreeSelectModal = ({ visible, onClose, onSelect, data, childKey, titleKey,
                             }}
                             parentTextStyles={{
                                 color: 'black',
-                                fontSize: 16,
+                                fontSize,
                                 flexShrink: 1,
                                 width: '80%',
                             }}
@@ -58,12 +59,12 @@ const TreeSelectModal = ({ visible, onClose, onSelect, data, childKey, titleKey,
                             }}
                             childTextStyles={{
                                 color: 'blue',
-                                fontSize: 16,
+                                fontSize,
                                 flexShrink: 1,
                                 width: '80%',
                             }}
-                            leftIconStyles={{ tintColor: 'black' }}
-                            rightIconStyles={{ tintColor: 'black' }}
+                            leftIconStyles={{ tintColor: 'black', width: fontSize * 1.2, height: fontSize * 1.2 }}
+                            rightIconStyles={{ tintColor: 'black', width: fontSize * 1.2, height: fontSize * 1.2 }}
                             flatListProps={{
                                 style: { maxHeight: 600 },
                                 showsVerticalScrollIndicator: false,

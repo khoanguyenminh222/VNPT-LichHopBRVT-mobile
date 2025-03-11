@@ -4,8 +4,10 @@ import { TextInput } from 'react-native-gesture-handler';
 import { Button } from 'react-native-paper';
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { TreeSelect } from 'react-native-tree-selection';
+import { useFontSize } from '../context/FontSizeContext';
 
 const TreeSelectWithDatetimeModal = ({ visible, onClose, onSelect, data, childKey, titleKey, field }) => {
+    const { fontSize } = useFontSize();
     const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]); // Ngày bắt đầu
     const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]); // Ngày kết thúc
     const [showPicker, setShowPicker] = useState(false);
@@ -78,7 +80,7 @@ const TreeSelectWithDatetimeModal = ({ visible, onClose, onSelect, data, childKe
                 <View className="bg-white rounded-lg w-96 max-w-[460px] m-auto h-5/6">
                     {/* Ngày bắt đầu */}
                     <View className="my-4 px-4">
-                        <Text className="text-base font-semibold mb-2">Ngày bắt đầu * </Text>
+                        <Text className="font-semibold mb-2" style={{ fontSize }}>Ngày bắt đầu * </Text>
                         {Platform.OS === 'ios' ? (
                             <DateTimePicker
                                 value={new Date(startDate)}
@@ -86,10 +88,11 @@ const TreeSelectWithDatetimeModal = ({ visible, onClose, onSelect, data, childKe
                                 display="default"
                                 onChange={handleStartDateChange}
                                 locale="vi-VN"
+                                style={{ fontSize }}
                             />
                         ) : (
                             <Pressable onPress={() => setShowStartPicker(true)}>
-                                <Text className="border p-2 rounded-md">
+                                <Text className="border p-2 rounded-md" style={{ fontSize }}>
                                     {startDate}
                                 </Text>
                             </Pressable>
@@ -98,7 +101,7 @@ const TreeSelectWithDatetimeModal = ({ visible, onClose, onSelect, data, childKe
 
                     {/* Ngày kết thúc */}
                     <View className="my-4 px-4">
-                        <Text className="text-base font-semibold mb-2">Ngày kết thúc * </Text>
+                        <Text className="font-semibold mb-2" style={{ fontSize }}>Ngày kết thúc * </Text>
                         {Platform.OS === 'ios' ? (
                             <DateTimePicker
                                 value={new Date(endDate)}
@@ -106,6 +109,7 @@ const TreeSelectWithDatetimeModal = ({ visible, onClose, onSelect, data, childKe
                                 display="default"
                                 onChange={handleEndDateChange}
                                 locale="vi-VN"
+                                style={{ fontSize }}
                             />
                         ) : (
                             <Pressable onPress={() => setShowEndPicker(true)}>
@@ -114,6 +118,7 @@ const TreeSelectWithDatetimeModal = ({ visible, onClose, onSelect, data, childKe
                                     padding: 10,
                                     borderRadius: 5,
                                     backgroundColor: '#f9f9f9',
+                                    fontSize,
                                 }}>
                                     {endDate}
                                 </Text>
@@ -129,6 +134,7 @@ const TreeSelectWithDatetimeModal = ({ visible, onClose, onSelect, data, childKe
                             display="default"
                             onChange={handleStartDateChange}
                             locale="vi-VN"
+                            style={{ fontSize }}
                         />
                     )}
                     {showEndPicker && (
@@ -138,6 +144,7 @@ const TreeSelectWithDatetimeModal = ({ visible, onClose, onSelect, data, childKe
                             display="default"
                             onChange={handleEndDateChange}
                             locale="vi-VN"
+                            style={{ fontSize }}
                         />
                     )}
                     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -160,7 +167,7 @@ const TreeSelectWithDatetimeModal = ({ visible, onClose, onSelect, data, childKe
                             }}
                             parentTextStyles={{
                                 color: 'black',
-                                fontSize: 16,
+                                fontSize: fontSize,
                                 flexShrink: 1,
                                 width: '80%',
                             }}
@@ -171,12 +178,12 @@ const TreeSelectWithDatetimeModal = ({ visible, onClose, onSelect, data, childKe
                             }}
                             childTextStyles={{
                                 color: 'blue',
-                                fontSize: 16,
+                                fontSize: fontSize,
                                 flexShrink: 1,
                                 width: '80%',
                             }}
-                            leftIconStyles={{ tintColor: 'black' }}
-                            rightIconStyles={{ tintColor: 'black' }}
+                            leftIconStyles={{ tintColor: 'black', width: fontSize * 1.2, height: fontSize * 1.2 }}
+                            rightIconStyles={{ tintColor: 'black', width: fontSize * 1.2, height: fontSize * 1.2 }}
                             flatListProps={{
                                 style: { maxHeight: 600 },
                                 showsVerticalScrollIndicator: false,
