@@ -76,8 +76,9 @@ const LichHopScreen = () => {
     const { fontSize } = useFontSize();
     const { user, userAllowedUrls } = useAuth();
     const [isCurrentWeek, setIsCurrentWeek] = useState(true);
-    const [currentWeek, setCurrentWeek] = useState(new Date());
-    const [selectedDate, setSelectedDate] = useState(new Date());
+    const now = new Date();
+    const [currentWeek, setCurrentWeek] = useState(new Date(now.getTime() + 7 * 60 * 60 * 1000));
+    const [selectedDate, setSelectedDate] = useState(new Date(now.getTime() + 7 * 60 * 60 * 1000));
     const [currentWeekIndex, setCurrentWeekIndex] = useState(1);
     const [events, setEvents] = useState([]);
     const [refreshing, setRefreshing] = useState(false);
@@ -662,7 +663,7 @@ const LichHopScreen = () => {
         if (!date) {
             return null;
         }
-        const sortedEvents = sortEventsByStartTime(getEventsForDate(date));
+        const sortedEvents = sortEventsByStartTime(getEventsForDate(new Date(date.getTime() + 7 * 60 * 60 * 1000)));
         return sortedEvents;
     }
     const [weekRange, setWeekRange] = useState({
