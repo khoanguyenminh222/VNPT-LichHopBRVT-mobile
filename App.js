@@ -163,27 +163,27 @@ const TabHackingAppleNavigator = () => {
 const AppNavigator = () => {
     const [isLogin, setIsLogin] = useState(true);
     const [isLoading, setIsLoading] = useState(true);
-    useEffect(() => {
-        const fetchStatus = async () => {
-            try {
-                const response = await axios.get(`${accountRoute.findByUsername}/appstore`);
-                if (response.status >= 200 && response.status < 300) {
-                    if (response.data.trangThai === 0) { // Trạng thái appstore không hoạt động thì không có có màn hình login
-                        setIsLogin(false);
-                    }
-                }
-            } catch (error) {
-                console.error("Error fetching login status:", error);
-            } finally {
-                setIsLoading(false);
-            }
-        }
-        fetchStatus();
-    }, []);
-    if (isLoading) {
-        return null;
-    }
-    const initialRoute = Platform.OS === "ios" && !isLogin ? "fakescreen" : "Login";
+    // useEffect(() => {
+    //     const fetchStatus = async () => {
+    //         try {
+    //             const response = await axios.get(`${accountRoute.findByUsername}/appstore`);
+    //             if (response.status >= 200 && response.status < 300) {
+    //                 if (response.data.trangThai === 0) { // Trạng thái appstore không hoạt động thì không có có màn hình login
+    //                     setIsLogin(false);
+    //                 }
+    //             }
+    //         } catch (error) {
+    //             console.error("Error fetching login status:", error);
+    //         } finally {
+    //             setIsLoading(false);
+    //         }
+    //     }
+    //     fetchStatus();
+    // }, []);
+    // if (isLoading) {
+    //     return null;
+    // }
+    //const initialRoute = Platform.OS === "ios" && !isLogin ? "fakescreen" : "Login";
     return (
         <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Login">
             {Platform.OS === "ios" && (
