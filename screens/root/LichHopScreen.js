@@ -116,7 +116,7 @@ const LichHopScreen = () => {
                     }
                     return acc;
                 }, {});
-                console.log(newData)
+                //console.log(newData)
                 
                 setNhacNhoData(newData); // Cập nhật state
             } catch (error) {
@@ -317,7 +317,7 @@ const LichHopScreen = () => {
     // Hàm lấy ra các sự kiện cho ngày đã chọn
     const getEventsForDate = (date) => {
         const formattedDate = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
-        console.log(formattedDate)
+        //console.log(formattedDate)
         return events.filter((event) => {
             // Kiểm tra nếu có sự kiện với ngày bắt đầu và kết thúc hợp lệ
             if (!event.ngayBatDau || !event.ngayKetThuc) return false;
@@ -388,7 +388,7 @@ const LichHopScreen = () => {
 
     // Sắp xếp các sự kiện cho ngày đã chọn
     const sortedEvents = events.length ? sortEventsByStartTime(getEventsForDate(selectedDate)) : [];
-    console.log(selectedDate)
+
     // Chuyển đến ngày tiếp theo
     const handleNextDay = () => {
         const nextDate = new Date(selectedDate);
@@ -664,7 +664,7 @@ const LichHopScreen = () => {
         if (!date) {
             return null;
         }
-        const sortedEvents = sortEventsByStartTime(getEventsForDate(new Date(date.getTime() + 7 * 60 * 60 * 1000)));
+        const sortedEvents = sortEventsByStartTime(getEventsForDate(date));
         return sortedEvents;
     }
     const [weekRange, setWeekRange] = useState({
