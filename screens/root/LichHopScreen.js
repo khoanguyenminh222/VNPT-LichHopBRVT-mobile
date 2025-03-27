@@ -77,8 +77,8 @@ const LichHopScreen = () => {
     const { user, userAllowedUrls } = useAuth();
     const [isCurrentWeek, setIsCurrentWeek] = useState(true);
     const now = new Date();
-    const [currentWeek, setCurrentWeek] = useState(new Date(now.getTime() + 7 * 60 * 60 * 1000));
-    const [selectedDate, setSelectedDate] = useState(new Date(now.getTime() + 7 * 60 * 60 * 1000));
+    const [currentWeek, setCurrentWeek] = useState(new Date());
+    const [selectedDate, setSelectedDate] = useState(new Date());
     const [currentWeekIndex, setCurrentWeekIndex] = useState(1);
     const [events, setEvents] = useState([]);
     const [refreshing, setRefreshing] = useState(false);
@@ -316,13 +316,14 @@ const LichHopScreen = () => {
 
     // Hàm lấy ra các sự kiện cho ngày đã chọn
     const getEventsForDate = (date) => {
-        const formattedDate = date.toISOString().split('T')[0];
+        const formattedDate = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+        console.log(formattedDate)
         return events.filter((event) => {
             // Kiểm tra nếu có sự kiện với ngày bắt đầu và kết thúc hợp lệ
             if (!event.ngayBatDau || !event.ngayKetThuc) return false;
 
             const eventDays = getEventDays(event.ngayBatDau, event.ngayKetThuc);
-            return eventDays.some(eventDay => eventDay.toISOString().split('T')[0] === formattedDate);
+            return eventDays.some(eventDay => eventDay.getFullYear() + '-' + String(eventDay.getMonth() + 1).padStart(2, '0') + '-' + String(eventDay.getDate()).padStart(2, '0') === formattedDate);
         });
     };
 
@@ -387,7 +388,7 @@ const LichHopScreen = () => {
 
     // Sắp xếp các sự kiện cho ngày đã chọn
     const sortedEvents = events.length ? sortEventsByStartTime(getEventsForDate(selectedDate)) : [];
-
+    console.log(selectedDate)
     // Chuyển đến ngày tiếp theo
     const handleNextDay = () => {
         const nextDate = new Date(selectedDate);
