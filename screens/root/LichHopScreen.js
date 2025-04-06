@@ -25,6 +25,7 @@ import { formatDate, getStartAndEndOfWeek } from '../../utils/dateTimeUtils';
 import sendSms from '../../utils/sendSms';
 import removeAccents from "remove-accents";
 import { getWeek, parse } from "date-fns";
+import DetailLichHopModal from '../../components/DetailLichHopModal';
 
 Notifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -671,6 +672,7 @@ const LichHopScreen = () => {
         start: getStartAndEndOfWeek(0).start,
         end: getStartAndEndOfWeek(0).end,
     });
+    const [modalDetail, setModalDetail] = useState(false);
     const renderEvent = ({ item }) => {
         const events = SortEventByDate(item);
         const date = new Date().getDate();
@@ -694,12 +696,13 @@ const LichHopScreen = () => {
                                 <View
                                     className={`flex-row items-center justify-between rounded-lg shadow-lg ${event.trangThai === 'huy' ? 'bg-gray-100 border-gray-500' : event.trangThai === 'dangKy' ? 'bg-purple-100 border-purple-500' : event.quanTrong === 1 ? 'bg-red-100 border-red-500' : 'bg-blue-100 border-blue-500'}`}
                                     onPress={() => { setModelEdit(true); setSelectedEvent(event); }}>
+                                    <Pressable onPress={() => {setModalDetail(true); setSelectedEvent(event)}}>
                                     <View className="p-4">
-                                        <Text style={{fontSize: fontSize*1.5}} className={`font-semibold truncate line-clamp-1 ${event.trangThai === 'huy' ? 'line-through' : ''}`}>{event?.noiDungCuocHop}</Text>
-                                        <Text style={{fontSize: fontSize*1.2}} className={`${event.trangThai === 'huy' ? 'line-through' : ''}`}>Địa điểm: {event.diaDiem != 'Khác' ? applyHighlight(event.diaDiem) : applyHighlight(event.ghiChu)}</Text>
+                                        <Text style={{fontSize: fontSize*1.3}} className={`font-semibold ${event.trangThai === 'huy' ? 'line-through' : ''}`}>{event?.noiDungCuocHop}</Text>
+                                        <Text style={{fontSize: fontSize*1.1}} className={`${event.trangThai === 'huy' ? 'line-through' : ''}`}>Địa điểm: {event.diaDiem != 'Khác' ? applyHighlight(event.diaDiem) : applyHighlight(event.ghiChu)}</Text>
                                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                             <FontAwesomeIcon icon={faClock} size={fontSize} />
-                                            <Text style={{fontSize: fontSize*1.2}} className={`font-semibold pl-2 ${event.trangThai === 'huy' ? 'line-through' : ''}`}>{applyHighlight(event.gioBatDau)} {event.gioKetThuc!=null && event.gioKetThuc!='Inval' && '- ' + applyHighlight(event.gioKetThuc)}</Text>
+                                            <Text style={{fontSize: fontSize*1.1}} className={`font-semibold pl-2 ${event.trangThai === 'huy' ? 'line-through' : ''}`}>{applyHighlight(event.gioBatDau)} {event.gioKetThuc!=null && event.gioKetThuc!='Inval' && '- ' + applyHighlight(event.gioKetThuc)}</Text>
                                         </View>
                                         <View className="rounded-lg flex flex-row gap-2">
                                             {/* Gán lịch họp sang lịch cá nhân */}
@@ -763,6 +766,7 @@ const LichHopScreen = () => {
                                             
                                         </View>
                                     </View>
+                                    </Pressable>
                                 </View>
 
                             </View>
@@ -1069,7 +1073,16 @@ const LichHopScreen = () => {
             ) : (
                 <GestureHandlerRootView style={{ flex: 1 }}>
                     <LichTheoTuan weekDates={weekDates} />
-
+                    <DetailLichHopModal
+                        visible={modalDetail}
+                        onClose={() => { setModalDetail(false); setSelectedEvent(null) }}
+                        event={selectedEvent}
+                        fontSize={fontSize}
+                        applyHighlight={applyHighlight}
+                        parseFileAttachments={parseFileAttachments}
+                        handleDownload={handleDownload}
+                        publicfolder={publicfolder}
+                    />
                 </GestureHandlerRootView>
             )
             }
