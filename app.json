@@ -143,6 +143,7 @@
         }
       ]
     ],
+    "owner": "vnpt_cntt",
     "extra": {
       "eas": {
         "projectId": "1a7af064-a908-4a6e-aca6-65885735b675"
