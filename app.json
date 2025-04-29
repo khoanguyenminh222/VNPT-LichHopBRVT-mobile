@@ -3,9 +3,9 @@
     "name": "VNPTLichHop",
     "slug": "VNPTLichHop",
     "scheme": "vnptlichhop",
-    "version": "1.1.2",
+    "version": "2.1.0",
     "orientation": "default",
-    "icon": "./assets/iconLich2.png",
+    "icon": "./assets/iconLich.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/logoVNPT.png",
@@ -19,7 +19,7 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.vnpt.ttcntt.lichhopv2",
+      "bundleIdentifier": "com.vnpt.ttcntt.lichhop",
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "The app accesses your photos to let you share them with your friends.",
         "NSDocumentsFolderUsageDescription": "The app accesses your documents to allow you to share and upload files.",
@@ -39,6 +39,11 @@
             "CFBundleURLSchemes": [
               "vnptlichhop"
             ]
+          },
+          {
+            "CFBundleURLSchemes": [
+              "vnptlichhop"
+            ]
           }
         ],
         "applinks": {
@@ -49,19 +54,28 @@
               "paths": [
                 "/*"
               ]
+            },
+            {
+              "appID": "6738343629.com.vnpt.ttcntt.lichhop",
+              "paths": [
+                "/*"
+              ]
             }
           ]
         },
         "activitycontinuation": {
           "apps": [
+            "6738343629.com.vnpt.ttcntt.lichhop",
             "6738343629.com.vnpt.ttcntt.lichhop"
           ]
         },
         "webcredentials": {
           "apps": [
+            "6738343629.com.vnpt.ttcntt.lichhop",
             "6738343629.com.vnpt.ttcntt.lichhop"
           ]
-        }
+        },
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -74,7 +88,9 @@
         "android.permission.WRITE_EXTERNAL_STORAGE",
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.ACCESS_COARSE_LOCATION",
-        "android.permission.RECORD_AUDIO"
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_MEDIA_VIDEO"
       ],
       "intentFilters": [
         {
@@ -131,7 +147,6 @@
       "eas": {
         "projectId": "1a7af064-a908-4a6e-aca6-65885735b675"
       }
-    },
-    "owner": "vnpt_cntt"
+    }
   }
 }

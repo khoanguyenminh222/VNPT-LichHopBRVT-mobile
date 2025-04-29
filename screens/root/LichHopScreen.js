@@ -746,7 +746,8 @@ const LichHopScreen = () => {
                                                 </Pressable>
                                             }
                                             {/* Có duyền duyệt hoặc là account được uỷ quyền */}
-                                            {(hasAccess(screenUrls.DuyetLichHop, userAllowedUrls) || isAccountDuyetLich || user?.vaiTro == 'admin') && event.trangThai === 'dangKy' &&
+                                            {/* {(hasAccess(screenUrls.DuyetLichHop, userAllowedUrls) || isAccountDuyetLich || user?.vaiTro == 'admin') && event.trangThai === 'dangKy' && */}
+                                            {event.trangThai === 'dangKy' &&
                                                 <Pressable
                                                     onPress={() => { setModelEdit(true); setSelectedEvent(event); }}
                                                     className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}>
@@ -1033,7 +1034,8 @@ const LichHopScreen = () => {
                                                             </Pressable>
                                                         }
                                                         {/* Có duyền duyệt hoặc là account được uỷ quyền */}
-                                                        {(hasAccess(screenUrls.DuyetLichHop, userAllowedUrls) || isAccountDuyetLich || user?.vaiTro == 'admin') && event.trangThai === 'dangKy' &&
+                                                        {/* {(hasAccess(screenUrls.DuyetLichHop, userAllowedUrls) || isAccountDuyetLich || user?.vaiTro == 'admin') && event.trangThai === 'dangKy' && */}
+                                                        {event.trangThai === 'dangKy' &&
                                                             <Pressable
                                                                 onPress={() => { setModelEdit(true); setSelectedEvent(event); }}
                                                                 className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}>
