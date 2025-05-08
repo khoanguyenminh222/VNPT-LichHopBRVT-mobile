@@ -157,6 +157,14 @@ const eventHistoryRoute = {
     findByEventId: `${domain}/api/admin/eventHistory/event`, // /:eventId
 }
 
+const linkBIRoute = {
+    findAll: `${domain}/api/admin/linkBI`,
+    create: `${domain}/api/admin/linkBI`,
+    findById: `${domain}/api/admin/linkBI`, // /:id
+    update: `${domain}/api/admin/linkBI`, // /:id
+    delete: `${domain}/api/admin/linkBI`, // /:id
+}
+
 export {
     domain,
     publicfolder,
@@ -182,4 +190,5 @@ export {
     thongBaoNhacNhoLichCaNhanRoute,
     accountNhanSMSRoute,
     eventHistoryRoute,
+    linkBIRoute,
 };

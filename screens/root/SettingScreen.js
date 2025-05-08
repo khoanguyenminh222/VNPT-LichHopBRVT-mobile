@@ -1,16 +1,55 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView } from 'react-native';
+import { View, Text, ScrollView, Image } from 'react-native';
 import { useFontSize } from '../../context/FontSizeContext';
 import { Dropdown } from 'react-native-element-dropdown';
 import { useHighlightText } from '../../context/HighlightTextContext';
 import { Button, TextInput } from 'react-native-paper';
 import Toast from 'react-native-toast-message';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import PowerBI from '../../components/PowerBI';
+import { TouchableOpacity } from 'react-native';
+import hasAccess from '../../utils/permissionsAllowedURL';
+import { screenUrls } from '../../api/routes';
+import { useAuth } from '../../context/AuthContext';
+import axiosInstance from '../../utils/axiosInstance';
+import { accountRoute } from '../../api/baseURL';
+import { useIsFocused } from '@react-navigation/native';
 
-const SettingScreen = () => {
+const SettingScreen = ({ navigation }) => {
+    const { user, userAllowedUrls } = useAuth();
     const { fontSize, setFontSize } = useFontSize();
     const { setHighlightText } = useHighlightText(); // Lấy setHighlightText từ context
     const [inputText, setInputText] = useState('');
+    const [loadingLinkBI, setLoadingLinkBI] = useState(false);
+    const isFocused = useIsFocused();
+    const fetchSettingLinkBI = async () => {
+        try {
+            const response = await axiosInstance.get(accountRoute.findByUsername+"/linkbi");
+            if (response.status >= 200 && response.status < 300) {
+                if (response.data.trangThai === 0) { // Trạng thái linkBI không hoạt động thì không có có màn hình Link BI
+                    setLoadingLinkBI(false);
+                } else {
+                    setLoadingLinkBI(true);
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+    }
+    useEffect(() => {
+        if (isFocused) {
+            // Gọi API lần đầu khi màn hình được focus
+            fetchSettingLinkBI();
+
+            // Tự động gọi API sau mỗi 5 giây
+            const interval = setInterval(() => {
+                fetchSettingLinkBI();
+            }, 5000);
+
+            // Dọn dẹp interval khi màn hình mất focus
+            return () => clearInterval(interval);
+        }
+    }, [isFocused]);
 
     useEffect(() => {
         const loadHighlightText = async () => {
@@ -64,7 +103,16 @@ const SettingScreen = () => {
 
     return (
         <ScrollView className="flex-1 p-4 bg-gray-100">
-            <View className="bg-white p-6 rounded-lg w-full max-w-lg mx-auto shadow-md">
+
+            {(hasAccess(screenUrls.LinkBI, userAllowedUrls) || user?.vaiTro == 'admin') && loadingLinkBI &&
+                <View className="bg-white mb-6 p-6 rounded-lg w-full max-w-lg mx-auto shadow-sm">
+                    <Text className="text-2xl font-bold text-center text-gray-800 mb-4 uppercase" style={{ fontSize: fontSize + 4 }}>
+                        GIÁM SÁT SẢN XUẤT KINH DOANH
+                    </Text>
+                    <PowerBI navigation={navigation} fontSize={fontSize} />
+                </View>
+            }
+            <View className="bg-white p-6 rounded-lg w-full max-w-lg mx-auto shadow-sm">
                 <Text className="text-xl font-bold text-center text-gray-800 mb-4" style={{ fontSize: fontSize + 4 }}>
                     Cài đặt cỡ chữ
                 </Text>
@@ -88,7 +136,7 @@ const SettingScreen = () => {
                 </Text>
             </View>
 
-            <View className="bg-white p-6 rounded-lg w-full max-w-lg mx-auto mt-6 shadow-md">
+            <View className="bg-white p-6 rounded-lg w-full max-w-lg mx-auto my-6 shadow-sm">
                 <Text className="text-xl font-bold text-center text-gray-800 mb-4" style={{ fontSize: fontSize + 4 }}>
                     Cài đặt Highlight
                 </Text>

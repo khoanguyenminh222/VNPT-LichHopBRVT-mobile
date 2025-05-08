@@ -37,6 +37,7 @@ import { useViewModeStore } from './stores/StoreViewMode';
 
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faCalendarDay, faCalendarWeek } from '@fortawesome/free-solid-svg-icons';
+import WebViewBIScreen from './screens/root/WebViewBIScreen';
 
 
 const Stack = createStackNavigator();
@@ -102,7 +103,7 @@ const TabNavigator = ({ navigation }) => {
                 />
             }
             <Tab.Screen
-                name="Cài đặt"
+                name="Điều hành"
                 component={SettingScreen}
                 options={{
                     tabBarIcon: ({ focused }) => (
@@ -192,6 +193,7 @@ const AppNavigator = () => {
             <Stack.Screen name="Login" component={LoginScreen} />
             <Stack.Screen name="NotFound" component={NotFoundScreen} />
             <Stack.Screen name="TabNavigator" component={TabNavigator} />
+            <Stack.Screen name="WebViewBI" component={WebViewBIScreen} />
         </Stack.Navigator>
     );
 };
