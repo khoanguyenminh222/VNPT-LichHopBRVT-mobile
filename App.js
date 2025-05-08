@@ -1,6 +1,5 @@
 // App.js
 import 'expo-dev-client';
-import './gesture-handler';
 import './global.css';
 import React, { useLayoutEffect, useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
@@ -8,12 +7,10 @@ import { Button } from 'react-native-paper';
 import { Provider as PaperProvider, IconButton, useTheme } from 'react-native-paper';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { createDrawerNavigator } from '@react-navigation/drawer';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CustomLightTheme } from './constants/themes';
 import Toast from 'react-native-toast-message';
-import Sidebar from './components/Sidebar';
 import LoginScreen from './screens/LoginScreen';
 import NotFoundScreen from './screens/NotFoundScreen';
 import { navigationRef } from './utils/NavigationService';
@@ -39,9 +36,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faCalendarDay, faCalendarWeek } from '@fortawesome/free-solid-svg-icons';
 import WebViewBIScreen from './screens/root/WebViewBIScreen';
 
-
 const Stack = createStackNavigator();
-const Drawer = createDrawerNavigator();
 const Tab = createBottomTabNavigator();
 const BaoCaoStack = createStackNavigator();
 const DonViStack = createStackNavigator();

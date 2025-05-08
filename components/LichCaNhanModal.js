@@ -626,7 +626,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
     }
 
     return (
-        <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+        <Modal visible={visible} animationType="slide" transparent onRequestClose={handleCloseModal}>
             <View className="flex-1 justify-center items-center" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
                 <View className="bg-white w-96 rounded-lg p-4 my-8">
                     <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">

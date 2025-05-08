@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Pressable, Alert, Modal } from 'react-native';
+import { View, Text, Pressable, Alert, Modal, ScrollView, RefreshControl } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
 import Toast from 'react-native-toast-message';
-import { ScrollView, RefreshControl } from 'react-native-gesture-handler';
 import Constants from 'expo-constants';
 import TreeSelectWithDatetimeModal from '../../components/TreeSelectWithDatetimeModal';
 import { accountDuyetLichRoute, thanhPhanThamDuRoute } from '../../api/baseURL';

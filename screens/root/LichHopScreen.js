@@ -1,16 +1,16 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, Pressable, Linking, Alert } from 'react-native';
+import { View, Text, Pressable, Linking, Alert, PanResponder, Animated, ScrollView, RefreshControl, FlatList, Modal } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import axiosInstance from '../../utils/axiosInstance';
 import { accountDuyetLichRoute, accountRoute, eventRoute, lichCaNhanRoute, publicfolder, sendSMSRoute, thongBaoNhacNhoRoute } from '../../api/baseURL';
 import Toast from 'react-native-toast-message';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faDownload } from '@fortawesome/free-solid-svg-icons/faDownload';
-import { PanGestureHandler, State, ScrollView, RefreshControl, FlatList } from 'react-native-gesture-handler';
+
 import { faAdd, faArrowLeftLong, faArrowRightLong, faClipboard, faClock, faClockFour, faEdit, faShuffle, faTrash } from '@fortawesome/free-solid-svg-icons';
 import ReminderModal from '../../components/ReminderModal';
 import * as Notifications from 'expo-notifications';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
+
 import LichHopModal from '../../components/LichHopModal';
 import { useAuth } from '../../context/AuthContext';
 import hasAccess from '../../utils/permissionsAllowedURL';
@@ -18,7 +18,6 @@ import { screenUrls } from '../../api/routes';
 import { useFontSize } from '../../context/FontSizeContext';
 import { useHighlightText } from '../../context/HighlightTextContext';
 import DialogComponent from '../../components/Dialog';
-import { use } from 'react';
 import { useViewModeStore } from '../../stores/StoreViewMode';
 import { Divider } from 'react-native-paper';
 import { formatDate, getStartAndEndOfWeek } from '../../utils/dateTimeUtils';
@@ -109,7 +108,7 @@ const LichHopScreen = () => {
             try {
                 // Gọi tất cả API cùng lúc bằng Promise.all
                 const results = await Promise.all(events.map(event => handleFetchNhacNho(event)));
-    
+
                 // Cập nhật dữ liệu nhắc nhở cho từng event
                 const newData = results.reduce((acc, result) => {
                     if (result && result.eventId) { // Kiểm tra xem có eventId không
@@ -118,7 +117,7 @@ const LichHopScreen = () => {
                     return acc;
                 }, {});
                 //console.log(newData)
-                
+
                 setNhacNhoData(newData); // Cập nhật state
             } catch (error) {
                 console.error('Lỗi khi fetch dữ liệu:', error);
@@ -126,7 +125,7 @@ const LichHopScreen = () => {
                 //setIsLoading(false); // Xong thì set lại trạng thái loading
             }
         };
-    
+
         fetchData(); // Gọi fetchData khi events thay đổi
     }, [events]);
 
@@ -279,6 +278,24 @@ const LichHopScreen = () => {
 
     const handleCloseModal = () => {
         setModelEdit(false);
+        setSelectedEvent({
+            noiDungCuocHop: "",
+            chuTri: "",
+            chuanBi: "",
+            thanhPhan: "",
+            ghiChuThanhPhan: "",
+            moi: "",
+            diaDiem: "",
+            ghiChu: "",
+            ngayBatDau: new Date().toISOString().split('T')[0],
+            gioBatDau: "08:00",
+            ngayKetThuc: new Date().toISOString().split('T')[0],
+            gioKetThuc: null,
+            fileDinhKem: "",
+            trangThai: "",
+            accountId: user?.id,
+            quanTrong: 0,
+        });
     }
     const handleDeleteEvent = async () => {
         try {
@@ -410,27 +427,25 @@ const LichHopScreen = () => {
     };
 
     // Xử lý vuốt ngang
-    const [translateX, setTranslateX] = useState(0);
-    // Xử lý sự kiện vuốt
-    const handleGestureEvent = ({ nativeEvent }) => {
-        setTranslateX(nativeEvent.translationX);
-    };
-
-    // Xử lý khi vuốt
-    const handleHandlerStateChange = ({ nativeEvent }) => {
-        if (nativeEvent.state === State.END) {
-            // Chỉ cập nhật ngày khi vuốt xong
-            if (translateX < -50) {
-                // Vuốt qua phải: Chuyển sang ngày tiếp theo
-                handleNextDay();
-            } else if (translateX > 50) {
-                // Vuốt qua trái: Chuyển về ngày trước đó
-                handlePreviousDay();
+    const translateX = useRef(new Animated.Value(0)).current;
+    const panResponder = PanResponder.create({
+        onMoveShouldSetPanResponder: () => true,
+        onPanResponderMove: Animated.event(
+            [null, { dx: translateX }],
+            { useNativeDriver: false }
+        ),
+        onPanResponderRelease: (evt, gestureState) => {
+            if (gestureState.dx < -50) {
+                handleNextDay(); // Vuốt sang phải
+            } else if (gestureState.dx > 50) {
+                handlePreviousDay(); // Vuốt sang trái
             }
-            // Reset lại vị trí vuốt sau khi hoàn thành
-            setTranslateX(0);
-        }
-    };
+            Animated.spring(translateX, {
+                toValue: 0,
+                useNativeDriver: false,
+            }).start();
+        },
+    });
 
     // Hàm này sẽ xử lý khi có sự thay đổi về selectedDate
     useEffect(() => {
@@ -696,77 +711,77 @@ const LichHopScreen = () => {
                                 <View
                                     className={`flex-row items-center justify-between rounded-lg shadow-lg ${event.trangThai === 'huy' ? 'bg-gray-100 border-gray-500' : event.trangThai === 'dangKy' ? 'bg-purple-100 border-purple-500' : event.quanTrong === 1 ? 'bg-red-100 border-red-500' : 'bg-blue-100 border-blue-500'}`}
                                     onPress={() => { setModelEdit(true); setSelectedEvent(event); }}>
-                                    <Pressable onPress={() => {setModalDetail(true); setSelectedEvent(event)}}>
-                                    <View className="p-4">
-                                        <Text style={{fontSize: fontSize*1.3}} className={`font-semibold ${event.trangThai === 'huy' ? 'line-through' : ''}`}>{event?.noiDungCuocHop}</Text>
-                                        <Text style={{fontSize: fontSize*1.1}} className={`${event.trangThai === 'huy' ? 'line-through' : ''}`}>Địa điểm: {event.diaDiem != 'Khác' ? applyHighlight(event.diaDiem) : applyHighlight(event.ghiChu)}</Text>
-                                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                            <FontAwesomeIcon icon={faClock} size={fontSize} />
-                                            <Text style={{fontSize: fontSize*1.1}} className={`font-semibold pl-2 ${event.trangThai === 'huy' ? 'line-through' : ''}`}>{applyHighlight(event.gioBatDau)} {event.gioKetThuc!=null && event.gioKetThuc!='Inval' && '- ' + applyHighlight(event.gioKetThuc)}</Text>
-                                        </View>
-                                        <View className="rounded-lg flex flex-row gap-2">
-                                            {/* Gán lịch họp sang lịch cá nhân */}
-                                            <Pressable
-                                                onPress={() => handleToLichCaNhan(event)}
-                                                className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}
-                                            >
-                                                <FontAwesomeIcon color='white' icon={faShuffle} size={fontSize} />
-                                            </Pressable>
-                                            {/* Copy lịch */}
-                                            <Pressable
-                                                onPress={() => handleCopyText(event)}
-                                                className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}
-                                            >
-                                                <FontAwesomeIcon color='white' icon={faClipboard} size={fontSize} />
-                                            </Pressable>
-                                            {/* Nhắc nhở */}
-                                            <Pressable
-                                                onPress={() => { setModalVisible(true); setSelectedEvent(event); }}
-                                                className={`flex flex-row items-center p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}
-                                            >
-                                                <FontAwesomeIcon color='white' icon={faClockFour} size={fontSize} />
-                                                {/* Gọi api */}
+                                    <Pressable onPress={() => { setModalDetail(true); setSelectedEvent(event) }}>
+                                        <View className="p-4">
+                                            <Text style={{ fontSize: fontSize * 1.3 }} className={`font-semibold ${event.trangThai === 'huy' ? 'line-through' : ''}`}>{event?.noiDungCuocHop}</Text>
+                                            <Text style={{ fontSize: fontSize * 1.1 }} className={`${event.trangThai === 'huy' ? 'line-through' : ''}`}>Địa điểm: {event.diaDiem != 'Khác' ? applyHighlight(event.diaDiem) : applyHighlight(event.ghiChu)}</Text>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                                <FontAwesomeIcon icon={faClock} size={fontSize} />
+                                                <Text style={{ fontSize: fontSize * 1.1 }} className={`font-semibold pl-2 ${event.trangThai === 'huy' ? 'line-through' : ''}`}>{applyHighlight(event.gioBatDau)} {event.gioKetThuc != null && event.gioKetThuc != 'Inval' && '- ' + applyHighlight(event.gioKetThuc)}</Text>
+                                            </View>
+                                            <View className="rounded-lg flex flex-row gap-2">
+                                                {/* Gán lịch họp sang lịch cá nhân */}
+                                                <Pressable
+                                                    onPress={() => handleToLichCaNhan(event)}
+                                                    className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}
+                                                >
+                                                    <FontAwesomeIcon color='white' icon={faShuffle} size={fontSize} />
+                                                </Pressable>
+                                                {/* Copy lịch */}
+                                                <Pressable
+                                                    onPress={() => handleCopyText(event)}
+                                                    className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}
+                                                >
+                                                    <FontAwesomeIcon color='white' icon={faClipboard} size={fontSize} />
+                                                </Pressable>
+                                                {/* Nhắc nhở */}
+                                                <Pressable
+                                                    onPress={() => { setModalVisible(true); setSelectedEvent(event); }}
+                                                    className={`flex flex-row items-center p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}
+                                                >
+                                                    <FontAwesomeIcon color='white' icon={faClockFour} size={fontSize} />
+                                                    {/* Gọi api */}
 
-                                                
-                                                {/* {event.nhacNho && (
+
+                                                    {/* {event.nhacNho && (
                                                     <Text style={{ fontSize: 10 }} className="text-white ml-2">Đã nhắc nhở</Text>
                                                 )} */}
-                                                {nhacNhoData[event.id] && (
-                                                    <Text style={{ fontSize: fontSize*0.8 }} className="text-white ml-2">
-                                                        {nhacNhoData[event.id] && 'Đã nhắc nhở' }
-                                                    </Text>
+                                                    {nhacNhoData[event.id] && (
+                                                        <Text style={{ fontSize: fontSize * 0.8 }} className="text-white ml-2">
+                                                            {nhacNhoData[event.id] && 'Đã nhắc nhở'}
+                                                        </Text>
+                                                    )}
+                                                </Pressable>
+                                                {/* Chỉnh sửa */}
+                                                {(hasAccess(screenUrls.ChinhSuaLichHop, userAllowedUrls) || user?.vaiTro == 'admin') && event.trangThai !== 'dangKy' &&
+                                                    <Pressable
+                                                        onPress={() => { setModelEdit(true); setSelectedEvent(event); }}
+                                                        className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}>
+                                                        <FontAwesomeIcon color='white' icon={faEdit} size={14} />
+                                                    </Pressable>
+                                                }
+                                                {/* Có duyền duyệt hoặc là account được uỷ quyền */}
+                                                {/* {(hasAccess(screenUrls.DuyetLichHop, userAllowedUrls) || isAccountDuyetLich || user?.vaiTro == 'admin') && event.trangThai === 'dangKy' && */}
+                                                {event.trangThai === 'dangKy' &&
+                                                    <Pressable
+                                                        onPress={() => { setModelEdit(true); setSelectedEvent(event); }}
+                                                        className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}>
+                                                        <FontAwesomeIcon color='white' icon={faEdit} size={14} />
+                                                    </Pressable>
+                                                }
+
+                                                {/* Xóa */}
+                                                {(event && event.trangThai === "dangKy") && !(hasAccess(screenUrls.DuyetLichHop, userAllowedUrls) || isAccountDuyetLich) && (
+                                                    <Pressable onPress={() => { setVisibleDialog(true); setSelectedEvent(event); }} className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai ==
+                                                        'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}>
+                                                        <FontAwesomeIcon color='white' icon={faTrash} size={14} />
+
+                                                    </Pressable>
                                                 )}
-                                            </Pressable>
-                                            {/* Chỉnh sửa */}
-                                            {(hasAccess(screenUrls.ChinhSuaLichHop, userAllowedUrls) || user?.vaiTro == 'admin') && event.trangThai !== 'dangKy' &&
-                                                <Pressable
-                                                    onPress={() => { setModelEdit(true); setSelectedEvent(event); }}
-                                                    className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}>
-                                                    <FontAwesomeIcon color='white' icon={faEdit} size={14} />
-                                                </Pressable>
-                                            }
-                                            {/* Có duyền duyệt hoặc là account được uỷ quyền */}
-                                            {/* {(hasAccess(screenUrls.DuyetLichHop, userAllowedUrls) || isAccountDuyetLich || user?.vaiTro == 'admin') && event.trangThai === 'dangKy' && */}
-                                            {event.trangThai === 'dangKy' &&
-                                                <Pressable
-                                                    onPress={() => { setModelEdit(true); setSelectedEvent(event); }}
-                                                    className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}>
-                                                    <FontAwesomeIcon color='white' icon={faEdit} size={14} />
-                                                </Pressable>
-                                            }
 
-                                            {/* Xóa */}
-                                            {(event && event.trangThai === "dangKy") && !(hasAccess(screenUrls.DuyetLichHop, userAllowedUrls) || isAccountDuyetLich) && (
-                                                <Pressable onPress={() => { setVisibleDialog(true); setSelectedEvent(event); }} className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai ==
-                                                    'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}>
-                                                    <FontAwesomeIcon color='white' icon={faTrash} size={14} />
 
-                                                </Pressable>
-                                            )}
-
-                                            
+                                            </View>
                                         </View>
-                                    </View>
                                     </Pressable>
                                 </View>
 
@@ -793,7 +808,7 @@ const LichHopScreen = () => {
                             {formatDate(weekRange.start) + "-" + formatDate(weekRange.end)}
                         </Text>
                     </View>
-                    
+
                     <View className="flex-row gap-2 items-center mb-6 max-w-[460px] m-auto rounded-lg px-2">
                         {/* Nút đổi tuần hiện tại */}
                         <Pressable
@@ -860,220 +875,218 @@ const LichHopScreen = () => {
     return (
         <View className="flex-1">
             {viewMode === 2 ? (
-                <GestureHandlerRootView style={{ flex: 1 }}>
-                    <View className="flex-1 bg-gray-50">
-                        <View className="flex-row justify-between items-center mb-6 w-full max-w-[460px] m-auto rounded-lg px-2">
-                            {/* Nút trước */}
-                            <Pressable
-                                onPress={handlePreviousWeek}
-                                className={`p-4 rounded-lg ${currentWeekIndex <= 1 ? "opacity-50 pointer-events-none" : "bg-blue-100 hover:bg-blue-200"}`}
-                            >
-                                <Text className="text-2xl text-blue-600 font-semibold">{"<"}</Text>
-                            </Pressable>
-
-                            {/* Danh sách ngày */}
-                            <ScrollView
-                                ref={scrollViewRef}
-                                horizontal
-                                showsHorizontalScrollIndicator={false}
-                                contentContainerStyle={{ flexDirection: 'row', gap: 8 }}
-                                className="flex-1 mx-4"
-                            >
-                                {weekDates.map((item, index) => {
-                                    const isSelected = selectedDate && selectedDate.getDate() === item.getDate();
-                                    return (
-                                        <Pressable
-                                            key={index}
-                                            onPress={() => handleSelectDate(item)}
-                                            className={`w-16 flex items-center p-3 rounded-lg transition-all duration-200 border ${isSelected ? 'bg-blue-500 border-blue-500' : 'bg-white border-black'}`}
-                                        >
-                                            <Text className={`text-sm uppercase tracking-wide ${isSelected ? 'text-white font-medium' : 'text-gray-500'}`}>
-                                                {item.toLocaleDateString('vi-VN', { weekday: 'short' })}
-                                            </Text>
-                                            <Text className={`text-lg font-semibold ${isSelected ? 'text-white' : 'text-gray-800'}`}>
-                                                {item.getDate()}
-                                            </Text>
-                                        </Pressable>
-                                    );
-                                })}
-                            </ScrollView>
-
-                            {/* Nút sau */}
-                            <Pressable
-                                onPress={handleNextWeek}
-                                className={`p-4 rounded-lg ${currentWeekIndex >= 2 ? "opacity-50 pointer-events-none" : "bg-blue-100 hover:bg-blue-200"}`}
-                            >
-                                <Text className="text-2xl text-blue-600 font-semibold">{">"}</Text>
-                            </Pressable>
-                        </View>
-                        {/* Hiển thị thứ, ngày  */}
-                        <Text style={{ fontSize: Number(fontSize) + 6 }} className="text-2xl text-center text-blue-800 mb-4">{selectedDate.toLocaleDateString('vi-VN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</Text>
-                        <PanGestureHandler
-                            onGestureEvent={handleGestureEvent}
-                            onHandlerStateChange={handleHandlerStateChange}
+                <View className="flex-1 bg-gray-50">
+                    <View className="flex-row justify-between items-center mb-6 w-full max-w-[460px] m-auto rounded-lg px-2">
+                        {/* Nút trước */}
+                        <Pressable
+                            onPress={handlePreviousWeek}
+                            className={`p-4 rounded-lg ${currentWeekIndex <= 1 ? "opacity-50 pointer-events-none" : "bg-blue-100 hover:bg-blue-200"}`}
                         >
-                            <View className="flex-1">
-                                {selectedDate && (
-                                    <View className="flex-1 p-4 w-full max-w-[460px] m-auto">
-                                        <ScrollView
-                                            showsVerticalScrollIndicator={false}
-                                            refreshControl={
-                                                <RefreshControl
-                                                    refreshing={refreshing}
-                                                    onRefresh={() => {
-                                                        fetchEvents();
-                                                    }}
-                                                />
-                                            }
-                                        >
-                                            {/* Hiển thị danh sách sự kiện trong ngày */}
-                                            {sortedEvents.map((event, index) => (
-                                                <View key={index} className={`${event.trangThai === 'huy' ? 'bg-gray-100 border-gray-500' : event.trangThai === 'dangKy' ? 'bg-purple-100 border-purple-500' : event.quanTrong === 1 ? 'bg-red-100 border-red-500' : 'bg-blue-100 border-blue-500'} p-6 mb-6 rounded-xl shadow-lg border relative`}>
-                                                    {/* Tên sự kiện */}
-                                                    <Text style={{ fontSize: Number(fontSize) + 6 }} className={`${event.trangThai === 'huy' ? 'text-gray-900 line-through' : event.trangThai == 'dangKy' ? 'text-purple-900' : event.quanTrong == 1 ? 'text-red-900' : 'text-blue-900'} font-bold text-2xl mb-2 mt-4`}>
-                                                        {applyHighlight(event.noiDungCuocHop)}
-                                                    </Text>
+                            <Text className="text-2xl text-blue-600 font-semibold">{"<"}</Text>
+                        </Pressable>
 
-                                                    {/* Địa điểm */}
-                                                    <Text style={{ fontSize: Number(fontSize) + 4 }} className={`${event.trangThai === 'huy' ? 'text-gray-700 line-through' : event.trangThai == 'dangKy' ? 'text-purple-700' : event.quanTrong == 1 ? 'text-red-700' : 'text-blue-700'} text-xl mb-2 font-extrabold`}>
-                                                        {event.diaDiem != 'Khác' ? applyHighlight(event.diaDiem) : applyHighlight(event.ghiChu)}
-                                                    </Text>
+                        {/* Danh sách ngày */}
+                        <ScrollView
+                            ref={scrollViewRef}
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            contentContainerStyle={{ flexDirection: 'row', gap: 8 }}
+                            className="flex-1 mx-4"
+                        >
+                            {weekDates.map((item, index) => {
+                                const isSelected = selectedDate && selectedDate.getDate() === item.getDate();
+                                return (
+                                    <Pressable
+                                        key={index}
+                                        onPress={() => handleSelectDate(item)}
+                                        className={`w-16 flex items-center p-3 rounded-lg transition-all duration-200 border ${isSelected ? 'bg-blue-500 border-blue-500' : 'bg-white border-black'}`}
+                                    >
+                                        <Text className={`text-sm uppercase tracking-wide ${isSelected ? 'text-white font-medium' : 'text-gray-500'}`}>
+                                            {item.toLocaleDateString('vi-VN', { weekday: 'short' })}
+                                        </Text>
+                                        <Text className={`text-lg font-semibold ${isSelected ? 'text-white' : 'text-gray-800'}`}>
+                                            {item.getDate()}
+                                        </Text>
+                                    </Pressable>
+                                );
+                            })}
+                        </ScrollView>
 
-                                                    {/* Thời gian */}
-                                                    <Text style={{ fontSize: Number(fontSize) }} className={`${event.trangThai === 'huy' ? 'text-gray-500 line-through' : event.trangThai == 'dangKy' ? 'text-purple-500' : event.quanTrong == 1 ? 'text-red-500' : 'text-blue-500'} mb-2`}>
-                                                        Thời gian: <Text style={{ fontSize: Number(fontSize) + 4 }} className="font-semibold text-xl">{applyHighlight(event.gioBatDau)} {event.gioKetThuc!=null && event.gioKetThuc!='Inval' && '- ' + applyHighlight(event.gioKetThuc)}</Text>
-                                                    </Text>
+                        {/* Nút sau */}
+                        <Pressable
+                            onPress={handleNextWeek}
+                            className={`p-4 rounded-lg ${currentWeekIndex >= 2 ? "opacity-50 pointer-events-none" : "bg-blue-100 hover:bg-blue-200"}`}
+                        >
+                            <Text className="text-2xl text-blue-600 font-semibold">{">"}</Text>
+                        </Pressable>
+                    </View>
+                    {/* Hiển thị thứ, ngày  */}
+                    <Text style={{ fontSize: Number(fontSize) + 6 }} className="text-2xl text-center text-blue-800 mb-4">{selectedDate.toLocaleDateString('vi-VN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</Text>
+                    <Animated.View
+                        {...panResponder.panHandlers}
+                        style={[{ transform: [{ translateX }] }, { flex: 1 }]}
+                    >
+                        <View className="flex-1">
+                            {selectedDate && (
+                                <View className="flex-1 p-4 w-full max-w-[460px] m-auto">
+                                    <ScrollView
+                                        showsVerticalScrollIndicator={false}
+                                        refreshControl={
+                                            <RefreshControl
+                                                refreshing={refreshing}
+                                                onRefresh={() => {
+                                                    fetchEvents();
+                                                }}
+                                            />
+                                        }
+                                    >
+                                        {/* Hiển thị danh sách sự kiện trong ngày */}
+                                        {sortedEvents.map((event, index) => (
+                                            <View key={index} className={`${event.trangThai === 'huy' ? 'bg-gray-100 border-gray-500' : event.trangThai === 'dangKy' ? 'bg-purple-100 border-purple-500' : event.quanTrong === 1 ? 'bg-red-100 border-red-500' : 'bg-blue-100 border-blue-500'} p-6 mb-6 rounded-xl shadow-lg border relative`}>
+                                                {/* Tên sự kiện */}
+                                                <Text style={{ fontSize: Number(fontSize) + 6 }} className={`${event.trangThai === 'huy' ? 'text-gray-900 line-through' : event.trangThai == 'dangKy' ? 'text-purple-900' : event.quanTrong == 1 ? 'text-red-900' : 'text-blue-900'} font-bold text-2xl mb-2 mt-4`}>
+                                                    {applyHighlight(event.noiDungCuocHop)}
+                                                </Text>
 
-                                                    {/* Chủ trì */}
+                                                {/* Địa điểm */}
+                                                <Text style={{ fontSize: Number(fontSize) + 4 }} className={`${event.trangThai === 'huy' ? 'text-gray-700 line-through' : event.trangThai == 'dangKy' ? 'text-purple-700' : event.quanTrong == 1 ? 'text-red-700' : 'text-blue-700'} text-xl mb-2 font-extrabold`}>
+                                                    {event.diaDiem != 'Khác' ? applyHighlight(event.diaDiem) : applyHighlight(event.ghiChu)}
+                                                </Text>
+
+                                                {/* Thời gian */}
+                                                <Text style={{ fontSize: Number(fontSize) }} className={`${event.trangThai === 'huy' ? 'text-gray-500 line-through' : event.trangThai == 'dangKy' ? 'text-purple-500' : event.quanTrong == 1 ? 'text-red-500' : 'text-blue-500'} mb-2`}>
+                                                    Thời gian: <Text style={{ fontSize: Number(fontSize) + 4 }} className="font-semibold text-xl">{applyHighlight(event.gioBatDau)} {event.gioKetThuc != null && event.gioKetThuc != 'Inval' && '- ' + applyHighlight(event.gioKetThuc)}</Text>
+                                                </Text>
+
+                                                {/* Chủ trì */}
+                                                <Text style={{ fontSize: Number(fontSize) }} className={`${event.trangThai === 'huy' ? 'text-gray-600 line-through' : event.trangThai == 'dangKy' ? 'text-purple-600' : event.quanTrong == 1 ? 'text-red-600' : 'text-blue-600'} mb-2`}>
+                                                    Chủ trì: {applyHighlight(event.chuTri)}
+                                                </Text>
+
+                                                {/* Chuẩn bị (nếu có) */}
+                                                {event.chuanBi && (
                                                     <Text style={{ fontSize: Number(fontSize) }} className={`${event.trangThai === 'huy' ? 'text-gray-600 line-through' : event.trangThai == 'dangKy' ? 'text-purple-600' : event.quanTrong == 1 ? 'text-red-600' : 'text-blue-600'} mb-2`}>
-                                                        Chủ trì: {applyHighlight(event.chuTri)}
+                                                        Chuẩn bị: {applyHighlight(event.chuanBi)}
                                                     </Text>
+                                                )}
 
-                                                    {/* Chuẩn bị (nếu có) */}
-                                                    {event.chuanBi && (
-                                                        <Text style={{ fontSize: Number(fontSize) }} className={`${event.trangThai === 'huy' ? 'text-gray-600 line-through' : event.trangThai == 'dangKy' ? 'text-purple-600' : event.quanTrong == 1 ? 'text-red-600' : 'text-blue-600'} mb-2`}>
-                                                            Chuẩn bị: {applyHighlight(event.chuanBi)}
-                                                        </Text>
-                                                    )}
+                                                {/* Thành phần */}
+                                                <Text style={{ fontSize: Number(fontSize) }} className={`${event.trangThai === 'huy' ? 'text-gray-600 line-through' : event.trangThai == 'dangKy' ? 'text-purple-600' : event.quanTrong == 1 ? 'text-red-600' : 'text-blue-600'} mb-2`}>
+                                                    Thành phần:
+                                                    {event.thanhPhan && applyHighlight(event.thanhPhan.split('\n').map(line => `\n- ${line}`).join('\n'))}
+                                                    {event.ghiChuThanhPhan && applyHighlight(`\n${event.ghiChuThanhPhan}`)}
+                                                </Text>
 
-                                                    {/* Thành phần */}
+                                                {/* Mời (nếu có) */}
+                                                {event.moi && (
                                                     <Text style={{ fontSize: Number(fontSize) }} className={`${event.trangThai === 'huy' ? 'text-gray-600 line-through' : event.trangThai == 'dangKy' ? 'text-purple-600' : event.quanTrong == 1 ? 'text-red-600' : 'text-blue-600'} mb-2`}>
-                                                        Thành phần:
-                                                        {event.thanhPhan && applyHighlight(event.thanhPhan.split('\n').map(line => `\n- ${line}`).join('\n'))}
-                                                        {event.ghiChuThanhPhan && applyHighlight(`\n${event.ghiChuThanhPhan}`)}
+                                                        Mời: {applyHighlight(event.moi)}
                                                     </Text>
+                                                )}
 
-                                                    {/* Mời (nếu có) */}
-                                                    {event.moi && (
-                                                        <Text style={{ fontSize: Number(fontSize) }} className={`${event.trangThai === 'huy' ? 'text-gray-600 line-through' : event.trangThai == 'dangKy' ? 'text-purple-600' : event.quanTrong == 1 ? 'text-red-600' : 'text-blue-600'} mb-2`}>
-                                                            Mời: {applyHighlight(event.moi)}
-                                                        </Text>
-                                                    )}
+                                                {/* Ghi chú (nếu có) */}
+                                                {event.ghiChu && (
+                                                    <Text style={{ fontSize: Number(fontSize) }} className={`${event.trangThai === 'huy' ? 'text-gray-600 line-through' : event.trangThai == 'dangKy' ? 'text-purple-600' : event.quanTrong === 1 ? 'text-red-600' : 'text-blue-600'} mb-2`}>
+                                                        Ghi chú: {applyHighlight(event.ghiChu)}
+                                                    </Text>
+                                                )}
 
-                                                    {/* Ghi chú (nếu có) */}
-                                                    {event.ghiChu && (
-                                                        <Text style={{ fontSize: Number(fontSize) }} className={`${event.trangThai === 'huy' ? 'text-gray-600 line-through' : event.trangThai == 'dangKy' ? 'text-purple-600' : event.quanTrong === 1 ? 'text-red-600' : 'text-blue-600'} mb-2`}>
-                                                            Ghi chú: {applyHighlight(event.ghiChu)}
-                                                        </Text>
-                                                    )}
+                                                {/* File đính kèm */}
+                                                {event.fileDinhKem && event.trangThai !== 'huy' && (
+                                                    <View className="mt-4">
+                                                        <Text style={{ fontSize: Number(fontSize) }} className={`${event.trangThai === 'huy' ? 'text-gray-800' : event.trangThai == 'dangKy' ? 'text-purple-800' : event.quanTrong === 1 ? 'text-red-800' : 'text-blue-800'} font-semibold`}>File đính kèm</Text>
+                                                        {parseFileAttachments(event.fileDinhKem).map((fileName, index) => (
+                                                            <Pressable
+                                                                key={index}
+                                                                onPress={() => handleDownload(publicfolder + "/documents/" + fileName)}
+                                                                className={`py-2 px-4 mt-2 rounded-md ${event.trangThai === 'huy' ? 'bg-gray-500 hover:bg-gray-600' : event.trangThai == 'dangKy' ? 'bg-purple-500 hover:bg-purple-600' : event.quanTrong === 1 ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-500 hover:bg-blue-600'}`}
+                                                            >
+                                                                <Text style={{ fontSize: Number(fontSize) }} className="flex items-center text-white">
+                                                                    <FontAwesomeIcon color='white' icon={faDownload} className="mr-2" size={Number(fontSize) - 2} /> {applyHighlight(fileName)}
+                                                                </Text>
+                                                            </Pressable>
+                                                        ))}
+                                                    </View>
+                                                )}
 
-                                                    {/* File đính kèm */}
-                                                    {event.fileDinhKem && event.trangThai !== 'huy' && (
-                                                        <View className="mt-4">
-                                                            <Text style={{ fontSize: Number(fontSize) }} className={`${event.trangThai === 'huy' ? 'text-gray-800' : event.trangThai == 'dangKy' ? 'text-purple-800' : event.quanTrong === 1 ? 'text-red-800' : 'text-blue-800'} font-semibold`}>File đính kèm</Text>
-                                                            {parseFileAttachments(event.fileDinhKem).map((fileName, index) => (
-                                                                <Pressable
-                                                                    key={index}
-                                                                    onPress={() => handleDownload(publicfolder + "/documents/" + fileName)}
-                                                                    className={`py-2 px-4 mt-2 rounded-md ${event.trangThai === 'huy' ? 'bg-gray-500 hover:bg-gray-600' : event.trangThai == 'dangKy' ? 'bg-purple-500 hover:bg-purple-600' : event.quanTrong === 1 ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-500 hover:bg-blue-600'}`}
-                                                                >
-                                                                    <Text style={{ fontSize: Number(fontSize) }} className="flex items-center text-white">
-                                                                        <FontAwesomeIcon color='white' icon={faDownload} className="mr-2" size={Number(fontSize) - 2} /> {applyHighlight(fileName)}
-                                                                    </Text>
-                                                                </Pressable>
-                                                            ))}
-                                                        </View>
-                                                    )}
-
-                                                    <View className="absolute top-0 right-0 p-1 rounded-lg flex flex-row gap-2">
-                                                        {/* Gán lịch họp sang lịch cá nhân */}
-                                                        <Pressable
-                                                            onPress={() => handleToLichCaNhan(event)}
-                                                            className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}
-                                                        >
-                                                            <FontAwesomeIcon color='white' icon={faShuffle} size={Number(fontSize) + 4} />
-                                                        </Pressable>
-                                                        {/* Copy lịch */}
-                                                        <Pressable
-                                                            onPress={() => handleCopyText(event)}
-                                                            className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}
-                                                        >
-                                                            <FontAwesomeIcon color='white' icon={faClipboard} size={Number(fontSize) + 4} />
-                                                        </Pressable>
-                                                        {/* Nhắc nhở */}
-                                                        <Pressable
-                                                            onPress={() => { setModalVisible(true); setSelectedEvent(event); }}
-                                                            className={`flex flex-row items-center p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}
-                                                        >
-                                                            <FontAwesomeIcon color='white' icon={faClockFour} size={Number(fontSize) + 4} />
-                                                            {/* {event.nhacNho && (
+                                                <View className="absolute top-0 right-0 p-1 rounded-lg flex flex-row gap-2">
+                                                    {/* Gán lịch họp sang lịch cá nhân */}
+                                                    <Pressable
+                                                        onPress={() => handleToLichCaNhan(event)}
+                                                        className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}
+                                                    >
+                                                        <FontAwesomeIcon color='white' icon={faShuffle} size={Number(fontSize) + 4} />
+                                                    </Pressable>
+                                                    {/* Copy lịch */}
+                                                    <Pressable
+                                                        onPress={() => handleCopyText(event)}
+                                                        className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}
+                                                    >
+                                                        <FontAwesomeIcon color='white' icon={faClipboard} size={Number(fontSize) + 4} />
+                                                    </Pressable>
+                                                    {/* Nhắc nhở */}
+                                                    <Pressable
+                                                        onPress={() => { setModalVisible(true); setSelectedEvent(event); }}
+                                                        className={`flex flex-row items-center p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}
+                                                    >
+                                                        <FontAwesomeIcon color='white' icon={faClockFour} size={Number(fontSize) + 4} />
+                                                        {/* {event.nhacNho && (
                                                                 <Text style={{ fontSize: Number(fontSize) }} className="text-white ml-2">Đã nhắc nhở</Text>
                                                             )} */}
-                                                            {nhacNhoData[event.id] && (
-                                                                <Text style={{ fontSize: 10 }} className="text-white ml-2">
-                                                                    {nhacNhoData[event.id] ? 'Đã nhắc nhở' : ''}
-                                                                </Text>
-                                                            )}
-                                                        </Pressable>
-                                                        {/* Chỉnh sửa */}
-                                                        {(hasAccess(screenUrls.ChinhSuaLichHop, userAllowedUrls) || user?.vaiTro == 'admin') && event.trangThai !== 'dangKy' &&
-                                                            <Pressable
-                                                                onPress={() => { setModelEdit(true); setSelectedEvent(event); }}
-                                                                className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}>
-                                                                <FontAwesomeIcon color='white' icon={faEdit} size={Number(fontSize) + 4} />
-                                                            </Pressable>
-                                                        }
-                                                        {/* Có duyền duyệt hoặc là account được uỷ quyền */}
-                                                        {/* {(hasAccess(screenUrls.DuyetLichHop, userAllowedUrls) || isAccountDuyetLich || user?.vaiTro == 'admin') && event.trangThai === 'dangKy' && */}
-                                                        {event.trangThai === 'dangKy' &&
-                                                            <Pressable
-                                                                onPress={() => { setModelEdit(true); setSelectedEvent(event); }}
-                                                                className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}>
-                                                                <FontAwesomeIcon color='white' icon={faEdit} size={Number(fontSize) + 4} />
-                                                            </Pressable>
-                                                        }
-
-                                                        {/* Xóa */}
-                                                        {(event && event.trangThai === "dangKy") && !(hasAccess(screenUrls.DuyetLichHop, userAllowedUrls) || isAccountDuyetLich) && (
-                                                            <Pressable onPress={() => { setVisibleDialog(true); setSelectedEvent(event); }} className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai ==
-                                                                'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}>
-                                                                <FontAwesomeIcon color='white' icon={faTrash} size={Number(fontSize) + 4} />
-
-                                                            </Pressable>
+                                                        {nhacNhoData[event.id] && (
+                                                            <Text style={{ fontSize: 10 }} className="text-white ml-2">
+                                                                {nhacNhoData[event.id] ? 'Đã nhắc nhở' : ''}
+                                                            </Text>
                                                         )}
+                                                    </Pressable>
+                                                    {/* Chỉnh sửa */}
+                                                    {(hasAccess(screenUrls.ChinhSuaLichHop, userAllowedUrls) || user?.vaiTro == 'admin') && event.trangThai !== 'dangKy' &&
+                                                        <Pressable
+                                                            onPress={() => { setModelEdit(true); setSelectedEvent(event); }}
+                                                            className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}>
+                                                            <FontAwesomeIcon color='white' icon={faEdit} size={Number(fontSize) + 4} />
+                                                        </Pressable>
+                                                    }
+                                                    {/* Có duyền duyệt hoặc là account được uỷ quyền */}
+                                                    {/* {(hasAccess(screenUrls.DuyetLichHop, userAllowedUrls) || isAccountDuyetLich || user?.vaiTro == 'admin') && event.trangThai === 'dangKy' && */}
+                                                    {event.trangThai === 'dangKy' &&
+                                                        <Pressable
+                                                            onPress={() => { setModelEdit(true); setSelectedEvent(event); }}
+                                                            className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}>
+                                                            <FontAwesomeIcon color='white' icon={faEdit} size={Number(fontSize) + 4} />
+                                                        </Pressable>
+                                                    }
 
-                                                        <DialogComponent
-                                                            open={visibleDialog}
-                                                            title={'Xoá lịch họp'}
-                                                            action={handleDeleteEvent}
-                                                            onClose={handleCancel}
-                                                            actionLabel={'Xoá'}
-                                                        />
-                                                    </View>
+                                                    {/* Xóa */}
+                                                    {(event && event.trangThai === "dangKy") && !(hasAccess(screenUrls.DuyetLichHop, userAllowedUrls) || isAccountDuyetLich) && (
+                                                        <Pressable onPress={() => { setVisibleDialog(true); setSelectedEvent(event); }} className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai ==
+                                                            'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}>
+                                                            <FontAwesomeIcon color='white' icon={faTrash} size={Number(fontSize) + 4} />
+
+                                                        </Pressable>
+                                                    )}
+
+                                                    <DialogComponent
+                                                        open={visibleDialog}
+                                                        title={'Xoá lịch họp'}
+                                                        action={handleDeleteEvent}
+                                                        onClose={handleCancel}
+                                                        actionLabel={'Xoá'}
+                                                    />
                                                 </View>
-                                            ))}
+                                            </View>
+                                        ))}
 
-                                        </ScrollView>
-                                    </View>
-                                )}
+                                    </ScrollView>
+                                </View>
+                            )}
 
-                            </View>
-                        </PanGestureHandler>
+                        </View>
+                    </Animated.View>
 
-                    </View>
-                </GestureHandlerRootView>
+                </View>
             ) : (
-                <GestureHandlerRootView style={{ flex: 1 }}>
+                <View style={{ flex: 1 }}>
                     <LichTheoTuan weekDates={weekDates} />
                     <DetailLichHopModal
                         visible={modalDetail}
@@ -1085,16 +1098,18 @@ const LichHopScreen = () => {
                         handleDownload={handleDownload}
                         publicfolder={publicfolder}
                     />
-                </GestureHandlerRootView>
+                </View>
             )
             }
-            <ReminderModal
-                visible={modalVisible}
-                onClose={handleModalClose}
-                onSelectReminder={handleReminderSelect}
-                event={selectedEvent}
-                user={user}
-            />
+            <View>
+                <ReminderModal
+                    visible={modalVisible}
+                    onClose={handleModalClose}
+                    onSelectReminder={handleReminderSelect}
+                    event={selectedEvent}
+                    user={user}
+                />
+            </View>
             {/* Button thêm mới */}
             {(hasAccess(screenUrls.ThemLichHop, userAllowedUrls) || user?.vaiTro == 'admin') &&
                 <Pressable
@@ -1104,17 +1119,21 @@ const LichHopScreen = () => {
                     <Text><FontAwesomeIcon icon={faAdd} color='white' size={Number(fontSize) - 2} /></Text>
                 </Pressable>
             }
-            <LichHopModal
-                visible={modelEdit}
-                selectedEvent={selectedEvent}
-                onClose={() => { setModelEdit(false), setSelectedEvent(null) }}
-                onCancle={handleCancleEvent}
-                onSave={handleSaveEdit}
-                onDelete={handleAcceptEvent}
-                onAccept={handleAcceptEvent}
-                user={user}
-                userAllowedUrls={userAllowedUrls}
-            />
+            <View>
+                <LichHopModal
+                    visible={modelEdit}
+                    selectedEvent={selectedEvent}
+                    onClose={() => { setModelEdit(false), setSelectedEvent(null) }}
+                    onCancle={handleCancleEvent}
+                    onSave={handleSaveEdit}
+                    onDelete={handleAcceptEvent}
+                    onAccept={handleAcceptEvent}
+                    user={user}
+                    userAllowedUrls={userAllowedUrls}
+                />
+            </View>
+
+
         </View >
 
 

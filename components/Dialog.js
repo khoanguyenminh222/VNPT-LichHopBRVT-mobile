@@ -11,7 +11,7 @@ const DialogComponent = ({ title, content, actionLabel, action, open, onClose })
                         {content}
                     </Dialog.Description>
                 )}
-                <Dialog.Button label="Huỷ" onPress={() => onClose()} />
+                <Dialog.Button label="Huỷ" onPress={onClose} />
                 <Dialog.Button label={actionLabel} onPress={action} />
             </Dialog.Container>
         </View>

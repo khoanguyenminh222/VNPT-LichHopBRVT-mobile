@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, ActivityIndicator, Alert, Image, Platform, ImageBackground } from 'react-native';
+import { View, ActivityIndicator, Alert, Image, Platform, ImageBackground, ScrollView } from 'react-native';
 import { TextInput, Button, Text } from 'react-native-paper';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
@@ -10,7 +10,6 @@ import * as WebBrowser from 'expo-web-browser';
 import * as AuthSession from 'expo-auth-session';
 import { Buffer } from 'buffer';
 import * as Linking from 'expo-linking';
-import { ScrollView } from 'react-native-gesture-handler';
 import { WebView } from 'react-native-webview';
 import Constants from 'expo-constants';
 

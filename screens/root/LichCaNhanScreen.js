@@ -1,16 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, Pressable, Linking, Alert } from 'react-native';
+import { View, Text, Pressable, Linking, Alert, PanResponder, Animated, ScrollView, RefreshControl } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import axiosInstance from '../../utils/axiosInstance';
 import { lichCaNhanRoute, publicfolder, thongBaoNhacNhoLichCaNhanRoute } from '../../api/baseURL';
 import Toast from 'react-native-toast-message';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faDownload } from '@fortawesome/free-solid-svg-icons/faDownload';
-import { PanGestureHandler, State, ScrollView, RefreshControl } from 'react-native-gesture-handler';
 import { faAdd, faClipboard, faClockFour, faEdit } from '@fortawesome/free-solid-svg-icons';
 import ReminderModal from '../../components/ReminderModal';
 import * as Notifications from 'expo-notifications';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import LichCaNhanModal from '../../components/LichCaNhanModal';
 import { useAuth } from '../../context/AuthContext';
 import { useFontSize } from '../../context/FontSizeContext';
@@ -76,7 +74,7 @@ const LichCaNhanScreen = () => {
             try {
                 // Gọi tất cả API cùng lúc bằng Promise.all
                 const results = await Promise.all(events.map(event => handleFetchNhacNho(event)));
-    
+
                 // Cập nhật dữ liệu nhắc nhở cho từng event
                 const newData = results.reduce((acc, result) => {
                     if (result && result.eventId) { // Kiểm tra xem có eventId không
@@ -85,7 +83,7 @@ const LichCaNhanScreen = () => {
                     return acc;
                 }, {});
                 console.log(newData)
-                
+
                 setNhacNhoData(newData); // Cập nhật state
             } catch (error) {
                 console.error('Lỗi khi fetch dữ liệu:', error);
@@ -93,7 +91,7 @@ const LichCaNhanScreen = () => {
                 setIsLoading(false); // Xong thì set lại trạng thái loading
             }
         };
-    
+
         fetchData(); // Gọi fetchData khi events thay đổi
     }, [events]);
 
@@ -113,7 +111,7 @@ const LichCaNhanScreen = () => {
 
         return days;
     };
-    
+
     const weekDates = getWeekDates(currentWeek);
 
     // Khi selectedDate thay đổi, cuộn đến ngày được chọn
@@ -145,7 +143,7 @@ const LichCaNhanScreen = () => {
         );
     };
 
-    
+
 
     // Hàm hỗ trợ để lấy tất cả các ngày trong khoảng thời gian sự kiện
     const getEventDays = (ngayBatDau, ngayKetThuc) => {
@@ -182,7 +180,7 @@ const LichCaNhanScreen = () => {
         fetchEvents();
     }, []);
 
-    
+
 
     // Hàm lấy ra các sự kiện cho ngày đã chọn
     const getEventsForDate = (date) => {
@@ -275,27 +273,25 @@ const LichCaNhanScreen = () => {
     };
 
     // Xử lý vuốt ngang
-    const [translateX, setTranslateX] = useState(0);
-    // Xử lý sự kiện vuốt
-    const handleGestureEvent = ({ nativeEvent }) => {
-        setTranslateX(nativeEvent.translationX);
-    };
-
-    // Xử lý khi vuốt
-    const handleHandlerStateChange = ({ nativeEvent }) => {
-        if (nativeEvent.state === State.END) {
-            // Chỉ cập nhật ngày khi vuốt xong
-            if (translateX < -50) {
-                // Vuốt qua phải: Chuyển sang ngày tiếp theo
-                handleNextDay();
-            } else if (translateX > 50) {
-                // Vuốt qua trái: Chuyển về ngày trước đó
-                handlePreviousDay();
+    const translateX = useRef(new Animated.Value(0)).current;
+    const panResponder = PanResponder.create({
+        onMoveShouldSetPanResponder: () => true,
+        onPanResponderMove: Animated.event(
+            [null, { dx: translateX }],
+            { useNativeDriver: false }
+        ),
+        onPanResponderRelease: (evt, gestureState) => {
+            if (gestureState.dx < -50) {
+                handleNextDay(); // Vuốt sang phải
+            } else if (gestureState.dx > 50) {
+                handlePreviousDay(); // Vuốt sang trái
             }
-            // Reset lại vị trí vuốt sau khi hoàn thành
-            setTranslateX(0);
-        }
-    };
+            Animated.spring(translateX, {
+                toValue: 0,
+                useNativeDriver: false,
+            }).start();
+        },
+    });
 
     // Hàm này sẽ xử lý khi có sự thay đổi về selectedDate
     useEffect(() => {
@@ -476,7 +472,7 @@ const LichCaNhanScreen = () => {
     }
 
     return (
-        <GestureHandlerRootView style={{ flex: 1 }}>
+        <View style={{ flex: 1 }}>
             <View className="flex-1 bg-gray-50">
                 <View className="flex-row justify-between items-center mb-6 w-full max-w-[460px] m-auto rounded-lg px-2">
                     {/* Nút trước */}
@@ -524,9 +520,9 @@ const LichCaNhanScreen = () => {
                 </View>
                 {/* Hiển thị thứ, ngày  */}
                 <Text style={{ fontSize: Number(fontSize) + 6 }} className="text-2xl text-center text-blue-800 mb-4">{selectedDate.toLocaleDateString('vi-VN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</Text>
-                <PanGestureHandler
-                    onGestureEvent={handleGestureEvent}
-                    onHandlerStateChange={handleHandlerStateChange}
+                <Animated.View
+                    {...panResponder.panHandlers}
+                    style={[{ transform: [{ translateX }] }, { flex: 1 }]}
                 >
                     <View className="flex-1">
                         {selectedDate && (
@@ -562,7 +558,7 @@ const LichCaNhanScreen = () => {
 
                                             {/* Thời gian */}
                                             <Text style={{ fontSize: Number(fontSize) }} className={`${event.trangThai === 'huy' ? 'text-gray-500 line-through' : event.trangThai == 'dangKy' ? 'text-purple-500' : event.quanTrong == 1 ? 'text-red-500' : 'text-blue-500'} font-bold mb-2`}>
-                                                Thời gian: <Text style={{ fontSize: Number(fontSize) + 4 }} className="font-semibold text-xl">{applyHighlight(event.gioBatDau)} {event.gioKetThuc!=null && event.gioKetThuc!='Inval' && '- ' + applyHighlight(event.gioKetThuc)}</Text>
+                                                Thời gian: <Text style={{ fontSize: Number(fontSize) + 4 }} className="font-semibold text-xl">{applyHighlight(event.gioBatDau)} {event.gioKetThuc != null && event.gioKetThuc != 'Inval' && '- ' + applyHighlight(event.gioKetThuc)}</Text>
                                             </Text>
 
                                             {/* Nội dung */}
@@ -628,27 +624,31 @@ const LichCaNhanScreen = () => {
                             <Text><FontAwesomeIcon icon={faAdd} color='white' size={Number(fontSize) - 2} /></Text>
                         </Pressable>
                     </View>
-                </PanGestureHandler>
-                <ReminderModal
-                    visible={modalVisible}
-                    onClose={handleModalClose}
-                    onSelectReminder={handleReminderSelect}
-                    event={selectedEvent}
-                    user={user}
-                    isLichCaNhan={true}
-                />
-                <LichCaNhanModal
-                    visible={modelEdit}
-                    selectedEvent={selectedEvent}
-                    onClose={() => { setModelEdit(false); setSelectedEvent(null)}}
-                    onCancle={handleCancleEvent}
-                    onSave={handleSaveEdit}
-                    onDelete={handleDeleteEvent}
-                    onAccept={handleAcceptEvent}
-                    user={user}
-                />
+                </Animated.View>
+                <View>
+                    <ReminderModal
+                        visible={modalVisible}
+                        onClose={handleModalClose}
+                        onSelectReminder={handleReminderSelect}
+                        event={selectedEvent}
+                        user={user}
+                        isLichCaNhan={true}
+                    />
+                </View>
+                <View>
+                    <LichCaNhanModal
+                        visible={modelEdit}
+                        selectedEvent={selectedEvent}
+                        onClose={() => { setModelEdit(false); setSelectedEvent(null) }}
+                        onCancle={handleCancleEvent}
+                        onSave={handleSaveEdit}
+                        onDelete={handleDeleteEvent}
+                        onAccept={handleAcceptEvent}
+                        user={user}
+                    />
+                </View>
             </View>
-        </GestureHandlerRootView>
+        </View>
     );
 };
 
