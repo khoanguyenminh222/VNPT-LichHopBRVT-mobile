@@ -59,7 +59,7 @@ const PowerBI = ({ navigation, fontSize }) => {
                     {filteredLinks.map((link, index) => (
                         <TouchableOpacity
                             key={index}
-                            className="flex flex-row items-center mb-3 mx-2 rounded-xl bg-gray-100 p-2"
+                            className="flex flex-row items-center mb-3 rounded-xl bg-gray-100 p-2"
                             onPress={() => navigation.navigate('WebViewBI', { url: link.url, name: link.name })}
                         >
                             <Icon source={require('../assets/powerBILogo.png')} size={fontSize + 14} color="#2563EB" />

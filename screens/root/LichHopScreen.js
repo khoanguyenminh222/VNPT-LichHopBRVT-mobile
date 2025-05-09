@@ -488,7 +488,7 @@ const LichHopScreen = () => {
 
     // // Xử lý khi chọn nhắc nhở
     const handleReminderSelect = async (event, minutes) => {
-        
+
         // Kiểm tra event đã qua hay chưa
         const eventDateTime = new Date(`${event.ngayBatDau}T${event.gioBatDau}`);
         if (eventDateTime < new Date()) {
@@ -764,7 +764,7 @@ const LichHopScreen = () => {
                                                     <Pressable
                                                         onPress={() => { setModelEdit(true); setSelectedEvent(event); }}
                                                         className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}>
-                                                        <FontAwesomeIcon color='white' icon={faEdit} size={14} />
+                                                        <FontAwesomeIcon color='white' icon={faEdit} size={fontSize} />
                                                     </Pressable>
                                                 }
                                                 {/* Có duyền duyệt hoặc là account được uỷ quyền */}
@@ -773,7 +773,7 @@ const LichHopScreen = () => {
                                                     <Pressable
                                                         onPress={() => { setModelEdit(true); setSelectedEvent(event); }}
                                                         className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai == 'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}>
-                                                        <FontAwesomeIcon color='white' icon={faEdit} size={14} />
+                                                        <FontAwesomeIcon color='white' icon={faEdit} size={fontSize} />
                                                     </Pressable>
                                                 }
 
@@ -781,7 +781,7 @@ const LichHopScreen = () => {
                                                 {(event && event.trangThai === "dangKy") && !(hasAccess(screenUrls.DuyetLichHop, userAllowedUrls) || isAccountDuyetLich) && (
                                                     <Pressable onPress={() => { setVisibleDialog(true); setSelectedEvent(event); }} className={`p-2 ${event.trangThai === 'huy' ? 'bg-gray-500' : event.trangThai ==
                                                         'dangKy' ? 'bg-purple-500' : event.quanTrong === 1 ? 'bg-red-500' : 'bg-blue-500'} rounded-lg`}>
-                                                        <FontAwesomeIcon color='white' icon={faTrash} size={14} />
+                                                        <FontAwesomeIcon color='white' icon={faTrash} size={fontSize} />
 
                                                     </Pressable>
                                                 )}
@@ -887,7 +887,11 @@ const LichHopScreen = () => {
                         {/* Nút trước */}
                         <Pressable
                             onPress={handlePreviousWeek}
-                            className={`p-4 rounded-lg ${currentWeekIndex <= 1 ? "opacity-50 pointer-events-none" : "bg-blue-100 hover:bg-blue-200"}`}
+                            className={`p-4 rounded-lg ${currentWeekIndex <= 1 ? "opacity-50 pointer-events-none bg-[#e5e7eb]" : "bg-blue-100 hover:bg-blue-200"}`}
+                            style={{
+                                padding: fontSize / 2, // Điều chỉnh padding
+                                borderRadius: fontSize / 2, // Bo góc nút
+                            }}
                         >
                             <Text className="text-2xl text-blue-600 font-semibold">{"<"}</Text>
                         </Pressable>
@@ -898,7 +902,7 @@ const LichHopScreen = () => {
                             horizontal
                             showsHorizontalScrollIndicator={false}
                             contentContainerStyle={{ flexDirection: 'row', gap: 8 }}
-                            className="flex-1 mx-4"
+                            className="flex-1 mx-3"
                         >
                             {weekDates.map((item, index) => {
                                 const isSelected = selectedDate && selectedDate.getDate() === item.getDate();
@@ -907,11 +911,15 @@ const LichHopScreen = () => {
                                         key={index}
                                         onPress={() => handleSelectDate(item)}
                                         className={`w-16 flex items-center p-3 rounded-lg transition-all duration-200 border ${isSelected ? 'bg-blue-500 border-blue-500' : 'bg-white border-black'}`}
+                                        style={{
+                                            width: fontSize * 4, // Điều chỉnh chiều rộng nút dựa trên fontSize
+                                            padding: fontSize / 2, // Điều chỉnh padding dựa trên fontSize
+                                        }}
                                     >
-                                        <Text className={`text-sm uppercase tracking-wide ${isSelected ? 'text-white font-medium' : 'text-gray-500'}`}>
+                                        <Text className={`text-sm uppercase tracking-wide ${isSelected ? 'text-white font-medium' : 'text-gray-500'}`} style={{ fontSize: Number(fontSize) - 2 }}>
                                             {item.toLocaleDateString('vi-VN', { weekday: 'short' })}
                                         </Text>
-                                        <Text className={`text-lg font-semibold ${isSelected ? 'text-white' : 'text-gray-800'}`}>
+                                        <Text className={`text-lg font-semibold ${isSelected ? 'text-white' : 'text-gray-800'}`} style={{ fontSize }}>
                                             {item.getDate()}
                                         </Text>
                                     </Pressable>
@@ -922,7 +930,11 @@ const LichHopScreen = () => {
                         {/* Nút sau */}
                         <Pressable
                             onPress={handleNextWeek}
-                            className={`p-4 rounded-lg ${currentWeekIndex >= 2 ? "opacity-50 pointer-events-none" : "bg-blue-100 hover:bg-blue-200"}`}
+                            className={`p-4 rounded-lg ${currentWeekIndex >= 2 ? "opacity-50 pointer-events-none bg-[#e5e7eb]" : "bg-blue-100 hover:bg-blue-200"}`}
+                            style={{
+                                padding: fontSize / 2,
+                                borderRadius: fontSize / 2,
+                            }}
                         >
                             <Text className="text-2xl text-blue-600 font-semibold">{">"}</Text>
                         </Pressable>

@@ -24,7 +24,7 @@ const SettingScreen = ({ navigation }) => {
     const isFocused = useIsFocused();
     const fetchSettingLinkBI = async () => {
         try {
-            const response = await axiosInstance.get(accountRoute.findByUsername+"/linkbi");
+            const response = await axiosInstance.get(accountRoute.findByUsername + "/linkbi");
             if (response.status >= 200 && response.status < 300) {
                 if (response.data.trangThai === 0) { // Trạng thái linkBI không hoạt động thì không có có màn hình Link BI
                     setLoadingLinkBI(false);
@@ -128,7 +128,25 @@ const SettingScreen = ({ navigation }) => {
                         setFontSize(item.value);
                         await AsyncStorage.setItem("fontSize", item.value.toString());
                     }}
-                    style={{ height: 50, borderWidth: 1, borderColor: "#ccc", borderRadius: 8, paddingHorizontal: 10, backgroundColor: "#fff" }}
+                    style={{
+                        height: 50,
+                        borderWidth: 1,
+                        borderColor: "#ccc",
+                        borderRadius: 8,
+                        paddingHorizontal: 10,
+                        backgroundColor: "#fff",
+                    }}
+                    placeholderStyle={{
+                        fontSize: fontSize, // Áp dụng fontSize cho placeholder
+                        color: "#aaa",
+                    }}
+                    selectedTextStyle={{
+                        fontSize: fontSize, // Áp dụng fontSize cho văn bản đã chọn
+                        color: "#000",
+                    }}
+                    inputSearchStyle={{
+                        fontSize: fontSize, // Áp dụng fontSize cho ô tìm kiếm (nếu có)
+                    }}
                     placeholder="Chọn cỡ chữ"
                 />
                 <Text className="text-gray-800 font-semibold mt-4" style={{ fontSize }}>

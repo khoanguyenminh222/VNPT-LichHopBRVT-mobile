@@ -11,7 +11,7 @@ const WebViewBIScreen = ({ navigation, route }) => {
             {/* Nút back quay lại*/}
             <View className="p-4 shadow-md flex-row items-center justify-between">
                 <TouchableOpacity onPress={() => navigation.goBack()}>
-                    <Text className="text-blue-500">{'<'} Quay lại</Text>
+                    <Text style={{ fontSize: fontSize }} className="text-blue-500">{'<'} Quay lại</Text>
                 </TouchableOpacity>
             </View>
             <Text className="font-bold text-center px-4 mb-2" style={{ fontSize: fontSize }}>

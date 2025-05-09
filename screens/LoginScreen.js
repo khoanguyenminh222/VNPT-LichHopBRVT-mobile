@@ -12,6 +12,8 @@ import { Buffer } from 'buffer';
 import * as Linking from 'expo-linking';
 import { WebView } from 'react-native-webview';
 import Constants from 'expo-constants';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 
 const LoginScreen = ({ navigation }) => {
     const { user, updateUser, isLogin, logoutSystem } = useAuth();
@@ -22,7 +24,7 @@ const LoginScreen = ({ navigation }) => {
     const [loginWithCAS, setLoginWithCAS] = useState(false);
     const [showWebView, setShowWebView] = useState(false);
     const [casLoginUrl, setCasLoginUrl] = useState('');
-
+    const [hidePass, setHidePass] = useState(true);
     // Khi màn hình đăng nhập được tải, kiểm tra xem có thông tin đăng nhập đã được lưu trong AsyncStorage hay không
     useEffect(() => {
         const retrieveLoginInfo = async () => {
@@ -468,9 +470,18 @@ const LoginScreen = ({ navigation }) => {
                                 label="Mật khẩu"
                                 value={password}
                                 onChangeText={setPassword}
-                                secureTextEntry
+                                secureTextEntry={hidePass}
                                 mode="outlined"
                                 style={{ marginBottom: 10, width: '100%', maxWidth: 460 }}
+                                right={
+                                    <TextInput.Icon
+                                        color="black"
+                                        onPress={() => setHidePass(!hidePass)}
+                                        icon={() => (
+                                            <FontAwesomeIcon icon={hidePass ? faEye : faEyeSlash} size={20} color="gray" />
+                                        )}
+                                    />
+                                }
                             />
                             <Button mode="contained" onPress={handleLogin} disabled={loading} style={{ marginTop: 10, width: '100%', maxWidth: 460 }}>
                                 {loading ? <ActivityIndicator color="#fff" /> : 'Đăng nhập'}
@@ -481,8 +492,8 @@ const LoginScreen = ({ navigation }) => {
                         </View>
 
                     </ScrollView>
-                    <View className="bottom-0 right-0 left-0 flex justify-center items-center">
-                        <Text className="text-center" style={{color: 'rgb(107 114 128)'}}>Phiên bản: {appVersion}</Text>
+                    <View className={`${Platform.OS == 'ios' ? 'bottom-20' : 'bottom-0'} right-0 left-0 flex justify-center items-center`}>
+                        <Text className="text-center" style={{ color: 'rgb(107 114 128)' }}>Phiên bản: {appVersion}</Text>
                         <Text className="text-center">Bản quyền thuộc về Viễn Thông Bà Rịa Vũng Tàu</Text>
                     </View>
                 </ImageBackground>
