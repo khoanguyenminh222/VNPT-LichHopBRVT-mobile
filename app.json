@@ -3,7 +3,7 @@
     "name": "VNPTLichHop",
     "slug": "VNPTLichHop",
     "scheme": "vnptlichhop",
-    "version": "2.1.0",
+    "version": "2.3.0",
     "orientation": "default",
     "icon": "./assets/iconLich.png",
     "userInterfaceStyle": "light",

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, View, Text, TouchableOpacity, ScrollView, Platform, Pressable, Alert, TouchableWithoutFeedback } from 'react-native';
-import { TextInput } from 'react-native-gesture-handler';
 import { Button } from 'react-native-paper';
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { TreeSelect } from 'react-native-tree-selection';

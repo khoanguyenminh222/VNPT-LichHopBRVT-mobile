@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Platform } from 'react-native';
 import WebView from 'react-native-webview';
 import { useFontSize } from '../../context/FontSizeContext';
 
@@ -19,7 +19,7 @@ const WebViewBIScreen = ({ navigation, route }) => {
             </Text>
             <WebView
                 source={{ uri: url }}
-                style={{ flex: 1 }}
+                style={{ flex: 1, marginBottom: Platform.OS == 'ios' ? 30 : 0 }}
                 javaScriptEnabled={true}
                 domStorageEnabled={true}
                 scalesPageToFit={true}

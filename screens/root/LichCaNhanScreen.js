@@ -16,7 +16,7 @@ import { useHighlightText } from '../../context/HighlightTextContext';
 
 Notifications.setNotificationHandler({
     handleNotification: async () => ({
-        shouldShowAlert: true,
+        shouldShowBanner: true,
         shouldPlaySound: true,
         shouldSetBadge: false,
     }),
@@ -348,6 +348,7 @@ const LichCaNhanScreen = () => {
         }
 
         const reminderTime = new Date(eventDateTime.getTime() - minutes * 60 * 1000);
+        const secondsUntilReminder = Math.ceil((reminderTime.getTime() - new Date().getTime()) / 1000);
         if (reminderTime < new Date()) {
             Alert.alert('Không thể đặt nhắc nhở', 'Thời gian nhắc nhở đã qua, không thể đặt nhắc nhở cho sự kiện đã qua.');
             return;
@@ -380,7 +381,11 @@ const LichCaNhanScreen = () => {
                 body: `Cuộc họp "${event.chuDe}" sẽ diễn ra lúc ${event.ngayBatDau} ${event.gioBatDau}.`,
                 sound: true,
             },
-            trigger: { date: reminderTime },
+            trigger: {
+                seconds: secondsUntilReminder,
+                repeat: 'false',
+                type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+            },
         });
 
         // Lưu notificationId mới nhất vào state
@@ -396,13 +401,13 @@ const LichCaNhanScreen = () => {
             },
             trigger: null,
         });
-        Toast.show({
-            type: 'success',
-            text1: 'Đã đặt nhắc nhở',
-            text2: `Nhắc nhở sự kiện "${event.chuDe}" sẽ được gửi trước ${minutes} phút.`,
-            position: 'top',
-            visibilityTime: 3000,
-        });
+        // Toast.show({
+        //     type: 'success',
+        //     text1: 'Đã đặt nhắc nhở',
+        //     text2: `Nhắc nhở sự kiện "${event.chuDe}" sẽ được gửi trước ${minutes} phút.`,
+        //     position: 'top',
+        //     visibilityTime: 3000,
+        // });
         handleModalClose();
     };
 
