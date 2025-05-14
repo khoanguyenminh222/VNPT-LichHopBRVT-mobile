@@ -4,23 +4,58 @@ import { Button } from 'react-native-paper';
 import { TreeSelect } from 'react-native-tree-selection';
 import { useFontSize } from '../context/FontSizeContext';
 
-const TreeSelectModal = ({ visible, onClose, onSelect, data, childKey, titleKey, field }) => {
+const TreeSelectModal = ({ visible, onClose, onSelect, data, childKey, titleKey, field, initialSelectedOrder = [] }) => {
     const { fontSize } = useFontSize();
-    const [localSelectedItems, setLocalSelectedItems] = useState(data);
+    const [localSelectedItems, setLocalSelectedItems] = useState([]);
+    const [selectedOrder, setSelectedOrder] = useState([]);
+
+    useEffect(() => {
+        // Khởi tạo danh sách đã chọn từ props
+        if (data) {
+            // Nếu có initialSelectedOrder, sử dụng nó để khởi tạo thứ tự
+            if (initialSelectedOrder.length > 0) {
+                setSelectedOrder(initialSelectedOrder);
+                setLocalSelectedItems(initialSelectedOrder);
+            } else {
+                // Nếu không có initialSelectedOrder, lấy từ data dựa trên trạng thái isSelected
+                const initialSelected = data
+                    .filter(item => item.isSelected)
+                    .map(item => item[titleKey]);
+                setLocalSelectedItems(initialSelected);
+                setSelectedOrder(initialSelected);
+            }
+        }
+    }, [data, initialSelectedOrder]);
 
     const handleConfirm = () => {
-        onSelect(localSelectedItems, field); // Trả về các phần tử đã chọn
-        onClose(); // Đóng modal
+        onSelect(selectedOrder, field);
+        onClose();
     };
 
     const onCheckBoxPress = (node) => {
-        let updatedSelectedNames = [];
-        node.forEach((item) => {
-            if (item.isSelected) {
-                updatedSelectedNames.push(item[titleKey]);
-            }
+        // Tạo một Map để theo dõi trạng thái mới của các item
+        const newStateMap = new Map();
+        node.forEach(item => {
+            newStateMap.set(item[titleKey], item.isSelected);
         });
-        setLocalSelectedItems(updatedSelectedNames);
+
+        // Lấy danh sách các items mới được chọn
+        const newlySelected = node
+            .filter(item => item.isSelected && !selectedOrder.includes(item[titleKey]))
+            .map(item => item[titleKey]);
+
+        // Lấy danh sách các items bị bỏ chọn
+        const unselected = selectedOrder.filter(item => !newStateMap.get(item));
+
+        // Giữ nguyên thứ tự của các items đã chọn trước đó và vẫn được chọn
+        const existingOrder = selectedOrder.filter(item => newStateMap.get(item) === true);
+
+        // Kết hợp thứ tự cũ và items mới
+        const newSelectedOrder = [...existingOrder, ...newlySelected];
+
+        // Cập nhật state
+        setLocalSelectedItems(newSelectedOrder);
+        setSelectedOrder(newSelectedOrder);
     };
 
     return (
@@ -34,7 +69,7 @@ const TreeSelectModal = ({ visible, onClose, onSelect, data, childKey, titleKey,
                             childKey={childKey}
                             titleKey={titleKey}
                             multiple
-                            value={localSelectedItems}
+                            value={selectedOrder}
                             onCheckBoxPress={onCheckBoxPress}
                             autoSelectParents={false}
                             autoSelectChildren={false}
@@ -44,7 +79,6 @@ const TreeSelectModal = ({ visible, onClose, onSelect, data, childKey, titleKey,
                                 backgroundColor: 'white',
                                 borderRadius: 8,
                                 marginBottom: 20,
-
                             }}
                             parentTextStyles={{
                                 color: 'black',

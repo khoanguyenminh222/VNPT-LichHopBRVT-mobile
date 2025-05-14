@@ -1010,6 +1010,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
         if (hasUnselectedItem) {
             return;
         }
+        // Giữ nguyên thứ tự các phần tử được chọn
         const selectedNames = selectedItems.join(', ');
         setEditedEvent({ ...editedEvent, [field]: selectedNames });
 
@@ -1022,13 +1023,21 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
         }
     };
     const updateTreeSelection = (data, selectedNames, titleKey) => {
-        return data.map((item) => ({
-            ...item,
-            isSelected: selectedNames.includes(item[titleKey]), // Đánh dấu checkbox nếu tên nằm trong mảng selectedNames
-            children: item.children
-                ? updateTreeSelection(item.children, selectedNames, titleKey) // Đệ quy để cập nhật con
-                : [],
-        }));
+        // Tạo một bản sao của data để tránh thay đổi trực tiếp
+        const updatedData = JSON.parse(JSON.stringify(data));
+        
+        // Hàm đệ quy để cập nhật trạng thái isSelected
+        const updateSelection = (items) => {
+            items.forEach(item => {
+                item.isSelected = selectedNames.includes(item[titleKey]);
+                if (item.children && item.children.length > 0) {
+                    updateSelection(item.children);
+                }
+            });
+        };
+
+        updateSelection(updatedData);
+        return updatedData;
     };
 
     const handleOpenSelect = (type) => {
@@ -1038,10 +1047,24 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
         if (thanhPhanRef.current) {
             thanhPhanRef.current.blur(); // Đảm bảo TextInput mất focus
         }
+
+        // Tách chuỗi thành mảng và giữ nguyên thứ tự
         const selectedNames = editedEvent[type]
-            ? editedEvent[type].split(', ').map((name) => name.trim()) // Tách chuỗi thành mảng
+            ? editedEvent[type].split(', ').map(name => name.trim())
             : [];
-        const updatedData = updateTreeSelection(thanhPhanThamDus, selectedNames, "tenThanhPhan");
+
+        // Cập nhật trạng thái isSelected cho từng item trong thanhPhanThamDus
+        const updatedData = thanhPhanThamDus.map(item => {
+            const updatedItem = { ...item };
+            updatedItem.isSelected = selectedNames.includes(item.tenThanhPhan);
+            if (item.children) {
+                updatedItem.children = item.children.map(child => ({
+                    ...child,
+                    isSelected: selectedNames.includes(child.tenThanhPhan)
+                }));
+            }
+            return updatedItem;
+        });
 
         if (type === 'thanhPhan') {
             setThanhPhanSelectModalVisible(true);
@@ -1155,6 +1178,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                                 childKey="children"
                                 titleKey="tenThanhPhan"
                                 field="thanhPhan"
+                                initialSelectedOrder={editedEvent.thanhPhan ? editedEvent.thanhPhan.split(', ').map(name => name.trim()) : []}
                             />
 
                         </View>
