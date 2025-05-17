@@ -275,7 +275,10 @@ const LichCaNhanScreen = () => {
     // Xử lý vuốt ngang
     const translateX = useRef(new Animated.Value(0)).current;
     const panResponder = PanResponder.create({
-        onMoveShouldSetPanResponder: () => true,
+        onMoveShouldSetPanResponder: (evt, gestureState) => {
+            // Chỉ bắt pan khi vuốt ngang nhiều hơn dọc
+            return Math.abs(gestureState.dx) > Math.abs(gestureState.dy);
+        },
         onPanResponderMove: Animated.event(
             [null, { dx: translateX }],
             { useNativeDriver: false }
