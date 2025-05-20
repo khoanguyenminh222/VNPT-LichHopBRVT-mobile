@@ -165,6 +165,14 @@ const linkBIRoute = {
     delete: `${domain}/api/admin/linkBI`, // /:id
 }
 
+const duAnRoute = {
+    findAll: `${domain}/api/admin/duAn`,
+    create: `${domain}/api/admin/duAn`,
+    findById: `${domain}/api/admin/duAn`, // /:id
+    update: `${domain}/api/admin/duAn`, // /:id
+    delete: `${domain}/api/admin/duAn`, // /:id
+}
+
 export {
     domain,
     publicfolder,
@@ -191,4 +199,5 @@ export {
     accountNhanSMSRoute,
     eventHistoryRoute,
     linkBIRoute,
+    duAnRoute,
 };

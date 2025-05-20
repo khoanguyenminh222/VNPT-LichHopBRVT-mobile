@@ -17,6 +17,9 @@ import { navigationRef } from './utils/NavigationService';
 import LichHopScreen from './screens/root/LichHopScreen';
 import LichCaNhanScreen from './screens/root/LichCaNhanScreen';
 import ThongTinScreen from './screens/root/ThongTinScreen';
+import QuanLyDuAnScreen from './screens/root/QuanLyDuAnScreen';
+import QuanLyCongViecScreen from './screens/root/QuanLyCongViecScreen';
+import { Ionicons } from "@expo/vector-icons"
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import hasAccess from './utils/permissionsAllowedURL';
 import { screenUrls } from './api/routes';
@@ -25,7 +28,7 @@ import { FontSizeProvider } from './context/FontSizeContext';
 import { HighlightTextProvider } from './context/HighlightTextContext';
 import axios from 'axios';
 import { accountRoute } from './api/baseURL';
-import { Platform, Pressable, Text } from 'react-native';
+import { Platform, Pressable, Text, TouchableOpacity } from 'react-native';
 import { FakeIOSProvider } from './context/FakeIOSContext';
 import LichHopFakeScreen from './screens/fakeScreen/LichHopFakeScreen';
 import ThongTinFakeScreen from './screens/fakeScreen/ThongTinFakeScreen';
@@ -61,7 +64,11 @@ const TabNavigator = ({ navigation }) => {
         </Pressable>
     );
 
-
+    const viewTaskButton = (
+        <TouchableOpacity className="mr-4" onPress={() => navigation.navigate("TaskManagement")}>
+            <Ionicons name="terminal" size={24} />
+        </TouchableOpacity>
+    ); 
     return (
         <Tab.Navigator>
             {(hasAccess(screenUrls.LichHop, userAllowedUrls) || user?.vaiTro === 'admin') && (
@@ -88,15 +95,19 @@ const TabNavigator = ({ navigation }) => {
                         tabBarIcon: ({ focused }) => (
                             <IconButton icon="calendar-account" iconColor={focused ? colors.primary : colors.disabled} size={24} />
                         ),
-                        // headerRight: () => (
-                        //     <Button onPress={() => alert('This is a button!')}>Info</Button>
-                        // )
-                        // headerRight: () => (
-                        //     <Button onPress={() => alert('This is a button!')}>Info</Button>
-                        // )
                     }}
                 />
             }
+            <Tab.Screen
+                name="Dự án"
+                component={QuanLyDuAnScreen}
+                options={{
+                    tabBarIcon: ({ focused }) => (
+                        <IconButton icon="chart-timeline-variant" iconColor={focused ? colors.primary : colors.disabled} size={24} />
+                    ),
+                    headerRight: () => viewTaskButton,
+                }}
+            />
             <Tab.Screen
                 name="Điều hành"
                 component={SettingScreen}
@@ -189,6 +200,7 @@ const AppNavigator = () => {
             <Stack.Screen name="NotFound" component={NotFoundScreen} />
             <Stack.Screen name="TabNavigator" component={TabNavigator} />
             <Stack.Screen name="WebViewBI" component={WebViewBIScreen} />
+            <Stack.Screen name="TaskManagement" component={QuanLyCongViecScreen} />
         </Stack.Navigator>
     );
 };
