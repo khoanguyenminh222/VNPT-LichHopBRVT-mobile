@@ -64,6 +64,7 @@ const ProjectManagement = ({ navigation }) => {
         try {
             const response = await axiosInstance.get(duAnRoute.findAll)
             if (response.status === 200) {
+                console.log("Projects fetched successfully:", response.data)
                 setProjects(response.data)
             } else {
                 Alert.alert("Error", "Failed to fetch projects")

@@ -27,8 +27,8 @@ const ProjectCard = ({ project, onDelete, onEdit }) => {
   const statusClasses = getStatusClasses(project.trangThai)
 
   const getProgressPercentage = () => {
-    if (project.tasks === 0) return 0
-    return Math.round((project.completed / project.tasks) * 100)
+    if (project.soLuongCongViec === 0) return 0
+    return Math.round((project.soLuongCongViecHoanThanh / project.soLuongCongViec) * 100)
   }
 
   return (
@@ -69,7 +69,7 @@ const ProjectCard = ({ project, onDelete, onEdit }) => {
         <View className="flex-row items-center">
           <Ionicons name="checkmark-circle" size={14} color="#6b7280" />
           <Text className="text-xs text-gray-500 ml-1">
-            {project.completed}/{project.tasks} hoàn thành
+            {project.soLuongCongViecHoanThanh}/{project.soLuongCongViec} hoàn thành
           </Text>
         </View>
       </View>
