@@ -164,6 +164,14 @@ const linkBIRoute = {
     update: `${domain}/api/admin/linkBI`, // /:id
     delete: `${domain}/api/admin/linkBI`, // /:id
 }
+const taskRoute = {
+    findAll: `${domain}/api/admin/task`,
+    create: `${domain}/api/admin/task`,
+    findById: `${domain}/api/admin/task`, // /:id
+    update: `${domain}/api/admin/task`, // /:id
+    delete: `${domain}/api/admin/task`, // /:id
+    getAssignees: `${domain}/api/admin/task/assignees`, // /:taskId
+}
 
 const duAnRoute = {
     findAll: `${domain}/api/admin/duAn`,
@@ -200,4 +208,5 @@ export {
     eventHistoryRoute,
     linkBIRoute,
     duAnRoute,
+    taskRoute
 };

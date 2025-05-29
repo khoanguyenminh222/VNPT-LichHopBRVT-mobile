@@ -1,19 +1,30 @@
 import { View, Text, TouchableOpacity } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
+import { formatDate } from "../utils/dateTimeUtils"
 
-const ProjectCard = ({ project, users = [], onDelete, onEdit }) => {
-  const getStatusColor = (status) => {
+const ProjectCard = ({ project, onDelete, onEdit }) => {
+
+  const getStatusClasses = (status) => {
     switch (status) {
-      case "Completed":
-        return "bg-green-100 text-green-800"
-      case "In Progress":
-        return "bg-blue-100 text-blue-800"
-      case "Not Started":
-        return "bg-gray-100 text-gray-800"
+      case 3:
+        return {
+          container: "bg-green-100",
+          text: "text-green-800",
+        }
+      case 2:
+        return {
+          container: "bg-blue-100",
+          text: "text-blue-800",
+        }
+      case 1:
       default:
-        return "bg-gray-100 text-gray-800"
+        return {
+          container: "bg-gray-100",
+          text: "text-gray-800",
+        }
     }
   }
+  const statusClasses = getStatusClasses(project.trangThai)
 
   const getProgressPercentage = () => {
     if (project.tasks === 0) return 0
@@ -24,11 +35,13 @@ const ProjectCard = ({ project, users = [], onDelete, onEdit }) => {
     <View className="bg-white rounded-lg shadow-sm p-4 mb-4">
       <View className="flex-row justify-between items-start">
         <View className="flex-1">
-          <Text className="text-lg font-semibold text-gray-800">{project.title}</Text>
+          <Text className="text-lg font-semibold text-gray-800">{project.tenDuAn}</Text>
           <View className="flex-row items-center mt-1">
-            <Text className="text-xs text-gray-500 mr-2">Hạn: {project.dueDate}</Text>
-            <View className={`px-2 py-0.5 rounded-full ${getStatusColor(project.status)}`}>
-              <Text className="text-xs font-medium">{project.status}</Text>
+            <Text className="text-xs text-gray-500 mr-2">Hạn: {formatDate(project.ketThuc)}</Text>
+            <View className={`px-2 py-0.5 rounded-full ${statusClasses.container}`}>
+              <Text className={`text-xs font-medium ${statusClasses.text}`}>
+                {project.trangThaiText}
+              </Text>
             </View>
           </View>
         </View>
@@ -59,27 +72,8 @@ const ProjectCard = ({ project, users = [], onDelete, onEdit }) => {
             {project.completed}/{project.tasks} hoàn thành
           </Text>
         </View>
-
-        {users.length > 0 && (
-          <View className="flex-row">
-            {users.slice(0, 3).map((user, index) => (
-              <View
-                key={user.id}
-                className="w-6 h-6 rounded-full bg-blue-100 items-center justify-center border border-white"
-                style={{ marginLeft: index > 0 ? -8 : 0 }}
-              >
-                <Text className="text-xs text-blue-700">{user.avatar}</Text>
-              </View>
-            ))}
-            {users.length > 3 && (
-              <View className="w-6 h-6 rounded-full bg-gray-200 items-center justify-center border border-white ml-[-8px]">
-                <Text className="text-xs text-gray-700">+{users.length - 3}</Text>
-              </View>
-            )}
-          </View>
-        )}
       </View>
-    </View>
+    </View >
   )
 }
 

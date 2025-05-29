@@ -69,7 +69,7 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
                 ngayBatDau: selectedEvent.ngayBatDau || "",
                 gioBatDau: selectedEvent.gioBatDau || "",
                 ngayKetThuc: selectedEvent.ngayKetThuc || "",
-                gioKetThuc: selectedEvent.gioKetThuc != 'Inval' && selectedEvent.gioKetThuc !=null ? selectedEvent.gioKetThuc : null,
+                gioKetThuc: selectedEvent.gioKetThuc != 'Inval' && selectedEvent.gioKetThuc != null ? selectedEvent.gioKetThuc : null,
                 accountId: user?.id,
                 fileDinhKem: selectedEvent.fileDinhKem || "",
                 trangThai: selectedEvent.trangThai || "duyet",
@@ -534,10 +534,9 @@ const LichCaNhanModal = ({ visible, selectedEvent, onClose, onCancle, onSave, on
             });
 
             // Kiểm tra nếu người dùng hủy
-            if (result.assets[0].type === 'canceled') {
+            if (result.canceled) {
                 return;
-            }
-
+            } 
             // Kiểm tra số lượng file (tối đa 5 file)
             if (result.assets[0].length > 5) {
                 Toast.show({

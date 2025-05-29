@@ -1,0 +1,134 @@
+[
+    {
+        "batDau": "2025-05-20T17:00:00.000Z",
+        "fileDinhKem": "[]",
+        "ghiChu": "",
+        "id": 1,
+        "ketThuc": "2025-05-30T17:00:00.000Z",
+        "moTa": null,
+        "tenDuAn": "Dự án quản lý thiết bị điện ",
+        "trangThai": 1,
+        "trangThaiText": "Dự kiến"
+    },
+    {
+        "batDau": "2025-05-20T17:00:00.000Z",
+        "fileDinhKem": "[]",
+        "ghiChu": "",
+        "id": 2,
+        "ketThuc": "2025-05-27T17:00:00.000Z",
+        "moTa": null,
+        "tenDuAn": "Thay đổi, nâng cấp hạ tầng",
+        "trangThai": 2,
+        "trangThaiText": "Đang tiến hành"
+    },
+    {
+        "batDau": "2025-05-20T17:00:00.000Z",
+        "fileDinhKem": "[]",
+        "ghiChu": null,
+        "id": 3,
+        "ketThuc": "2025-05-27T17:00:00.000Z",
+        "moTa": null,
+        "tenDuAn": "Dự án lịch họp",
+        "trangThai": 1,
+        "trangThaiText": "Dự kiến"
+    },
+    {
+        "batDau": "2025-05-20T17:00:00.000Z",
+        "fileDinhKem": "[]",
+        "ghiChu": "",
+        "id": 4,
+        "ketThuc": "2025-05-22T17:00:00.000Z",
+        "moTa": "est",
+        "tenDuAn": "Dự án quản lý giám sát xây dựng bãi biển thuỳ vân năm 2025",
+        "trangThai": 1,
+        "trangThaiText": "Dự kiến"
+    },
+    {
+        "batDau": "2025-05-26T17:00:00.000Z",
+        "fileDinhKem": "[]",
+        "ghiChu": "",
+        "id": 5,
+        "ketThuc": "2025-05-28T17:00:00.000Z",
+        "moTa": "bcvb",
+        "tenDuAn": "Est 2",
+        "trangThai": 1,
+        "trangThaiText": "Dự kiến"
+    },
+    {
+        "batDau": "2025-05-26T17:00:00.000Z",
+        "fileDinhKem": "[\"20250527_131625_30.signed (1).pdf\"]",
+        "ghiChu": "",
+        "id": 6,
+        "ketThuc": "2025-05-29T17:00:00.000Z",
+        "moTa": "123",
+        "tenDuAn": "Test",
+        "trangThai": 1,
+        "trangThaiText": "Dự kiến"
+    },
+    {
+        "batDau": "2025-05-26T17:00:00.000Z",
+        "fileDinhKem": "[\"20250527_134437_30.signed (1).pdf\",\"20250527_134437_30.signed.pdf\"]",
+        "ghiChu": "Ghu chú",
+        "id": 7,
+        "ketThuc": "2025-05-27T17:00:00.000Z",
+        "moTa": "est21",
+        "tenDuAn": "de21",
+        "trangThai": 1,
+        "trangThaiText": "Dự kiến"
+    },
+    {
+        "batDau": "2025-05-26T17:00:00.000Z",
+        "fileDinhKem": "[\"20250527_134602_30.signed (1).pdf\",\"20250527_134602_30.signed.pdf\"]",
+        "ghiChu": "gy7",
+        "id": 8,
+        "ketThuc": "2025-05-30T17:00:00.000Z",
+        "moTa": "aaa",
+        "tenDuAn": "aa",
+        "trangThai": 2,
+        "trangThaiText": "Đang tiến hành"
+    },
+    {
+        "batDau": "2025-05-26T17:00:00.000Z",
+        "fileDinhKem": "[\"20250527_134835_30.signed (1).pdf\"]",
+        "ghiChu": "gzsz",
+        "id": 9,
+        "ketThuc": "2025-05-28T17:00:00.000Z",
+        "moTa": "aaa",
+        "tenDuAn": "va214",
+        "trangThai": 2,
+        "trangThaiText": "Đang tiến hành"
+    },
+    {
+        "batDau": "2025-05-26T17:00:00.000Z",
+        "fileDinhKem": "[\"20250527_135012_30.signed (1).pdf\",\"20250527_135012_30.signed.pdf\"]",
+        "ghiChu": "aaaa",
+        "id": 10,
+        "ketThuc": "2025-05-29T17:00:00.000Z",
+        "moTa": "214214214",
+        "tenDuAn": "aaa",
+        "trangThai": 1,
+        "trangThaiText": "Dự kiến"
+    },
+    {
+        "batDau": "2025-05-26T17:00:00.000Z",
+        "fileDinhKem": "[]",
+        "ghiChu": "aaa2",
+        "id": 11,
+        "ketThuc": "2025-05-22T17:00:00.000Z",
+        "moTa": "aaa",
+        "tenDuAn": "t2",
+        "trangThai": 1,
+        "trangThaiText": "Dự kiến"
+    },
+    {
+        "batDau": "2025-05-26T17:00:00.000Z",
+        "fileDinhKem": "[\"20250527_135931_30.signed.pdf\"]",
+        "ghiChu": "tét",
+        "id": 12,
+        "ketThuc": "2025-05-30T17:00:00.000Z",
+        "moTa": "45aafx",
+        "tenDuAn": "tbcv754",
+        "trangThai": 1,
+        "trangThaiText": "Dự kiến"
+    }
+]

@@ -7,4 +7,5 @@ export const screenUrls = {
     DuyetLichHop: "/lich-hop/duyet",
     LichCaNhan: "/lich-ca-nhan",
     LinkBI: "/linkBI",
+    QuanLyDuAn: "/quan-ly-du-an",
 };
