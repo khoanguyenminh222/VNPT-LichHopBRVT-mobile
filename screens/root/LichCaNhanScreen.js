@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, Pressable, Linking, Alert, PanResponder, Animated, ScrollView, RefreshControl } from 'react-native';
+import { View, Text, Pressable, Linking, Alert, PanResponder, Animated, ScrollView, RefreshControl, Platform, DeviceEventEmitter } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import axiosInstance from '../../utils/axiosInstance';
 import { lichCaNhanRoute, publicfolder, thongBaoNhacNhoLichCaNhanRoute } from '../../api/baseURL';
@@ -56,6 +56,18 @@ const LichCaNhanScreen = () => {
     const [eventNotifications, setEventNotifications] = useState({}); // State lưu id thông báo của sự kiện
 
     const [nhacNhoData, setNhacNhoData] = useState({});
+
+    useEffect(() => {
+        const setupNotificationChannel = async () => {
+            if (Platform.OS !== 'android') return; // Chỉ thiết lập kênh thông báo trên Android
+            await Notifications.setNotificationChannelAsync('reminder', {
+                name: 'Thông báo chung',
+                importance: Notifications.AndroidImportance.HIGH,
+                sound: 'default',
+            });
+        };
+        setupNotificationChannel();
+    }, []);
 
     const handleFetchNhacNho = async (event) => {
         try {
@@ -180,7 +192,17 @@ const LichCaNhanScreen = () => {
         fetchEvents();
     }, []);
 
+    // Thêm useEffect để lắng nghe sự kiện database thay đổi
+    useEffect(() => {
+        const subscription = DeviceEventEmitter.addListener('databaseChanged', () => {
+            // Refresh lại dữ liệu khi database thay đổi
+            fetchEvents();
+        });
 
+        return () => {
+            subscription.remove();
+        };
+    }, []);
 
     // Hàm lấy ra các sự kiện cho ngày đã chọn
     const getEventsForDate = (date) => {
@@ -385,9 +407,9 @@ const LichCaNhanScreen = () => {
                 sound: true,
             },
             trigger: {
-                seconds: secondsUntilReminder,
-                repeat: 'false',
-                type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+                channelId: 'reminder',
+                type: Notifications.SchedulableTriggerInputTypes.DATE,
+                date: reminderTime,
             },
         });
 

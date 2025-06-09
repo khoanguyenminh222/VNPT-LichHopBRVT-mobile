@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, Pressable, Linking, Alert, PanResponder, Animated, ScrollView, RefreshControl, FlatList, Modal } from 'react-native';
+import { View, Text, Pressable, Linking, Alert, PanResponder, Animated, ScrollView, RefreshControl, FlatList, Modal, Platform, DeviceEventEmitter } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import axiosInstance from '../../utils/axiosInstance';
-import { accountDuyetLichRoute, accountRoute, eventRoute, lichCaNhanRoute, publicfolder, sendSMSRoute, thongBaoNhacNhoRoute } from '../../api/baseURL';
+import { accountDuyetLichRoute, accountRoute, donViRoute, eventRoute, lichCaNhanRoute, publicfolder, sendSMSRoute, thongBaoNhacNhoRoute } from '../../api/baseURL';
 import Toast from 'react-native-toast-message';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faDownload } from '@fortawesome/free-solid-svg-icons/faDownload';
@@ -25,6 +25,7 @@ import sendSms from '../../utils/sendSms';
 import removeAccents from "remove-accents";
 import { getWeek, parse } from "date-fns";
 import DetailLichHopModal from '../../components/DetailLichHopModal';
+import { getCurrentDatabase } from '../../utils/databaseConfig';
 
 Notifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -90,6 +91,37 @@ const LichHopScreen = () => {
     const [visibleDialog, setVisibleDialog] = useState(false);
     const viewMode = useViewModeStore(state => state.viewMode);
     const [nhacNhoData, setNhacNhoData] = useState({});
+
+    const [donViDuocChon, setDonViDuocChon] = useState();
+
+    useEffect(() => {
+        // Lấy ra đơn vị
+        const fetchDonVi = async () => {
+            try {
+                const currentDb = await getCurrentDatabase();
+                const response = await axiosInstance.get(donViRoute.findAll);
+                if (response.status >= 200 && response.status < 300) {
+                    const selectedDonVi = response.data.find(donVi => donVi.maDonVi == currentDb);
+                    setDonViDuocChon(selectedDonVi);
+                }
+            } catch (error) {
+                console.error("Lỗi khi lấy danh sách đơn vị:", error);
+            }
+        };
+        fetchDonVi();
+    }, []);
+
+    useEffect(() => {
+        const setupNotificationChannel = async () => {
+            if (Platform.OS !== 'android') return; // Chỉ thiết lập kênh thông báo trên Android
+            await Notifications.setNotificationChannelAsync('reminder', {
+                name: 'Thông báo chung',
+                importance: Notifications.AndroidImportance.HIGH,
+                sound: 'default',
+            });
+        };
+        setupNotificationChannel();
+    }, []);
 
     const handleFetchNhacNho = async (event) => {
         try {
@@ -275,6 +307,18 @@ const LichHopScreen = () => {
     useEffect(() => {
         fetchEvents();
     }, [isAccountDuyetLich, selectedDate]);
+
+    // Thêm useEffect để lắng nghe sự kiện database thay đổi
+    useEffect(() => {
+        const subscription = DeviceEventEmitter.addListener('databaseChanged', () => {
+            // Refresh lại dữ liệu khi database thay đổi
+            fetchEvents();
+        });
+
+        return () => {
+            subscription.remove();
+        };
+    }, []);
 
     const handleCloseModal = () => {
         setModelEdit(false);
@@ -541,9 +585,9 @@ const LichHopScreen = () => {
                 sound: true,
             },
             trigger: {
-                seconds: secondsUntilReminder,
-                repeat: 'false',
-                type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+                channelId: 'reminder',
+                type: Notifications.SchedulableTriggerInputTypes.DATE,
+                date: reminderTime,
             },
         });
 
@@ -1152,6 +1196,7 @@ const LichHopScreen = () => {
                     onAccept={handleAcceptEvent}
                     user={user}
                     userAllowedUrls={userAllowedUrls}
+                    donViDuocChon={donViDuocChon}
                 />
             </View>
 
