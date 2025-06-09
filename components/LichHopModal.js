@@ -6,7 +6,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import * as DocumentPicker from 'expo-document-picker';
 import Toast from 'react-native-toast-message';
 import axiosInstance from "../utils/axiosInstance";
-import { accountDuyetLichRoute, phanQuyenRoute, accountRoute, diaDiemHopRoute, eventRoute, lichCaNhanRoute, thanhPhanThamDuRoute, uploadFileRoute, sendSMSRoute, accountNhanSMSRoute, eventHistoryRoute } from "../api/baseURL";
+import { accountDuyetLichRoute, phanQuyenRoute, accountRoute, diaDiemHopRoute, eventRoute, lichCaNhanRoute, thanhPhanThamDuRoute, uploadFileRoute, sendSMSRoute, accountNhanSMSRoute, eventHistoryRoute, phongBanRoute } from "../api/baseURL";
 import unidecode from 'unidecode';
 import BouncyCheckbox from "react-native-bouncy-checkbox";
 import { Dropdown } from 'react-native-element-dropdown';
@@ -34,7 +34,7 @@ export const removeDiacritics = (str) => {
 };
 
 
-const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDelete, onAccept, user, userAllowedUrls }) => {
+const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDelete, onAccept, user, userAllowedUrls, donViDuocChon }) => {
     const [editedEvent, setEditedEvent] = useState({
         noiDungCuocHop: "",
         chuTri: "",
@@ -89,7 +89,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                 const currentDateOnly = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
 
                 // Lọc tất cả các tài khoản thỏa mãn điều kiện
-                const validAccounts = response.data.filter(account => {
+                const validAccounts = response.data.filter(account => account.donViId == donViDuocChon?.id || account.donViId == 1).filter(account => {
                     const ngayBatDau = new Date(account.ngayBatDau);
                     const ngayKetThuc = new Date(account.ngayKetThuc);
 
@@ -102,7 +102,11 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                 });
 
                 // Gọi API để lấy danh sách accountId có URL '/lich-hop/duyet'
-                const fetchChucNangForAllAccount = await axiosInstance.get(phanQuyenRoute.getChucNangForAllAccounts);
+                const fetchChucNangForAllAccount = await axiosInstance.get(phanQuyenRoute.getChucNangForAllAccounts, {
+                    params: {
+                        donViId: donViDuocChon?.id // Lọc theo đơn vị được chọn
+                    }
+                });
                 const accountsWithSpecificUrl = fetchChucNangForAllAccount.data
                     .filter(item => item.url === '/lich-hop/duyet')
                     .map(item => item.accountId); // Lấy ra accountId
@@ -148,7 +152,11 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
         const fetchAccountChinhSuaLich = async () => {
             try {
                 // Gọi API để lấy danh sách accountId có URL '/lich-hop/duyet'
-                const fetchChucNangForAllAccount = await axiosInstance.get(phanQuyenRoute.getChucNangForAllAccounts);
+                const fetchChucNangForAllAccount = await axiosInstance.get(phanQuyenRoute.getChucNangForAllAccounts, {
+                    params: {
+                        donViId: donViDuocChon?.id // Lọc theo đơn vị được chọn
+                    }
+                });
                 const accountsWithSpecificUrl = fetchChucNangForAllAccount.data
                     .filter(item => item.url === '/lich-hop/edit')
                     .map(item => item.accountId); // Lấy ra accountId
@@ -157,7 +165,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
                 const adminAccounts = fetchAdminAccounts.data.filter(account => account.vaiTro === "admin").map(account => account.id);
                 // fetch ra tài khoản được cấu hình nhận sms
                 const fetchAccountNhanSMS = await axiosInstance.get(accountNhanSMSRoute.findAll);
-                const accountNhanSMS = fetchAccountNhanSMS.data.map(account => account.accountId);
+                const accountNhanSMS = fetchAccountNhanSMS.data.filter(account => account.donViId == donViDuocChon?.id || account.donViId == 1).map(account => account.accountId);
                 // Gộp hai danh sách
                 const accountChinhSuaLich = [...new Set([...accountsWithSpecificUrl, ...adminAccounts, ...accountNhanSMS])];
                 //console.log("account chỉnh sửa lịch:", accountChinhSuaLich)
@@ -170,7 +178,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
         };
         fetchAccountChinhSuaLich();
         processAccountDuyetLich();
-    }, []);
+    }, [donViDuocChon]);
 
     // useEffect(() => {
     //     const checkAccountDuyetLich = async () => {
@@ -230,18 +238,57 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
     }
 
     // Gọi api lấy ra thành phần tham dự
-    const fetchThanhPhanThamDu = async () => {
+    // const fetchThanhPhanThamDu = async () => {
+    //     try {
+    //         const response = await axiosInstance.get(thanhPhanThamDuRoute.findAll);
+    //         if (response.status >= 200 && response.status < 300) {
+    //             setThanhPhanThamDus(response.data.filter(item => item.idCotCha === null));
+    //         }
+    //     } catch (error) {
+    //         const errorMessage = error.response ? error.response.data.message : error.message;
+    //         console.log(errorMessage);
+    //     }
+    // };
+
+    // Hàm chuyển đổi data phòng ban sang tree thành phần tham dự
+    const convertPhongBanToThanhPhanThamDu = (phongBanData) => {
+        return phongBanData.map(pb => {
+            // Node phòng ban
+            const node = {
+                id: pb.id,
+                tenThanhPhan: pb.tenPhongBan,
+                children: [],
+            };
+            // Thêm account thành node con
+            if (pb.accounts && pb.accounts.length > 0) {
+                node.children = pb.accounts.map(acc => ({
+                    id: acc.id,
+                    tenThanhPhan: acc.name,
+                    children: [],
+                }));
+            }
+            // Đệ quy cho children phòng ban
+            if (pb.children && pb.children.length > 0) {
+                node.children = [
+                    ...node.children,
+                    ...convertPhongBanToThanhPhanThamDu(pb.children)
+                ];
+            }
+            return node;
+        });
+    };
+
+    const fetchPhongBan = async () => {
         try {
-            const response = await axiosInstance.get(thanhPhanThamDuRoute.findAll);
+            const response = await axiosInstance.get(phongBanRoute.getPhongBanTreeWithAccounts);
             if (response.status >= 200 && response.status < 300) {
-                setThanhPhanThamDus(response.data.filter(item => item.idCotCha === null));
+                setThanhPhanThamDus(convertPhongBanToThanhPhanThamDu(response.data));
             }
         } catch (error) {
             const errorMessage = error.response ? error.response.data.message : error.message;
-            console.log(errorMessage);
+            console.log("Lỗi khi lấy danh sách phòng ban:", errorMessage);
         }
-    };
-
+    }
     // Gọi api lấy ra account lưu vào chuTris
     const fetchChuTris = async () => {
         try {
@@ -274,7 +321,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
             try {
                 // fetch ra tài khoản accountNhanSMS
                 const fetchAccountNhanSMS = await axiosInstance.get(accountNhanSMSRoute.findAll);
-                const accountNhanSMS = fetchAccountNhanSMS.data.map(account => account.accountId);
+                const accountNhanSMS = fetchAccountNhanSMS.data.filter(account => account.donViId == donViDuocChon?.id || account.donViId == 1).map(account => account.accountId);
                 //console.log(accountNhanSMS)
                 setAccountNhanSMS(accountNhanSMS);
             } catch (error) {
@@ -287,7 +334,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
             }
         };
         fetchData();
-    }, []);
+    }, [donViDuocChon]);
 
     useEffect(() => {
         // Cập nhật editedEvent khi selectedEvent thay đổi
@@ -314,8 +361,9 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
         }
         setErrors({});
         fetchDiaDiemHops();
-        fetchThanhPhanThamDu();
+        //fetchThanhPhanThamDu();
         fetchChuTris();
+        fetchPhongBan();
     }, [selectedEvent, user?.id]);
 
     // Lưu sự kiện
@@ -1078,7 +1126,7 @@ const LichHopModal = ({ visible, selectedEvent, onClose, onCancle, onSave, onDel
         <Modal visible={visible} animationType="slide" transparent onRequestClose={handleCloseModal}>
             <View className="flex-1 justify-center items-center" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
 
-                <View className="bg-white w-96 rounded-lg p-4 my-8">
+                <View className="bg-white w-96 rounded-lg p-4 my-12">
                     <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
                         <Text className="text-xl font-bold text-center mb-4 fixed top-0">{selectedEvent ? "Sửa lịch" : "Thêm lịch"}</Text>
 

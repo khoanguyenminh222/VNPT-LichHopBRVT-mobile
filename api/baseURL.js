@@ -4,6 +4,7 @@ const authRoute = {
     login: `${domain}/api/auth/login`,
     resetPassword: `${domain}/api/auth/resetPassword`,
     casbrvtlogin: `${domain}/api/auth/casbrvtlogin`,
+    switchOrganization: `${domain}/api/auth/switchOrganization`,
 };
 
 const tokenRoute = {
@@ -181,6 +182,31 @@ const duAnRoute = {
     delete: `${domain}/api/admin/duAn`, // /:id
 }
 
+const phongBanRoute = {
+    getPhongBanTreeWithAccounts: `${domain}/api/admin/phongBan`,
+    findById: `${domain}/api/admin/phongBan`, // /:phongBanId
+    create: `${domain}/api/admin/phongBan`,
+    update: `${domain}/api/admin/phongBan`, // /:phongBanId
+    delete: `${domain}/api/admin/phongBan`, // /:phongBanId
+}
+
+const configRoute = {
+    findAll: `${domain}/api/admin/config`,
+    findByName: `${domain}/api/admin/config/name`, // /:name
+    findById: `${domain}/api/admin/config`, // /:configId
+    create: `${domain}/api/admin/config`,
+    update: `${domain}/api/admin/config`, // /:configId
+    delete: `${domain}/api/admin/config`, // /:configId
+}
+
+const donViRoute = {
+    findAll: `${domain}/api/admin/donVi`,
+    findById: `${domain}/api/admin/donVi`, // /:donViId
+    create: `${domain}/api/admin/donVi`,
+    update: `${domain}/api/admin/donVi`, // /:donViId
+    delete: `${domain}/api/admin/donVi`, // /:donViId
+}
+
 export {
     domain,
     publicfolder,
@@ -208,5 +234,8 @@ export {
     eventHistoryRoute,
     linkBIRoute,
     duAnRoute,
-    taskRoute
+    phongBanRoute,
+    configRoute,
+    taskRoute,
+    donViRoute
 };

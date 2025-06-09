@@ -3,7 +3,7 @@ import { View, ActivityIndicator, Alert, Image, Platform, ImageBackground, Scrol
 import { TextInput, Button, Text } from 'react-native-paper';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
-import { accountRoute, authRoute, domain, phanQuyenRoute, thongKeDangNhapSaiRoute, tokenRoute } from '../api/baseURL';
+import { accountRoute, authRoute, domain, phanQuyenRoute, thongKeDangNhapSaiRoute, tokenRoute, donViRoute } from '../api/baseURL';
 import Toast from 'react-native-toast-message';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as WebBrowser from 'expo-web-browser';
@@ -14,6 +14,7 @@ import { WebView } from 'react-native-webview';
 import Constants from 'expo-constants';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+import { setCurrentDatabase, getCurrentDatabase } from '../utils/databaseConfig';
 
 const LoginScreen = ({ navigation }) => {
     const { user, updateUser, isLogin, logoutSystem } = useAuth();
@@ -141,6 +142,40 @@ const LoginScreen = ({ navigation }) => {
                                 position: 'top',
                                 visibilityTime: 3000,
                             });
+
+                            // Kiểm tra nếu user chưa có donViId
+                            if (!user.donViId) {
+                                // Chuyển hướng đến màn hình chọn đơn vị
+                                navigation.reset({
+                                    index: 0,
+                                    routes: [{ name: 'ChonDonVi' }],
+                                });
+                                return;
+                            }
+
+                            // Cập nhật currentDB dựa trên donViId
+                            try {
+                                const donViResponse = await axios.get(donViRoute.findAll);
+                                if (donViResponse.status >= 200 && donViResponse.status < 300) {
+                                    const donVis = donViResponse.data;
+                                    const selectedDonVi = donVis.find(dv => dv.id === user.donViId)?.maDonVi;
+
+                                    let selectedDb;
+                                    if (selectedDonVi) {
+                                        const currentDb = await getCurrentDatabase();
+                                        if (selectedDonVi === "All") {
+                                            selectedDb = currentDb || 'VTU';
+                                        } else {
+                                            selectedDb = selectedDonVi;
+                                        }
+                                    }
+
+                                    await setCurrentDatabase(selectedDb); // Save to AsyncStorage
+                                }
+                            } catch (error) {
+                                console.error('Error fetching donVi info:', error);
+                            }
+
                             // Điều hướng đến màn hình chính
                             navigation.reset({
                                 index: 0,
@@ -307,6 +342,40 @@ const LoginScreen = ({ navigation }) => {
                                 position: 'top',
                                 visibilityTime: 3000,
                             });
+
+                            // Kiểm tra nếu user chưa có donViId
+                            if (!user.donViId) {
+                                // Chuyển hướng đến màn hình chọn đơn vị
+                                navigation.reset({
+                                    index: 0,
+                                    routes: [{ name: 'ChonDonVi' }],
+                                });
+                                return;
+                            }
+
+                            // Cập nhật currentDB dựa trên donViId
+                            try {
+                                const donViResponse = await axios.get(donViRoute.findAll);
+                                if (donViResponse.status >= 200 && donViResponse.status < 300) {
+                                    const donVis = donViResponse.data;
+                                    const selectedDonVi = donVis.find(dv => dv.id === user.donViId)?.maDonVi;
+
+                                    let selectedDb;
+                                    if (selectedDonVi) {
+                                        const currentDb = await getCurrentDatabase();
+                                        if (selectedDonVi === "All") {
+                                            selectedDb = currentDb || 'VTU';
+                                        } else {
+                                            selectedDb = selectedDonVi;
+                                        }
+                                    }
+
+                                    await setCurrentDatabase(selectedDb); // Save to AsyncStorage
+                                }
+                            } catch (error) {
+                                console.error('Error fetching donVi info:', error);
+                            }
+
                             // Điều hướng đến màn hình chính
                             navigation.reset({
                                 index: 0,

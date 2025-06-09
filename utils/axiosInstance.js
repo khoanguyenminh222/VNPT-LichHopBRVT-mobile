@@ -112,6 +112,10 @@ axiosInstance.interceptors.request.use(
             } else {
                 await logout(refreshToken);
             }
+
+            // Thêm header X-Don-Vi vào tất cả các request
+            const currentDb = await AsyncStorage.getItem('currentDatabase');
+            config.headers['X-Don-Vi'] = currentDb || '';
         } catch (error) {
             console.error('Error in request interceptor:', error);
             await logout(refreshToken);

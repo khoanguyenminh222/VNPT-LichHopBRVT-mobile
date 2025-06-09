@@ -39,6 +39,17 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faCalendarDay, faCalendarWeek } from '@fortawesome/free-solid-svg-icons';
 import WebViewBIScreen from './screens/root/WebViewBIScreen';
 
+import {
+  configureReanimatedLogger,
+  ReanimatedLogLevel,
+} from 'react-native-reanimated';
+import ChonDonViScreen from './screens/ChonDonViScreen';
+
+configureReanimatedLogger({
+  level: ReanimatedLogLevel.warn,
+  strict: false, // Reanimated runs in strict mode by default
+});
+
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 const BaoCaoStack = createStackNavigator();
@@ -203,6 +214,7 @@ const AppNavigator = () => {
             <Stack.Screen name="TabNavigator" component={TabNavigator} />
             <Stack.Screen name="WebViewBI" component={WebViewBIScreen} />
             <Stack.Screen name="TaskManagement" component={QuanLyCongViecScreen} />
+            <Stack.Screen name="ChonDonVi" component={ChonDonViScreen} />
         </Stack.Navigator>
     );
 };

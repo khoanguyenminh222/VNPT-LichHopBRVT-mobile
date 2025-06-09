@@ -8,4 +8,5 @@ export const screenUrls = {
     LichCaNhan: "/lich-ca-nhan",
     LinkBI: "/linkBI",
     QuanLyDuAn: "/quan-ly-du-an",
+    UyQuyen: "/uy-quyen",
 };

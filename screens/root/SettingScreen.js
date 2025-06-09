@@ -12,8 +12,12 @@ import hasAccess from '../../utils/permissionsAllowedURL';
 import { screenUrls } from '../../api/routes';
 import { useAuth } from '../../context/AuthContext';
 import axiosInstance from '../../utils/axiosInstance';
-import { accountRoute } from '../../api/baseURL';
+import { accountRoute, configRoute } from '../../api/baseURL';
 import { useIsFocused } from '@react-navigation/native';
+import DatabaseSwitcher from '../../components/DatabaseSwitcher';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { faServer } from '@fortawesome/free-solid-svg-icons';
+import { getCurrentDatabase } from '../../utils/databaseConfig';
 
 const SettingScreen = ({ navigation }) => {
     const { user, userAllowedUrls } = useAuth();
@@ -21,10 +25,11 @@ const SettingScreen = ({ navigation }) => {
     const { setHighlightText } = useHighlightText(); // Lấy setHighlightText từ context
     const [inputText, setInputText] = useState('');
     const [loadingLinkBI, setLoadingLinkBI] = useState(false);
+    const [currentDb, setCurrentDb] = useState('');
     const isFocused = useIsFocused();
     const fetchSettingLinkBI = async () => {
         try {
-            const response = await axiosInstance.get(accountRoute.findByUsername + "/linkbi");
+            const response = await axiosInstance.get(configRoute.findByName + "/linkbi");
             if (response.status >= 200 && response.status < 300) {
                 if (response.data.trangThai === 0) { // Trạng thái linkBI không hoạt động thì không có có màn hình Link BI
                     setLoadingLinkBI(false);
@@ -66,6 +71,14 @@ const SettingScreen = ({ navigation }) => {
         loadHighlightText();
     }, []);
 
+    useEffect(() => {
+        const loadCurrentDatabase = async () => {
+            const db = await getCurrentDatabase();
+            setCurrentDb(db);
+        };
+        loadCurrentDatabase();
+    }, []);
+
     // Hàm lưu từ cần highlight vào context
     const handleHighlightChange = async () => {
         await AsyncStorage.setItem('highlightText', inputText);
@@ -103,6 +116,24 @@ const SettingScreen = ({ navigation }) => {
 
     return (
         <ScrollView className="flex-1 p-4 bg-gray-100">
+            <View className="bg-white p-6 rounded-lg w-full max-w-lg mx-auto shadow-sm mb-6">
+                <Text className="text-xl font-bold text-center text-gray-800 mb-4" style={{ fontSize: fontSize + 4 }}>
+                    Đơn vị làm việc
+                </Text>
+                <Text className="text-lg font-medium text-gray-700 mb-2" style={{ fontSize }}>
+                    {(user?.donViId == 1 || user?.vaiTro == 'admin') 
+                        ? "Chọn đơn vị làm việc" 
+                        : "Đơn vị hiện tại của bạn"}
+                </Text>
+                {(user?.donViId == 1 || user?.vaiTro == 'admin') ? (
+                    <DatabaseSwitcher />
+                ) : (
+                    <View className="flex flex-row items-center justify-center gap-2 px-4 py-2 bg-blue-50 rounded-lg border border-blue-100">
+                        <FontAwesomeIcon icon={faServer} size={20} color="#3b82f6" />
+                        <Text className="text-blue-700 font-medium" style={{ fontSize }}>{currentDb}</Text>
+                    </View>
+                )}
+            </View>
 
             {(hasAccess(screenUrls.LinkBI, userAllowedUrls) || user?.vaiTro == 'admin') && loadingLinkBI &&
                 <View className="bg-white mb-6 p-6 rounded-lg w-full max-w-lg mx-auto shadow-sm">
