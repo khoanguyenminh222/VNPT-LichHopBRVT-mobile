@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Pressable, Alert, Modal, ScrollView, RefreshControl } from 'react-native';
+import { View, Text, Pressable, Alert, Modal, ScrollView, RefreshControl, DeviceEventEmitter } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
 import Toast from 'react-native-toast-message';
 import Constants from 'expo-constants';
 import TreeSelectWithDatetimeModal from '../../components/TreeSelectWithDatetimeModal';
-import { accountDuyetLichRoute, thanhPhanThamDuRoute } from '../../api/baseURL';
+import { accountDuyetLichRoute, phongBanRoute, thanhPhanThamDuRoute } from '../../api/baseURL';
 import axiosInstance from '../../utils/axiosInstance';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import { useFontSize } from '../../context/FontSizeContext';
+import hasAccess from '../../utils/permissionsAllowedURL';
+import { screenUrls } from '../../api/routes';
 
 const formatDate = (dateString) => {
     const [year, month, day] = dateString.split("-");
@@ -77,7 +79,7 @@ const DeleteConfirmationModal = ({ visible, onClose, onDelete, id }) => {
 
 const ThongTinScreen = () => {
     const { fontSize } = useFontSize();
-    const { logoutSystem, user } = useAuth();
+    const { logoutSystem, user, userAllowedUrls } = useAuth();
     const [selectModalVisible, setSelectModalVisible] = useState(false);
     const [thanhPhanThamDus, setThanhPhanThamDus] = useState([]);
     const [uyQuyens, setUyQuyens] = useState([]);
@@ -99,18 +101,60 @@ const ThongTinScreen = () => {
     }
 
     // Gọi api lấy ra thành phần tham dự
-    const fetchThanhPhanThamDu = async () => {
+    // const fetchThanhPhanThamDu = async () => {
+    //     try {
+    //         const response = await axiosInstance.get(thanhPhanThamDuRoute.findAll);
+    //         if (response.status >= 200 && response.status < 300) {
+    //             setThanhPhanThamDus(response.data.filter(item => item.idCotCha === null && item.id < 300));
+    //             console.log(response.data.filter(item => item.idCotCha === null && item.id < 300));
+    //         }
+    //     } catch (error) {
+    //         const errorMessage = error.response ? error.response.data.message : error.message;
+    //         console.log(errorMessage);
+    //     }
+    // };
+
+    // Hàm chuyển đổi data phòng ban sang tree thành phần tham dự
+    const convertPhongBanToThanhPhanThamDu = (phongBanData) => {
+        return phongBanData.map(pb => {
+            // Node phòng ban
+            const node = {
+                id: pb.id,
+                tenThanhPhan: pb.tenPhongBan,
+                children: [],
+            };
+            // Thêm account thành node con
+            if (pb.accounts && pb.accounts.length > 0) {
+                node.children = pb.accounts.map(acc => ({
+                    id: acc.id,
+                    tenThanhPhan: acc.name,
+                    username: acc.username,
+                    name: acc.name,
+                    children: [],
+                }));
+            }
+            // Đệ quy cho children phòng ban
+            if (pb.children && pb.children.length > 0) {
+                node.children = [
+                    ...node.children,
+                    ...convertPhongBanToThanhPhanThamDu(pb.children)
+                ];
+            }
+            return node;
+        });
+    };
+
+    const fetchPhongBan = async () => {
         try {
-            const response = await axiosInstance.get(thanhPhanThamDuRoute.findAll);
+            const response = await axiosInstance.get(phongBanRoute.getPhongBanTreeWithAccounts);
             if (response.status >= 200 && response.status < 300) {
-                setThanhPhanThamDus(response.data.filter(item => item.idCotCha === null && item.id < 300));
-                console.log(response.data.filter(item => item.idCotCha === null && item.id < 300));
+                setThanhPhanThamDus(convertPhongBanToThanhPhanThamDu(response.data));
             }
         } catch (error) {
             const errorMessage = error.response ? error.response.data.message : error.message;
-            console.log(errorMessage);
+            console.log("Lỗi khi lấy danh sách phòng ban:", errorMessage);
         }
-    };
+    }
 
     // Gọi api lấy ra danh sách uỷ quyền
     const fetchUyQuyen = async () => {
@@ -142,13 +186,26 @@ const ThongTinScreen = () => {
 
     const fetchData = async () => {
         if (user.username !== 'test') {
-            await fetchThanhPhanThamDu();
+            await fetchPhongBan();
+            //await fetchThanhPhanThamDu();
             await fetchUyQuyen();
         }
     };
 
     useEffect(() => {
         fetchData();
+    }, []);
+
+    // Thêm useEffect để lắng nghe sự kiện database thay đổi
+    useEffect(() => {
+        const subscription = DeviceEventEmitter.addListener('databaseChanged', () => {
+            // Refresh lại dữ liệu khi database thay đổi
+            fetchUyQuyen();
+        });
+
+        return () => {
+            subscription.remove();
+        };
     }, []);
 
     const handleSelection = async (selectedItems, field, thoiGianBatDau, thoiGianKetThuc) => {
@@ -273,7 +330,7 @@ const ThongTinScreen = () => {
                     </View>
                 )}
 
-                {user?.vaiTro === 'admin' && (
+                {(hasAccess(screenUrls.UyQuyen, userAllowedUrls) || user?.vaiTro === 'admin') && (
                     <View className="bg-white p-6 rounded-lg shadow-lg w-11/12 max-w-md text-center mb-4">
                         <Text style={{ fontSize: fontSize * 1.5 }} className="font-semibold text-blue-600 text-center">Uỷ quyền duyệt lịch</Text>
                         <Pressable onPress={() => setSelectModalVisible(true)} className="w-32 py-3 px-6 bg-blue-600 rounded-md shadow-lg hover:bg-blue-700 mt-4 m-auto justify-center items-center">
